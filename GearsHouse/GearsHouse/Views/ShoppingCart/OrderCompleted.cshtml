@@ -1,0 +1,42 @@
+﻿@model int
+
+<div class="container text-center mt-5">
+    <div class="card shadow-lg p-4 rounded-4" style="max-width: 600px; margin: auto;">
+        <div class="card-body">
+            <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+            <h2 class="mt-3 text-uppercase fw-bold">Đặt hàng thành công! 🎉</h2>
+            <p class="mt-2">Cảm ơn bạn đã đặt hàng tại <strong>SPORTSHOUSE</strong>. </p>
+            <p>Đơn hàng của bạn có mã <strong>#@Model</strong> đã được ghi nhận.</p>
+            <p>Chúng tôi đã gửi email xác nhận đơn hàng</p>
+            <p>Chúng tôi sẽ sớm xử lý và giao hàng cho bạn.</p>
+
+            <a asp-controller="Home" asp-action="Index" class="btn btn-success mt-3">
+                <i class="bi bi-house-door-fill"></i> Quay về trang chủ
+            </a>
+            <a asp-controller="Product" asp-action="Index" class="btn btn-outline-primary mt-3">
+                <i class="bi bi-cart-fill"></i> Tiếp tục mua sắm
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        animation: fadeIn 0.8s ease-in-out;
+    }
+
+    @@keyframes fadeIn {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    }
+</style>

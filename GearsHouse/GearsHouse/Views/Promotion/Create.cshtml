@@ -1,0 +1,98 @@
+@model GearsHouse.Models.Promotion
+
+@{
+    ViewData["Title"] = "Tạo khuyến mãi";
+}
+
+<style>
+    .fade-in {
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    @@keyframes fadeInUp {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    }
+
+    .btn-orange {
+        background-color: #ff7f50;
+        color: white;
+        border: none;
+    }
+
+        .btn-orange:hover {
+            background-color: #ff5722;
+        }
+
+    .text-orange {
+        color: #ff5722;
+    }
+
+    .card-border-orange {
+        border: 2px solid #ff7f50;
+    }
+</style>
+
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 90vh;">
+    <div class="card shadow-lg card-border-orange fade-in" style="max-width: 600px; width: 100%;">
+        <div class="card-body">
+            <h2 class="mb-4 text-orange fw-bold text-center">
+                🛍️ Tạo Khuyến Mãi Mới
+            </h2>
+
+            <form asp-action="Create" method="post" novalidate id="form-create-promotion">
+                <div class="mb-3">
+                    <label asp-for="ProductId" class="form-label fw-semibold">🎯 Sản phẩm</label>
+                    <select asp-for="ProductId" class="form-select" asp-items="ViewBag.Products" aria-describedby="productHelp" required>
+                        <option value="">-- Chọn sản phẩm --</option>
+                    </select>
+                    <div id="productHelp" class="form-text">Chọn sản phẩm áp dụng khuyến mãi.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="DiscountPercent" class="form-label fw-semibold">💸 Giảm giá (%)</label>
+                    <input asp-for="DiscountPercent" class="form-control" type="number" min="0" max="100" step="1" placeholder="Nhập phần trăm giảm giá" required />
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label asp-for="StartDate" class="form-label fw-semibold">📅 Ngày bắt đầu</label>
+                        <input asp-for="StartDate" class="form-control" type="date" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="EndDate" class="form-label fw-semibold">⏳ Ngày kết thúc</label>
+                        <input asp-for="EndDate" class="form-control" type="date" required />
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-3">
+                    <button type="submit" class="btn btn-orange fw-semibold px-4 shadow-sm"
+                            style="transition: transform 0.2s;"
+                            onmouseover="this.style.transform='scale(1.05)'"
+                            onmouseout="this.style.transform='scale(1)'">
+                        <i class="bi bi-check2-circle me-2"></i> Lưu
+                    </button>
+                    <a asp-controller="Dashboard" asp-action="PromotionIndex" class="btn btn-outline-secondary fw-semibold px-4">
+                        <i class="bi bi-arrow-left-circle me-2"></i> Quay lại
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // JS xác thực hoặc tương tác có thể đặt tại đây
+    </script>
+}

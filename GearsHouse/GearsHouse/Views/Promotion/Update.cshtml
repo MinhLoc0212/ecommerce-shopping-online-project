@@ -1,0 +1,41 @@
+﻿@model GearsHouse.Models.Promotion
+
+@{
+    ViewData["Title"] = "Chỉnh sửa Khuyến mãi";
+}
+@{
+    var xRequestedWith = ViewContext?.HttpContext?.Request?.Headers["X-Requested-With"].ToString();
+    if (string.Equals(xRequestedWith, "XMLHttpRequest", StringComparison.OrdinalIgnoreCase))
+    {
+        Layout = null;
+    }
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<form asp-action="Update" method="post" id="promotion-update-form">
+    <input type="hidden" asp-for="Id" />
+    <div class="form-group">
+        <label asp-for="ProductId">Sản phẩm</label>
+        <select asp-for="ProductId" asp-items="ViewBag.Products" class="form-control"></select>
+        <span asp-validation-for="ProductId" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="DiscountPercent">Giảm (%)</label>
+        <input asp-for="DiscountPercent" class="form-control" />
+        <span asp-validation-for="DiscountPercent" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="StartDate">Ngày bắt đầu</label>
+        <input asp-for="StartDate" class="form-control" type="date" />
+        <span asp-validation-for="StartDate" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="EndDate">Ngày kết thúc</label>
+        <input asp-for="EndDate" class="form-control" type="date" />
+        <span asp-validation-for="EndDate" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Lưu</button>
+    <a asp-controller="Dashboard" asp-action="Dashboard" asp-route-tab="promotion" class="btn btn-secondary">Quay lại</a>
+
+</form>

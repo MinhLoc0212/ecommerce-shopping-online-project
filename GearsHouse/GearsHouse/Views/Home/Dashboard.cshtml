@@ -1,0 +1,652 @@
+@{
+    Layout = "_DashboardLayout";
+    ViewData["Title"] = "Dashboard";
+    var activeTab = (ViewBag.ActiveTab ?? "").ToString().ToLower();
+    if (string.IsNullOrEmpty(activeTab))
+    {
+        activeTab = "revenue";
+    }
+}
+
+@section Styles {
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .dashboard-wrapper {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 240px;
+            background: #1e1e2f;
+            color: #fff;
+            padding-top: 20px;
+            font-size: 16px;
+            height: 100vh;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+            position: relative;
+            user-select: none;
+            transition: width 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+            .sidebar ul {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+                flex: 1 1 auto;
+            }
+
+                .sidebar ul li {
+                    padding: 14px 24px;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    cursor: pointer;
+                    border-left: 4px solid transparent;
+                    transition: all 0.3s ease;
+                    position: relative;
+                    white-space: nowrap;
+                }
+
+                    .sidebar ul li:hover {
+                        background-color: rgba(255, 255, 255, 0.08);
+                        border-left-color: #ff9800;
+                        transform: translateX(5px);
+                    }
+
+                    .sidebar ul li a {
+                        color: #fff;
+                        text-decoration: none;
+                        flex: 1;
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        font-weight: 500;
+                        transition: all 0.3s ease;
+                        position: relative;
+                        z-index: 1;
+                    }
+
+                        .sidebar ul li a.active {
+                            color: #ff9800;
+                            font-weight: 600;
+                        }
+
+                            .sidebar ul li a.active::before {
+                                content: "";
+                                position: absolute;
+                                left: 0;
+                                top: 0;
+                                bottom: 0;
+                                width: 4px;
+                                background: #ff9800;
+                                border-radius: 0 4px 4px 0;
+                                transition: background 0.3s ease;
+                                z-index: 0;
+                            }
+
+            .sidebar.collapsed {
+                width: 100px;
+            }
+
+                .sidebar.collapsed ul li {
+                    padding-left: 0;
+                    justify-content: center;
+                    transform: none !important;
+                }
+
+                    .sidebar.collapsed ul li a {
+                        justify-content: center;
+                    }
+
+            .sidebar ul li a .text {
+                opacity: 1;
+                transition: opacity 0.3s ease, width 0.3s ease;
+                display: inline-block;
+            }
+
+            .sidebar.collapsed ul li a .text {
+                opacity: 0;
+                width: 0;
+                overflow: hidden;
+            }
+
+        .content-wrapper {
+            flex: 1;
+            background-color: #f5f5f5;
+            padding: 20px;
+            padding-bottom: 100px;
+            overflow-y: auto;
+            transition: margin-left 0.3s ease;
+        }
+
+        .sidebar + .content-wrapper {
+            margin-left: 240px;
+        }
+
+        .sidebar.collapsed + .content-wrapper {
+            margin-left: 100px;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 10px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            gap: 12px;
+            user-select: none;
+            flex-shrink: 0;
+        }
+
+            .sidebar-header .logo {
+                width: 150px;
+                height: auto;
+                transition: width 0.3s ease;
+            }
+
+            .sidebar-header .logo-text {
+                font-size: 1.2rem;
+                font-weight: 700;
+                color: #ff9800;
+                transition: opacity 0.3s ease, width 0.3s ease;
+                white-space: nowrap;
+                overflow: hidden;
+            }
+
+        .sidebar.collapsed .logo-text {
+            opacity: 0;
+            width: 0;
+        }
+
+        .sidebar.collapsed .logo {
+            width: 40px;
+        }
+
+        #toggle-sidebar {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: #ff9800;
+            font-size: 20px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            outline: none;
+            z-index: 10;
+        }
+
+            #toggle-sidebar:hover {
+                color: #ffc870;
+            }
+
+
+        .admin-label {
+            margin-top: 40px;
+            color: #ff9800;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-left: 24px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .sidebar.collapsed .admin-text {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+            display: inline-block;
+            transition: opacity 0.3s ease, width 0.3s ease;
+        }
+
+        .sidebar.collapsed .admin-label {
+            padding-left: 0;
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .admin-icon {
+            display: inline-block;
+            width: 24px;
+            text-align: center;
+            font-size: 18px;
+        }
+    </style>
+}
+
+<div class="dashboard-wrapper">
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <img src="~/image/logoo.png" asp-append-version="true" alt="Logo" class="logo" />
+            <button id="toggle-sidebar" title="Thu gọn sidebar" aria-label="Thu gọn sidebar">
+                <i class="fas fa-angle-double-left"></i>
+            </button>
+        </div>
+        <ul>
+            <li>
+                <a href="#" id="revenue-link" class="@(activeTab == "revenue" ? "active" : "")">
+                    <i class="fas fa-chart-line"></i><span class="text">Dữ liệu tổng quát</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" id="product-link" class="@(activeTab == "product" ? "active" : "")">
+                    <i class="fas fa-box"></i><span class="text">Quản lý sản phẩm</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" id="category-link" class="@(activeTab == "category" ? "active" : "")">
+                    <i class="fas fa-list"></i><span class="text">Quản lý danh mục</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" id="brand-link" class="@(activeTab == "brand" ? "active" : "")">
+                    <i class="fas fa-tags"></i><span class="text">Quản lý thương hiệu</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" id="promotion-link" class="@(activeTab == "promotion" ? "active" : "")">
+                    <i class="fas fa-bullhorn"></i><span class="text">Quản lý khuyến mãi</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" id="order-link" class="@(activeTab == "order" ? "active" : "")">
+                    <i class="fas fa-shopping-cart"></i><span class="text">Quản lý đơn hàng</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" id="user-link" class="@(activeTab == "user" ? "active" : "")">
+                    <i class="fas fa-users-cog"></i><span class="text">Quản lý nhân viên</span>
+                </a>
+            </li>
+
+            <li class="admin-label">
+                <i class="fas fa-user-shield admin-icon"></i>
+                <span class="admin-text">ADMIN</span>
+            </li>
+                <li>
+                    <a href="javascript:void(0);" onclick="document.getElementById('logoutForm').submit();" style="display: flex; align-items: center;">
+                        <i class="fas fa-sign-out-alt" style="margin-right: 12px;"></i> <span class="text">Đăng xuất</span>
+                    </a>
+                <form id="logoutForm" asp-area="Identity" asp-page="/Account/Logout" method="post" asp-route-returnUrl="/Identity/Account/Login" style="display: none;">
+                    @Html.AntiForgeryToken()
+                </form>
+                </li>
+
+            </ul>
+        </div>
+
+        <div class="content-wrapper" id="content-section">
+            <div id="ajax-content">
+                <script>
+                    $(function () {
+                        loadContent('@activeTab', false);
+                    });
+                </script>
+            </div>
+            <div id="notification-container" style="margin-top: 1rem;">
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger" role="alert">@TempData["ErrorMessage"]</div>
+                }
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success" role="alert">@TempData["SuccessMessage"]</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function loadContent(tab, pushState = true) {
+            var tabUrls = {
+                product: '@Url.Action("ProductIndex", "Dashboard")',
+                category: '@Url.Action("CategoryIndex", "Dashboard")',
+                brand: '@Url.Action("BrandIndex", "Dashboard")',
+                promotion: '@Url.Action("PromotionIndex", "Dashboard")',
+                order: '@Url.Action("OrderIndex", "Dashboard")',
+                user: '@Url.Action("UserIndex", "Dashboard")',
+                revenue: '@Url.Action("Revenue", "Dashboard")'
+            };
+
+            $.ajax({
+                url: tabUrls[tab],
+                method: "GET",
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                success: function (data) {
+                    $("#ajax-content").html(data);
+                    if (pushState) {
+                        history.pushState(null, null, '@Url.Action("Dashboard", "Dashboard")?tab=' + tab);
+                    }
+                },
+                error: function () {
+                }
+            });
+        }
+
+        function setActiveTab(tab) {
+            $(".sidebar ul li a").removeClass("active");
+            $("#" + tab + "-link").addClass("active");
+        }
+
+        $(".sidebar ul li a").click(function (e) {
+            e.preventDefault();
+            var tab = this.id.replace("-link", "");
+            setActiveTab(tab);
+            loadContent(tab);
+        });
+
+        // Toggle sidebar
+        $("#toggle-sidebar").click(function () {
+            $(".sidebar").toggleClass("collapsed");
+            var icon = $(this).find("i");
+            if ($(".sidebar").hasClass("collapsed")) {
+                icon.removeClass("fa-angle-double-left").addClass("fa-angle-double-right");
+            } else {
+                icon.removeClass("fa-angle-double-right").addClass("fa-angle-double-left");
+            }
+        });
+
+        // Handle browser back/forward
+        window.onpopstate = function () {
+            var params = new URLSearchParams(window.location.search);
+            var tab = params.get('tab') || 'revenue';
+            setActiveTab(tab);
+            loadContent(tab, false);
+        };
+
+        // **Chỉnh sửa: gọi loadContent khi trang load**
+        $(document).ready(function () {
+            var activeTab = '@activeTab';  // Lấy giá trị từ server
+            setActiveTab(activeTab);
+            loadContent(activeTab, false);
+
+            setTimeout(function () {
+                $("#notification-container .alert-success").fadeOut("slow");
+            }, 3000);
+
+            // Bắt sự kiện Sửa sản phẩm để tải form Update qua AJAX
+            $(document).on('click', 'a.js-edit-product', function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (html) {
+                        $('#ajax-content').html(html);
+                    },
+                    error: function () {
+                        alert('Không thể tải form sửa sản phẩm. Vui lòng thử lại!');
+                    }
+                });
+            });
+
+            // Submit form Update sản phẩm qua AJAX để hiện danh sách ngay trong Dashboard
+            $(document).on('submit', '#product-update-form', function (e) {
+                e.preventDefault();
+                var form = this;
+                var url = $(form).attr('action') || form.action;
+                var formData = new FormData(form);
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (html) {
+                        $('#ajax-content').html(html);
+                        $('#content-section').scrollTop(0);
+                    },
+                    error: function () {
+                        alert('Không thể cập nhật sản phẩm. Vui lòng thử lại!');
+                    }
+                });
+            });
+
+            // ==== Category: load edit form and submit update via AJAX ====
+            $(document).on('click', 'a.js-edit-category', function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (html) { $('#ajax-content').html(html); },
+                    error: function () { alert('Không thể tải form sửa danh mục. Vui lòng thử lại!'); }
+                });
+            });
+            $(document).on('submit', '#category-update-form', function (e) {
+                e.preventDefault();
+                var form = this;
+                var url = $(form).attr('action') || form.action;
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: $(form).serialize(),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (html) { $('#ajax-content').html(html); $('#content-section').scrollTop(0); },
+                    error: function () { alert('Không thể cập nhật danh mục. Vui lòng thử lại!'); }
+                });
+            });
+
+            // ==== Brand: load edit form and submit update via AJAX ====
+            $(document).on('click', 'a.js-edit-brand', function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (html) { $('#ajax-content').html(html); },
+                    error: function () { alert('Không thể tải form sửa thương hiệu. Vui lòng thử lại!'); }
+                });
+            });
+            $(document).on('submit', '#brand-update-form', function (e) {
+                e.preventDefault();
+                var form = this;
+                var url = $(form).attr('action') || form.action;
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: $(form).serialize(),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (html) { $('#ajax-content').html(html); $('#content-section').scrollTop(0); },
+                    error: function () { alert('Không thể cập nhật thương hiệu. Vui lòng thử lại!'); }
+                });
+            });
+
+            // ==== Promotion: load edit form and submit update via AJAX ====
+            $(document).on('click', 'a.js-edit-promotion', function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (html) { $('#ajax-content').html(html); },
+                    error: function () { alert('Không thể tải form sửa khuyến mãi. Vui lòng thử lại!'); }
+                });
+            });
+            $(document).on('submit', '#promotion-update-form', function (e) {
+                e.preventDefault();
+                var form = this;
+                var url = $(form).attr('action') || form.action;
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: $(form).serialize(),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (html) { $('#ajax-content').html(html); $('#content-section').scrollTop(0); },
+                    error: function () { alert('Không thể cập nhật khuyến mãi. Vui lòng thử lại!'); }
+                });
+            });
+
+            // ==== Order: submit status update via AJAX ====
+            $(document).on('submit', '.js-order-status-form', function (e) {
+                e.preventDefault();
+                var form = this;
+                $.ajax({
+                    url: form.action,
+                    type: 'POST',
+                    data: $(form).serialize(),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (html) { $('#ajax-content').html(html); $('#content-section').scrollTop(0); },
+                    error: function () { alert('Không thể cập nhật trạng thái đơn hàng. Vui lòng thử lại!'); }
+                });
+            });
+
+            // ==== User: submit role update via AJAX ====
+            $(document).on('submit', '.js-user-role-form', function (e) {
+                e.preventDefault();
+                var form = this;
+                $.ajax({
+                    url: form.action,
+                    type: 'POST',
+                    data: $(form).serialize(),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (html) { $('#ajax-content').html(html); $('#content-section').scrollTop(0); },
+                    error: function () { alert('Không thể cập nhật vai trò người dùng. Vui lòng thử lại!'); }
+                });
+            });
+
+            // ==== User: submit delete via AJAX ====
+            $(document).on('submit', '.js-user-delete-form', function (e) {
+                e.preventDefault();
+                if (!confirm('Bạn chắc chắn muốn xóa người dùng này?')) { return; }
+                var form = this;
+                $.ajax({
+                    url: form.action,
+                    type: 'POST',
+                    data: $(form).serialize(),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (html) { $('#ajax-content').html(html); $('#content-section').scrollTop(0); },
+                    error: function () { alert('Không thể xóa người dùng. Vui lòng thử lại!'); }
+                });
+            });
+
+            // ==== Add Product: load form and submit via AJAX ====
+            $(document).on('click', '#ajax-content a[href*="/Product/Add"]', function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (html) { $('#ajax-content').html(html); },
+                    error: function () { alert('Không thể tải form thêm sản phẩm. Vui lòng thử lại!'); }
+                });
+            });
+            $(document).on('submit', '#form-add-product', function (e) {
+                e.preventDefault();
+                var form = this;
+                var url = $(form).attr('action') || form.action;
+                var formData = new FormData(form);
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (html) { $('#ajax-content').html(html); $('#content-section').scrollTop(0); },
+                    error: function () { alert('Không thể thêm sản phẩm. Vui lòng thử lại!'); }
+                });
+            });
+
+            // ==== Add Category: load form and submit via AJAX ====
+            $(document).on('click', '#ajax-content a[href*="/Categories/AddCategory"]', function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (html) { $('#ajax-content').html(html); },
+                    error: function () { alert('Không thể tải form thêm danh mục. Vui lòng thử lại!'); }
+                });
+            });
+            $(document).on('submit', '#form-add-category', function (e) {
+                e.preventDefault();
+                var form = this;
+                var url = $(form).attr('action') || form.action;
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: $(form).serialize(),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (html) { $('#ajax-content').html(html); $('#content-section').scrollTop(0); },
+                    error: function () { alert('Không thể thêm danh mục. Vui lòng thử lại!'); }
+                });
+            });
+
+            // ==== Add Brand: load form and submit via AJAX ====
+            $(document).on('click', '#ajax-content a[href*="/Brand/AddBrand"]', function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (html) { $('#ajax-content').html(html); },
+                    error: function () { alert('Không thể tải form thêm thương hiệu. Vui lòng thử lại!'); }
+                });
+            });
+            $(document).on('submit', '#form-add-brand', function (e) {
+                e.preventDefault();
+                var form = this;
+                var url = $(form).attr('action') || form.action;
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: $(form).serialize(),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (html) { $('#ajax-content').html(html); $('#content-section').scrollTop(0); },
+                    error: function () { alert('Không thể thêm thương hiệu. Vui lòng thử lại!'); }
+                });
+            });
+
+            // ==== Create Promotion: load form and submit via AJAX ====
+            $(document).on('click', '#ajax-content a.btn-add-promo', function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (html) { $('#ajax-content').html(html); },
+                    error: function () { alert('Không thể tải form tạo khuyến mãi. Vui lòng thử lại!'); }
+                });
+            });
+            $(document).on('submit', '#form-create-promotion', function (e) {
+                e.preventDefault();
+                var form = this;
+                var url = $(form).attr('action') || form.action;
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: $(form).serialize(),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (html) { $('#ajax-content').html(html); $('#content-section').scrollTop(0); },
+                    error: function () { alert('Không thể tạo khuyến mãi. Vui lòng thử lại!'); }
+                });
+            });
+        });
+    </script>
+}

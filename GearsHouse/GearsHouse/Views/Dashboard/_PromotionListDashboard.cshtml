@@ -1,0 +1,169 @@
+@model List<GearsHouse.Models.Promotion>
+@{
+    Layout = null;
+    ViewData["Title"] = "Danh sách khuyến mãi";
+}
+
+<!-- Tiêu đề với animation -->
+<h2 class="text-center text-primary mb-4 fw-bold animate__animated animate__fadeInDown animate__faster">
+    Danh sách Khuyến Mãi
+</h2>
+
+<!-- Bảng khuyến mãi với animation -->
+<div class="promo-table-wrapper animate__animated animate__fadeIn animate__faster">
+    <table class="promo-table">
+        <thead>
+            <tr class="promo-header">
+                <th class="text-center"><i class="bi bi-box-seam me-1"></i> Sản phẩm</th>
+                <th class="text-center"><i class="bi bi-percent me-1"></i> Giảm (%)</th>
+                <th class="text-center"><i class="bi bi-calendar-event me-1"></i> Ngày bắt đầu</th>
+                <th class="text-center"><i class="bi bi-calendar-event me-1"></i> Ngày kết thúc</th>
+                <th class="text-center"><i class="bi bi-info-circle me-1"></i> Trạng thái</th>
+                <th class="text-center"><i class="bi bi-gear me-1"></i> Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr class="animate__animated animate__fadeInUp animate__faster">
+                    <td class="text-center">@item.Product?.Name</td>
+                    <td class="text-center">@item.DiscountPercent%</td>
+                    <td class="text-center">@item.StartDate.ToString("dd/MM/yyyy")</td>
+                    <td class="text-center">@item.EndDate.ToString("dd/MM/yyyy")</td>
+                    <td class="text-center">
+                        @if (item.StartDate > DateTime.Now)
+                        {
+                            <span class="badge bg-warning text-dark badge-status">Sắp mở khuyến mãi</span>
+                        }
+                        else if (item.StartDate <= DateTime.Now && item.EndDate >= DateTime.Now)
+                        {
+                            <span class="badge bg-success badge-status">Đang diễn ra</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger badge-status">Hết hạn</span>
+                        }
+                    </td>
+                    <td class="text-center">
+                        <a asp-controller="Promotion" asp-action="Update" asp-route-id="@item.Id" class="btn btn-warning btn-sm btn-action js-edit-promotion">
+                            <i class="bi bi-pencil-square"></i> Sửa
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Nút tạo mới chuyển xuống dưới -->
+<div class="text-center mt-4 animate__animated animate__fadeInUp animate__faster">
+    <a href="/Promotion/Create" class="btn btn-success btn-lg btn-add-promo">
+        <i class="bi bi-plus-circle me-2"></i> Tạo khuyến mãi mới
+    </a>
+</div>
+
+<!-- Bootstrap Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+
+<!-- Animate.css -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" />
+
+<style>
+    .promo-table-wrapper {
+        border: 2px solid #000;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+        background: #fff;
+        border-radius: 0;
+        overflow: visible;
+    }
+
+    .promo-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .promo-header {
+        background-color: #212529;
+        color: #fff;
+        font-weight: 700;
+        border-bottom: 3px solid #000;
+    }
+
+        .promo-header th {
+            padding: 12px 15px;
+            border: 1px solid #000;
+            vertical-align: middle;
+            transition: background-color 0.3s ease;
+        }
+
+            .promo-header th:hover {
+                background-color: #343a40;
+            }
+
+    tbody tr:nth-child(odd) {
+        background-color: #f8f9fa;
+    }
+
+    tbody tr:nth-child(even) {
+        background-color: #e9ecef;
+    }
+
+    tbody td {
+        padding: 12px 15px;
+        border: 1px solid #000;
+        vertical-align: middle;
+        transition: background-color 0.3s ease;
+    }
+
+    tbody tr:hover td {
+        background-color: #d1e7dd;
+    }
+
+    .btn-action {
+        border-radius: 4px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        font-weight: 600;
+    }
+
+        .btn-action:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+    .btn-add-promo {
+        border-radius: 4px;
+        font-weight: 700;
+        background: linear-gradient(45deg, #28a745, #218838);
+        border-color: #218838;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .btn-add-promo:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(33, 136, 56, 0.6);
+        }
+
+    .badge-status {
+        font-size: 0.9rem;
+        padding: 0.35rem 0.7rem;
+        border-radius: 4px;
+        font-weight: 600;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        transition: box-shadow 0.3s ease;
+        user-select: none;
+    }
+
+        .badge-status:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        }
+
+    .bi {
+        vertical-align: -.125em;
+        margin-right: 6px;
+    }
+
+    .text-center {
+        text-align: center !important;
+    }
+</style>

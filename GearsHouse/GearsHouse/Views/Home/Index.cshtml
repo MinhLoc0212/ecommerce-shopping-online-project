@@ -1,0 +1,783 @@
+﻿@section Styles {
+    <style>
+        
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .hero-section {
+            background: url('/image/background.jpg') no-repeat center center;
+            background-size: cover;
+            color: white;
+            padding: 120px 0;
+            text-align: center;
+        }
+
+            .hero-section h1 {
+                font-size: 3rem;
+                font-weight: bold;
+                margin-bottom: 20px;
+            }
+
+            .hero-section p {
+                font-size: 1.2rem;
+                margin-bottom: 30px;
+            }
+
+            /* Nút khám phá ngay cải tiến */
+            .hero-section .btn-explore {
+                background-color: #000;
+                color: white !important;
+                padding: 12px 30px;
+                font-weight: 700;
+                font-size: 1.1rem;
+                border-radius: 50px;
+                text-transform: uppercase;
+                transition: background-color 0.3s ease, color 0.3s ease;
+                display: inline-block;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            }
+
+                .hero-section .btn-explore:hover {
+                    background-color: #d10000;
+                    color: white !important;
+                    box-shadow: 0 6px 20px rgba(209,0,0,0.7);
+                }
+
+        /* Các phần CSS khác bạn giữ nguyên */
+        .product-highlight {
+            background-color: #fff;
+            padding: 60px 0;
+        }
+
+            .product-highlight h2 {
+                text-align: center;
+                font-weight: 700;
+                font-size: 2rem;
+                margin-bottom: 40px;
+            }
+
+        .card.product-card {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+            .card.product-card:hover {
+                box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+                transform: translateY(-5px);
+            }
+
+        .product-card img {
+            height: 240px;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .product-card:hover img {
+            transform: scale(1.05);
+        }
+
+        .product-card .card-body {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        .product-card .card-text {
+            flex-grow: 1;
+        }
+
+        .product-card .btn {
+            background-color: #d10000;
+            color: white;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            text-transform: uppercase;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+
+            .product-card .btn:hover {
+                background-color: #a80000;
+            }
+
+        .carousel-inner img {
+            height: 400px;
+            object-fit: cover;
+        }
+
+        .banner-section {
+            margin-top: 60px;
+        }
+
+        .product-price {
+            font-size: 1.1rem;
+            color: #d10000;
+            margin-bottom: 10px;
+        }
+
+            .product-price del {
+                color: #999;
+                margin-right: 8px;
+                font-weight: 400;
+            }
+
+        .product-rating {
+            margin-bottom: 12px;
+            color: #ffc107;
+            font-size: 1rem;
+        }
+
+            .product-rating .checked {
+                color: #ffc107;
+            }
+
+            .product-rating i {
+                margin-right: 2px;
+            }
+
+        /* Animation Fade-In */
+        @@keyframes fadeInUp {
+            0%
+
+        {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        }
+
+        .hero-section h1,
+        .hero-section p,
+        .hero-section .btn-explore {
+            animation: fadeInUp 1s ease forwards;
+            opacity: 0;
+        }
+
+        .hero-section h1 {
+            animation-delay: 0.3s;
+        }
+
+        .hero-section p {
+            animation-delay: 0.6s;
+        }
+
+        .hero-section .btn-explore {
+            animation-delay: 0.9s;
+        }
+
+            .category-section {
+                padding: 9px;
+                background-color: #fff0f0;
+                border: 3px solid red; /* Khung viền đỏ */
+                border-radius: 12px;
+                margin-top: 50px;
+            }
+
+            .section-header h2 {
+                font-size: 28px;
+                color: #d10000;
+                margin-bottom: 30px;
+            }
+
+            .category-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 20px;
+            }
+
+            .category-card {
+                background: #fff;
+                border-radius: 10px;
+                padding: 15px;
+                text-align: center;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                transition: transform 0.3s ease;
+            }
+
+                .category-card:hover {
+                    transform: translateY(-5px);
+                }
+
+                .category-card img {
+                    height: 100px;
+                    object-fit: contain;
+                    margin-bottom: 15px;
+                }
+
+                .category-card h3 {
+                    font-size: 18px;
+                    color: #333;
+                    margin-bottom: 10px;
+                }
+
+                .category-card a {
+                    text-decoration: none;
+                    color: #fff;
+                    background-color: #e60000;
+                    padding: 8px 16px;
+                    border-radius: 6px;
+                    font-weight: bold;
+                    display: inline-block;
+                    transition: background-color 0.3s ease;
+                }
+
+                    .category-card a:hover {
+                        background-color: #b30000;
+                    }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Arial', sans-serif;
+                background: #f5f5f5;
+                padding:  0;
+            }
+
+            .category-section {
+                background: linear-gradient(135deg, #ff4757, #ff3742);
+                border-radius: 20px;
+                padding: 30px;
+                margin: 0 auto;
+                max-width: 1200px;
+            }
+
+            .section-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 25px;
+            }
+
+            .section-title {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                color: white;
+                font-size: 24px;
+                font-weight: bold;
+                text-transform: uppercase;
+            }
+
+            .fire-icon {
+                width: 32px;
+                height: 32px;
+                background: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 18px;
+            }
+
+            .countdown {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                color: white;
+            }
+
+            .countdown-label {
+                font-size: 16px;
+                font-weight: 500;
+            }
+
+            .countdown-timer {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+            }
+
+            .time-unit {
+                background: rgba(0, 0, 0, 0.4);
+                padding: 8px 12px;
+                border-radius: 8px;
+                font-size: 18px;
+                font-weight: bold;
+                min-width: 45px;
+                text-align: center;
+            }
+
+            .time-separator {
+                font-size: 20px;
+                font-weight: bold;
+                color: white;
+            }
+
+            .categories-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 20px;
+            }
+
+            .category-card {
+                background: white;
+                border-radius: 15px;
+                padding: 25px;
+                text-align: center;
+                position: relative;
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                cursor: pointer;
+            }
+
+                .category-card:hover {
+                    transform: translateY(-5px);
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+                }
+
+            .installment-badge {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                background: #3742fa;
+                color: white;
+                padding: 6px 12px;
+                border-radius: 15px;
+                font-size: 12px;
+                font-weight: 500;
+            }
+
+            .category-icon {
+                width: 120px;
+                height: 120px;
+                margin: 0 auto 20px;
+                border-radius: 20px;
+                overflow: hidden;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            }
+
+                .category-icon img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    transition: transform 0.3s ease;
+                }
+
+            .category-card:hover .category-icon img {
+                transform: scale(1.1);
+            }
+
+            .category-name {
+                font-size: 20px;
+                font-weight: bold;
+                color: #333;
+                margin-bottom: 10px;
+                text-transform: uppercase;
+            }
+
+            .category-description {
+                font-size: 13px;
+                color: #666;
+                line-height: 1.4;
+                margin-bottom: 20px;
+            }
+
+            .category-price {
+                font-size: 18px;
+                font-weight: bold;
+                color: #ff4757;
+                margin-bottom: 15px;
+            }
+
+            .rating-section {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .stars {
+                display: flex;
+                gap: 2px;
+            }
+
+            .star {
+                color: #ffd700;
+                font-size: 16px;
+            }
+
+                .star.empty {
+                    color: #ddd;
+                }
+
+            .favorite-btn {
+                background: none;
+                border: none;
+                color: #ddd;
+                font-size: 18px;
+                cursor: pointer;
+                transition: color 0.3s ease;
+            }
+
+                .favorite-btn:hover {
+                    color: #ff4757;
+                }
+
+            @@media (max-width: 768px) {
+                .section-header
+
+            {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .categories-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+
+            .countdown {
+                justify-content: center;
+            }
+
+            }
+
+            @@media (max-width: 480px) {
+                .categories-grid
+
+            {
+                grid-template-columns: 1fr;
+            }
+
+            }
+
+    </style>
+}
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container-fluid">
+            <h1>GEARSHOUSE - MUA SẮM THIẾT BỊ CÔNG NGHỆ</h1>
+            <p>Khám phá những sản phẩm hot nhất với giá cạnh tranh</p>
+            <a asp-controller="Product" asp-action="Index" class="btn btn-explore"><span>Khám phá ngay</span></a>
+        </div>
+    </section>
+    <!-- Product Highlights -->
+    <section class="product-highlight">
+        <div class="container">
+            <h2>Sản Phẩm Nổi Bật</h2>
+            <div class="row g-4">
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <div class="card product-card">
+                        <img src="/image/Laptop Asus ROG Strix Scar.jpg" class="card-img-top" alt="Laptop">
+                        <div class="card-body">
+                            <h5 class="card-title">Laptop Gaming</h5>
+                            <p class="product-price"><del>35,000,000₫</del> <strong>32,500,000₫</strong></p>
+                            <div class="product-rating">
+                                <i class="fas fa-star checked"></i>
+                                <i class="fas fa-star checked"></i>
+                                <i class="fas fa-star checked"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt checked"></i>
+                                <span>(120 đánh giá)</span>
+                            </div>
+                            <p class="card-text">Hiệu năng mạnh mẽ, chiến mọi tựa game.</p>
+                            <a asp-controller="Product" asp-action="Index" class="btn">Xem ngay</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <div class="card product-card">
+                        <img src="/image/Bàn-phím-Razer-Blackwidow-Green-Switch-–-2019-2-1.jpg" class="card-img-top" alt="Bàn phím">
+                        <div class="card-body">
+                            <h5 class="card-title">Bàn Phím Cơ</h5>
+                            <p class="product-price"><strong>1,950,000₫</strong></p>
+                            <div class="product-rating">
+                                <i class="fas fa-star checked"></i>
+                                <i class="fas fa-star checked"></i>
+                                <i class="fas fa-star checked"></i>
+                                <i class="fas fa-star checked"></i>
+                                <i class="fas fa-star checked"></i>
+                                <span>(89 đánh giá)</span>
+                            </div>
+                            <p class="card-text">Thiết kế cao cấp, trải nghiệm gõ đã tay.</p>
+                            <a asp-controller="Product" asp-action="Index" class="btn">Xem ngay</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <div class="card product-card">
+                        <img src="/image/Màn hình BenQ ZOWIE XL2546K 240hz.png" class="card-img-top" alt="Màn hình">
+                        <div class="card-body">
+                            <h5 class="card-title">Màn Hình 240Hz</h5>
+                            <p class="product-price"><strong>10,500,000₫</strong></p>
+                            <div class="product-rating">
+                                <i class="fas fa-star checked"></i>
+                                <i class="fas fa-star checked"></i>
+                                <i class="fas fa-star checked"></i>
+                                <i class="fas fa-star checked"></i>
+                                <i class="fas fa-star"></i>
+                                <span>(46 đánh giá)</span>
+                            </div>
+                            <p class="card-text">Hình ảnh mượt mà, tương phản cao.</p>
+                            <a asp-controller="Product" asp-action="Index" class="btn">Xem ngay</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <div class="card product-card">
+                        <img src="/image/tainghe.webp" class="card-img-top" alt="Tai nghe">
+                        <div class="card-body">
+                            <h5 class="card-title">Tai Nghe Gaming</h5>
+                            <p class="product-price"><del>2,300,000₫</del> <strong>1,950,000₫</strong></p>
+                            <div class="product-rating">
+                                <i class="fas fa-star checked"></i>
+                                <i class="fas fa-star checked"></i>
+                                <i class="fas fa-star checked"></i>
+                                <i class="fas fa-star checked"></i>
+                                <i class="fas fa-star-half-alt checked"></i>
+                                <span>(75 đánh giá)</span>
+                            </div>
+                            <p class="card-text">Âm thanh sống động, thiết kế thoải mái.</p>
+                            <a asp-controller="Product" asp-action="Index" class="btn">Xem ngay</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+            <a asp-controller="Product" class="btn btn-outline-danger btn-lg">Xem thêm sản phẩm nổi bật</a>
+            </div>
+        </div>
+    </section>
+            <div class="category-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <div class="fire-icon">🔥</div>
+                        DANH MỤC ĐƯỢC YÊU THÍCH
+                    </div>
+                    <div class="countdown">
+                        <span class="countdown-label">Bắt đầu sau:</span>
+                        <div class="countdown-timer">
+                            <div class="time-unit" id="hours">00</div>
+                            <div class="time-separator">:</div>
+                            <div class="time-unit" id="minutes">10</div>
+                            <div class="time-separator">:</div>
+                            <div class="time-unit" id="seconds">54</div>
+                            <div class="time-separator">:</div>
+                            <div class="time-unit" id="milliseconds">06</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="categories-grid">
+                    <!-- Laptop Gaming -->
+                    <a href="/Product?categoryId=6" class="category-card-link">
+                        <div class="category-card">
+                            <div class="installment-badge">Trả góp 0%</div>
+                            <div class="category-icon">
+                                <img src="/image/danhmuclaptop.webp" alt="Laptop Gaming">
+                            </div>
+                            <div class="category-name">Laptop Gaming</div>
+                            <div class="category-description">Laptop gaming cao cấp với hiệu năng mạnh mẽ, thẻ đồ họa rời hàng đầu</div>
+                            <div class="category-price">Chỉ từ 15.990.000đ</div>
+                            <div class="rating-section">
+                                <div class="stars">
+                                    <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+                                </div>
+                                <button class="favorite-btn">♡</button>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Bàn Phím -->
+                    <a href="/Product?categoryId=2" class="category-card-link">
+                        <div class="category-card">
+                            <div class="installment-badge">Trả góp 0%</div>
+                            <div class="category-icon">
+                                <img src="/image/danhmucbanphim.jpg" alt="Bàn Phím">
+                            </div>
+                            <div class="category-name">Bàn Phím</div>
+                            <div class="category-description">Bàn phím thiết kế cao cấp, êm tay, đa dạng mẫu mã</div>
+                            <div class="category-price">Chỉ từ 400.000đ</div>
+                            <div class="rating-section">
+                                <div class="stars">
+                                    <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+                                </div>
+                                <button class="favorite-btn">♡</button>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Chuột -->
+                    <a href="/Product?categoryId=3" class="category-card-link">
+                        <div class="category-card">
+                            <div class="installment-badge">Trả góp 0%</div>
+                            <div class="category-icon">
+                                <img src="/image/danhmucchuot.jpg" alt="Chuột">
+                            </div>
+                            <div class="category-name">Chuột</div>
+                            <div class="category-description">Chuột được ưa chuộng nhiều hãng nổi tiếng, chất lượng cao</div>
+                            <div class="category-price">Từ 300.000đ</div>
+                            <div class="rating-section">
+                                <div class="stars">
+                                    <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+                                </div>
+                                <button class="favorite-btn">♡</button>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Màn Hình -->
+                    <a href="/Product?categoryId=1" class="category-card-link">
+                        <div class="category-card">
+                            <div class="installment-badge">Trả góp 0%</div>
+                            <div class="category-icon">
+                                <img src="/image/danhmucmanhinh.jpg" alt="Màn Hình">
+                            </div>
+                            <div class="category-name">Màn Hình</div>
+                            <div class="category-description">Màn hình chất lượng cao, độ nét đa dạng, phù hợp mọi yêu cầu</div>
+                            <div class="category-price">Chỉ từ 1.990.000đ</div>
+                            <div class="rating-section">
+                                <div class="stars">
+                                    <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+                                </div>
+                                <button class="favorite-btn">♡</button>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <script>
+                // Countdown timer functionality
+                function updateCountdown() {
+                    const hours = document.getElementById('hours');
+                    const minutes = document.getElementById('minutes');
+                    const seconds = document.getElementById('seconds');
+                    const milliseconds = document.getElementById('milliseconds');
+
+                    let h = parseInt(hours.textContent);
+                    let m = parseInt(minutes.textContent);
+                    let s = parseInt(seconds.textContent);
+                    let ms = parseInt(milliseconds.textContent);
+
+                    ms--;
+
+                    if (ms < 0) {
+                        ms = 99;
+                        s--;
+
+                        if (s < 0) {
+                            s = 59;
+                            m--;
+
+                            if (m < 0) {
+                                m = 59;
+                                h--;
+
+                                if (h < 0) {
+                                    h = 23;
+                                }
+                            }
+                        }
+                    }
+
+                    hours.textContent = h.toString().padStart(2, '0');
+                    minutes.textContent = m.toString().padStart(2, '0');
+                    seconds.textContent = s.toString().padStart(2, '0');
+                    milliseconds.textContent = ms.toString().padStart(2, '0');
+                }
+
+                // Update countdown every 10ms for smooth animation
+                setInterval(updateCountdown, 10);
+
+                // Add click event to favorite buttons
+                document.querySelectorAll('.favorite-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        if (this.textContent === '♡') {
+                            this.textContent = '♥';
+                            this.style.color = '#ff4757';
+                        } else {
+                            this.textContent = '♡';
+                            this.style.color = '#ddd';
+                        }
+                    });
+                });
+
+                // Add click event to category cards
+                document.querySelectorAll('.category-card').forEach(card => {
+                    card.addEventListener('click', function() {
+                        const categoryName = this.querySelector('.category-name').textContent;
+                        console.log(`Clicked on ${categoryName}`);
+                        // Add navigation logic here
+                    });
+                });
+            </script>
+@{
+    ViewData["Title"] = "Ưu đãi";
+}
+<div class="container mt-5">
+    <!-- ƯU ĐÃI SINH VIÊN -->
+    <!-- ƯU ĐÃI SINH VIÊN -->
+    <h3 class="fw-bold text-uppercase mb-4">Ưu đãi sinh viên</h3>
+    <div class="d-flex flex-wrap gap-3 justify-content-center">
+        <a href="/UuDaiSinhVien/ChiTiet/1">
+            <img src="/image/sv1.webp" class="promo-img" alt="SV1">
+        </a>
+        <a href="/UuDaiSinhVien/ChiTiet/2">
+            <img src="/image/sv2.webp" class="promo-img" alt="SV2">
+        </a>
+        <a href="/UuDaiSinhVien/ChiTiet/3">
+            <img src="/image/sv3.webp" class="promo-img" alt="SV3">
+        </a>
+        <a href="/UuDaiSinhVien/ChiTiet/4">
+            <img src="/image/sv4.webp" class="promo-img" alt="SV4">
+        </a>
+    </div>
+
+    <!-- ƯU ĐÃI THANH TOÁN -->
+    <h3 class="fw-bold text-uppercase mt-5 mb-4">Ưu đãi thanh toán</h3>
+    <div class="d-flex flex-wrap gap-3 justify-content-center">
+        <a asp-controller="UuDai" asp-action="ChiTiet" asp-route-id="1">
+            <img src="/image/tt1.webp" class="promo-img" alt="TT1" />
+        </a>
+        <a asp-controller="UuDai" asp-action="ChiTiet" asp-route-id="2">
+            <img src="/image/tt2.webp" class="promo-img" alt="TT2" />
+        </a>
+        <a asp-controller="UuDai" asp-action="ChiTiet" asp-route-id="3">
+            <img src="/image/tt3.webp" class="promo-img" alt="TT3" />
+        </a>
+        <a asp-controller="UuDai" asp-action="ChiTiet" asp-route-id="4">
+            <img src="/image/tt4.webp" class="promo-img" alt="TT4" />
+        </a>
+    </div>
+    
+
+</div>  
+
+<style>
+    .promo-img {
+        width: 100%;
+        max-width: 270px;
+        height: auto;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+
+
+        .promo-img:hover {
+            transform: scale(1.03);
+        }
+</style>

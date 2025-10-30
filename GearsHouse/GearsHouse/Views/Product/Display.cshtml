@@ -1,0 +1,433 @@
+@model GearsHouse.Models.Product
+
+<div class="container my-5 product-detail">
+    <h2 class="text-center mb-4 fw-bold text-uppercase">Chi Tiết Sản Phẩm</h2>
+    <div class="row bg-light p-4 rounded shadow">
+        <div class="col-md-6 text-center">
+            @{ 
+                var imagesAll = new List<string>();
+                if (!string.IsNullOrEmpty(Model.ImageUrl)) { imagesAll.Add(Model.ImageUrl); }
+                if (Model.Images != null && Model.Images.Any())
+                {
+                    foreach (var img in Model.Images)
+                    {
+                        if (!string.IsNullOrEmpty(img.Url)) imagesAll.Add(img.Url);
+                    }
+                }
+                var mainImage = imagesAll.FirstOrDefault();
+            }
+
+            @if (!string.IsNullOrEmpty(mainImage))
+            {
+                <div class="gallery-main position-relative">
+                    <button type="button" class="gallery-nav left" onclick="prevImage()" aria-label="Ảnh trước">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <img id="mainImage" src="@mainImage" alt="@Model.Name" class="img-fluid gallery-img" />
+                    <button type="button" class="gallery-nav right" onclick="nextImage()" aria-label="Ảnh sau">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+
+                <!-- Thumbnails lớn hơn -->
+                <div class="gallery-thumbs d-flex justify-content-center flex-wrap">
+                    @for (int i = 0; i < imagesAll.Count; i++)
+                    {
+                        var src = imagesAll[i];
+                        var activeClass = i == 0 ? "active" : string.Empty;
+                        <img src="@src" class="thumb-img @activeClass" data-index="@i" alt="@Model.Name ảnh @i" />
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-muted">Chưa có ảnh cho sản phẩm này.</div>
+            }
+
+            <!-- Lightbox modal -->
+            <div id="imageModal" class="image-modal" onclick="this.classList.remove('show')">
+                <img id="imageModalImg" alt="Zoom ảnh sản phẩm" />
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="product-header d-flex align-items-start justify-content-between">
+                <h3 class="fw-bold mb-2">@Model.Name</h3>
+            </div>
+
+            <div class="price-block my-2">
+                @if (ViewBag.ProductDiscounts != null)
+                {
+                    var discounted = Convert.ToDecimal(ViewBag.ProductDiscounts);
+                    var percent = (int)Math.Round((1 - (discounted / (Model.Price == 0 ? 1 : Model.Price))) * 100);
+                    <div class="d-flex align-items-center flex-wrap gap-2">
+                        <span class="price-current">@string.Format("{0:N0} VND", discounted)</span>
+                        @if (percent > 0 && percent <= 100)
+                        {
+                            <span class="badge bg-danger">-@percent%</span>
+                        }
+                    </div>
+                    <div class="text-muted">
+                        <del class="price-original">@string.Format("{0:N0} VND", Model.Price)</del>
+                        <span class="text-success ms-2">Tiết kiệm @string.Format("{0:N0} VND", Model.Price - discounted)</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="d-flex align-items-center">
+                        <span class="price-current">@string.Format("{0:N0} VND", Model.Price)</span>
+                    </div>
+                }
+            </div>
+
+            <div class="meta mb-3 text-muted">
+                <span class="me-3"><i class="bi bi-tags"></i> @Model.Category?.Name</span>
+                <span class="me-3"><i class="bi bi-building"></i> @Model.Brand?.Name</span>
+            </div>
+
+            <div class="qty-block d-flex align-items-center my-3">
+                <span class="me-2 fw-semibold">Số lượng:</span>
+                <button class="btn btn-outline-secondary qty-btn" onclick="decreaseQuantity()" aria-label="Giảm số lượng">-</button>
+                <input type="number" id="quantity" value="1" min="1" class="mx-2 text-center form-control qty-input" aria-label="Số lượng" />
+                <button class="btn btn-outline-secondary qty-btn" onclick="increaseQuantity()" aria-label="Tăng số lượng">+</button>
+            </div>
+
+            <div id="cartMessage" class="alert alert-success d-none mt-3" role="alert"></div>
+
+            <div class="action-block d-flex flex-wrap gap-2 mt-3">
+                <button id="addToCartBtn" class="btn btn-warning btn-lg" data-product-id="@Model.Id">
+                    <i class="bi bi-cart-plus me-1"></i> Thêm vào giỏ
+                </button>
+                <button id="buyNowBtn" class="btn btn-primary btn-lg" data-product-id="@Model.Id">
+                    <i class="bi bi-lightning-charge me-1"></i> Mua ngay
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Quay lại danh sách
+                </a>
+            </div>
+
+            <div class="row g-3 mt-4">
+                <div class="col-12 col-md-6">
+                    <div class="info-card p-3">
+                        <i class="bi bi-truck me-2"></i> Giao hàng nhanh toàn quốc
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="info-card p-3">
+                        <i class="bi bi-shield-check me-2"></i> Bảo hành chính hãng
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <ul class="nav nav-tabs" id="detailTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="desc-tab" data-bs-toggle="tab" data-bs-target="#desc-content" type="button" role="tab" aria-controls="desc-content" aria-selected="true">Mô tả</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="policy-tab" data-bs-toggle="tab" data-bs-target="#policy-content" type="button" role="tab" aria-controls="policy-content" aria-selected="false">Chính sách</button>
+                    </li>
+                </ul>
+                <div class="tab-content p-3 border rounded-bottom">
+                    <div class="tab-pane fade show active" id="desc-content" role="tabpanel" aria-labelledby="desc-tab">
+                        <div class="description">
+                            @Html.Raw(Model.Description)
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="policy-content" role="tabpanel" aria-labelledby="policy-tab">
+                        <ul class="mb-0">
+                            <li>Giao hàng tiêu chuẩn 2-5 ngày, miễn phí đơn từ 1.000.000đ</li>
+                            <li>Bảo hành theo chính sách của hãng và nhà bán</li>
+                            <li>Đổi trả trong 7 ngày đối với lỗi do nhà sản xuất</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Tổng thể trang chi tiết */
+        .product-detail { max-width: 1200px; }
+        .product-detail h2 { letter-spacing: .5px; }
+        .product-header { border-bottom: 1px dashed #e5e5e5; padding-bottom: .5rem; }
+
+        /* Gallery */
+        .gallery-main { background: #fff; border-radius: 12px; padding: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.06); min-height: 560px; display: flex; align-items: center; justify-content: center; }
+        /* Ảnh giữ kích thước gốc, chỉ thu nhỏ khi vượt khung */
+        .gallery-img { max-width: 100%; height: auto; border-radius: 8px; cursor: zoom-in; }
+        .gallery-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 38px; height: 38px; border: none; border-radius: 50%; background: rgba(0,0,0,0.45); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .gallery-nav.left { left: 10px; }
+        .gallery-nav.right { right: 10px; }
+        .gallery-thumbs { gap: 12px; margin-top: 14px; }
+        /* Dùng max-size để không phóng to ảnh nhỏ hơn 110px */
+        .gallery-thumbs .thumb-img { max-width: 110px; max-height: 110px; width: auto; height: auto; border-radius: 10px; border: 2px solid #eee; cursor: pointer; transition: transform .15s ease, border-color .15s ease; }
+        .gallery-thumbs .thumb-img:hover { transform: scale(1.03); }
+        .gallery-thumbs .thumb-img.active { border-color: #fd7e14; }
+        .image-modal { position: fixed; inset: 0; background: rgba(0,0,0,.85); display: none; align-items: center; justify-content: center; z-index: 1050; }
+        .image-modal.show { display: flex; }
+        .image-modal img { max-width: 92vw; max-height: 92vh; border-radius: 8px; }
+
+        /* Khối giá và metadata */
+        .price-block { background: #fff; border: 1px solid #f0f0f0; border-radius: 12px; padding: 12px 16px; box-shadow: 0 4px 12px rgba(0,0,0,.04); }
+        .price-current { font-size: 1.8rem; font-weight: 700; color: #ff5c00; }
+        .price-original { color: #999; }
+        .meta i { color: #888; }
+
+        /* Quantity và CTA */
+        .qty-input { width: 80px; }
+        .qty-btn { width: 42px; }
+        .action-block .btn-lg { padding: .6rem 1.25rem; }
+
+        /* Info cards */
+        .info-card { background: #fff; border: 1px solid #f0f0f0; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,.04); }
+
+        /* Tabs */
+        .product-detail .nav-tabs .nav-link { font-weight: 600; color: #333 !important; display: inline-block; }
+        .product-detail .nav-tabs .nav-link:hover { color: #ff5c00 !important; }
+        .product-detail .nav-tabs .nav-link.active { color: #ff5c00 !important; }
+        .product-detail .tab-content { background: #fff; border: 1px solid #eaeaea; border-top: none; border-radius: 0 0 12px 12px; }
+        .tab-content { background: #fff; }
+    </style>
+
+    <script>
+        (function () {
+            const mainImageEl = document.getElementById('mainImage');
+            const thumbEls = Array.from(document.querySelectorAll('.thumb-img'));
+            if (!mainImageEl || thumbEls.length === 0) return;
+
+            const images = thumbEls.map(el => el.getAttribute('src'));
+            let currentIndex = 0;
+
+            function updateMain(idx) {
+                if (images.length === 0) return;
+                if (idx < 0) idx = images.length - 1;
+                if (idx >= images.length) idx = 0;
+                currentIndex = idx;
+                mainImageEl.src = images[currentIndex];
+                thumbEls.forEach((el, i) => el.classList.toggle('active', i === currentIndex));
+            }
+
+            window.prevImage = function () { updateMain(currentIndex - 1); }
+            window.nextImage = function () { updateMain(currentIndex + 1); }
+
+            thumbEls.forEach((el, i) => {
+                el.addEventListener('click', () => updateMain(i));
+            });
+
+            // Zoom modal
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('imageModalImg');
+            if (modal && modalImg) {
+                mainImageEl.addEventListener('click', function () {
+                    modalImg.src = mainImageEl.src;
+                    modal.classList.add('show');
+                });
+            }
+        })();
+    </script>
+</div>
+
+<hr class="my-5" />
+<div class="container">
+    <h4 class="fw-bold">Đánh giá sản phẩm</h4>
+
+    @if (TempData["ReviewSuccess"] != null)
+    {
+        <div class="alert alert-success">@TempData["ReviewSuccess"]</div>
+    }
+    @if (TempData["ReviewErrors"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ReviewErrors"]</div>
+    }
+
+    @{
+        var reviews = ViewBag.Reviews as List<GearsHouse.Models.Review>;
+    }
+
+    <!-- Tổng số đánh giá -->
+    @if (reviews != null && reviews.Any())
+    {
+        <p class="text-muted">Có @reviews.Count đánh giá</p>
+
+        <!-- Danh sách đánh giá -->
+        <div class="mb-4">
+            @foreach (var review in reviews)
+            {
+                string fullName = review.UserName ?? "";
+                string maskedName;
+
+                if (fullName.Length <= 1)
+                {
+                    maskedName = fullName;
+                }
+                else if (fullName.Length <= 4)
+                {
+                    maskedName = fullName[0] + new string('*', fullName.Length - 1);
+                }
+                else
+                {
+                    maskedName = fullName[0] + "*****" + fullName.Substring(4);
+                }
+
+                <div class="border p-3 mb-3 rounded shadow-sm bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <strong>@maskedName</strong>
+                        <span class="text-warning">
+                            @for (int i = 0; i < review.Rating; i++)
+                            {
+                                <i class="bi bi-star-fill"></i>
+                            }
+                            @for (int i = review.Rating; i < 5; i++)
+                            {
+                                <i class="bi bi-star"></i>
+                            }
+                        </span>
+                    </div>
+                    <p class="mt-2">@review.Comment</p>
+                    <small class="text-muted">Gửi lúc: @review.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                </div>
+            }
+        </div>
+
+    }
+    else
+    {
+        <p class="text-muted">Chưa có đánh giá nào cho sản phẩm này.</p>
+    }
+
+    <!-- Form gửi đánh giá -->
+    @if (User.Identity.IsAuthenticated)
+    {
+        <form asp-controller="Review" asp-action="Submit" method="post" class="p-4 bg-light rounded shadow-sm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="ProductId" value="@Model.Id" />
+
+            <div class="mb-3">
+                <label class="form-label">Số sao đánh giá:</label>
+                <div id="starRating" class="text-warning fs-4" style="cursor: pointer;">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <i class="bi bi-star" data-value="@i"></i>
+                    }
+                </div>
+                <input type="hidden" name="Rating" id="ratingInput" required />
+            </div>
+
+
+            <div class="mb-3">
+                <label class="form-label">Nội dung đánh giá:</label>
+                <textarea name="Comment" class="form-control" rows="3" required></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Gửi đánh giá</button>
+        </form>
+    }
+    else
+    {
+        <p class="text-danger">Vui lòng <a href="/Account/Login">đăng nhập</a> để gửi đánh giá.</p>
+    }
+</div>
+
+
+
+<!-- Script cập nhật số lượng -->
+<script>
+    function increaseQuantity() {
+        let qtyInput = document.getElementById("quantity");
+        qtyInput.value = parseInt(qtyInput.value) + 1;
+    }
+
+    function decreaseQuantity() {
+        let qtyInput = document.getElementById("quantity");
+        if (qtyInput.value > 1) {
+            qtyInput.value = parseInt(qtyInput.value) - 1;
+        }
+    }
+</script>
+        
+<!-- Script AJAX -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $("#addToCartBtn").click(function () {
+            var productId = $(this).data("product-id");
+            var quantity = parseInt($("#quantity").val());
+            
+
+            $.ajax({
+                url: "/ShoppingCart/AddToCart",
+                type: "POST",
+                data: { productId: productId, quantity: quantity },
+                success: function (response) {
+                    if (response.success) {
+                        $("#cartMessage").text(response.message).removeClass("d-none").fadeIn();
+                        $("#cart-count").text(response.totalItems); // Cập nhật số lượng trên giỏ hàng (nếu có)
+                        setTimeout(() => $("#cartMessage").fadeOut(), 3000); // Ẩn thông báo sau 3 giây
+                    } else {
+                        $("#cartMessage").text(response.message).addClass("alert-danger").removeClass("d-none alert-success").fadeIn();
+                        setTimeout(() => $("#cartMessage").fadeOut(), 3000);
+                    }
+                },
+                error: function () {
+                    $("#cartMessage").text("Vui lòng đăng nhập để thêm sản phẩm vào giỏ.").addClass("alert-danger").removeClass("d-none alert-success").fadeIn();
+                    setTimeout(() => $("#cartMessage").fadeOut(), 3000);
+                }
+            });
+        });
+
+        $("#buyNowBtn").click(function () {
+            var productId = $(this).data("product-id");
+            var quantity = parseInt($("#quantity").val());
+            if (!quantity || quantity < 1) quantity = 1;
+            // Chuyển hướng tới action BuyNow để thêm và mở giỏ hàng
+            window.location.href = "/ShoppingCart/BuyNow?productId=" + encodeURIComponent(productId) + "&quantity=" + encodeURIComponent(quantity);
+        });
+    });
+</script>
+<script>
+    const stars = document.querySelectorAll('#starRating i');
+    const ratingInput = document.getElementById('ratingInput');
+
+    stars.forEach((star, index) => {
+        star.addEventListener('click', () => {
+            const selectedRating = index + 1;
+            ratingInput.value = selectedRating;
+
+            // Reset toàn bộ
+            stars.forEach((s, i) => {
+                s.classList.remove('bi-star-fill');
+                s.classList.add('bi-star');
+                if (i < selectedRating) {
+                    s.classList.remove('bi-star');
+                    s.classList.add('bi-star-fill');
+                }
+            });
+        });
+    });
+</script>
+
+<style>
+    .description table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    .description th, .description td {
+        padding: 10px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+
+    .description th {
+        background-color: #f2f2f2;
+    }
+
+    .description tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    .description tr:hover {
+        background-color: #e9e9e9;
+    }
+</style>

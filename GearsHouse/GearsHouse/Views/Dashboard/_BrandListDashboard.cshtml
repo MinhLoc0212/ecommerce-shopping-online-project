@@ -1,0 +1,152 @@
+@model IEnumerable<GearsHouse.Models.Brand>
+@{
+    Layout = null;
+}
+<!-- Tiêu đề với hiệu ứng -->
+<h3 class="text-center text-primary mb-4 fw-bold animate__animated animate__fadeInDown animate__faster"
+    style="text-shadow: 1px 1px 2px #666;">
+    Danh sách Thương hiệu (Dashboard)
+</h3>
+
+<!-- Bảng thương hiệu có hiệu ứng xuất hiện -->
+<div class="table-responsive shadow-lg rounded animate__animated animate__fadeIn animate__faster" style="overflow: hidden; border-radius: 15px;">
+    <table class="table table-hover align-middle mb-0" style="background: #fff;">
+        <thead>
+            <tr>
+                <th class="text-center brand-name-header">
+                    <i class="bi bi-award-fill me-2"></i> Tên Thương Hiệu
+                </th>
+                <th class="text-center action-header">
+                    <i class="bi bi-gear-fill me-2"></i> Hành động
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var brand in Model)
+            {
+                <tr class="table-row-animated animate__animated animate__fadeInUp animate__faster">
+                    <td class="text-center fw-semibold brand-name-cell">@brand.Name</td>
+                    <td class="text-center">
+                        <a href="@Url.Action("UpdateBrand", "Brand", new { id = brand.BrandId })" class="btn btn-warning btn-sm btn-action me-2 js-edit-brand" title="Sửa thương hiệu">
+                            <i class="bi bi-pencil-square"></i> Sửa
+                        </a>
+                        <form action="@Url.Action("DeleteBrand", "Brand", new { id = brand.BrandId })" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm btn-action"
+                                    onclick="return confirm('Bạn có chắc chắn muốn xóa thương hiệu này không?');" title="Xóa thương hiệu">
+                                <i class="bi bi-trash"></i> Xóa
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Nút thêm thương hiệu có hiệu ứng -->
+<div class="text-center mt-4 animate__animated animate__fadeInUp animate__faster">
+    <a href="@Url.Action("AddBrand", "Brand")" class="btn btn-success btn-lg btn-add-brand shadow"
+       style="letter-spacing: 1.2px;">
+        <i class="bi bi-plus-circle"></i> Thêm thương hiệu
+    </a>
+</div>
+
+<!-- Bootstrap Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+
+<!-- Animate.css -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" />
+
+<style>
+    .table {
+        border-collapse: separate !important;
+        border-spacing: 0;
+        width: 100%;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        border: 2px solid #000;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        background-color: #fff;
+    }
+
+        .table th,
+        .table td {
+            border-bottom: 1px solid #000;
+            padding: 12px 18px;
+            vertical-align: middle;
+        }
+
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+    .brand-name-header {
+        background: #ffdd57;
+        color: #222;
+        font-weight: 700;
+        font-size: 1.15rem;
+        letter-spacing: 0.05em;
+        text-shadow: 0 0 2px #aaa;
+        border-bottom: 2px solid #000;
+    }
+
+    .action-header {
+        background: #ff6f61;
+        color: #fff;
+        font-weight: 700;
+        font-size: 1.15rem;
+        letter-spacing: 0.05em;
+        text-shadow: 0 0 2px #600;
+        border-bottom: 2px solid #000;
+    }
+
+    .table-row-animated {
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        cursor: default;
+    }
+
+        .table-row-animated:hover {
+            background-color: #e9f5ff;
+            box-shadow: inset 0 0 10px rgba(0,123,255,0.2);
+        }
+
+    .brand-name-cell {
+        color: #2c3e50;
+        font-weight: 700;
+        font-size: 1.05rem;
+        letter-spacing: 0.03em;
+    }
+
+    .btn-action {
+        border-radius: 25px;
+        font-weight: 600;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        transition: all 0.25s ease;
+    }
+
+        .btn-action i {
+            margin-right: 6px;
+            font-size: 1.1rem;
+        }
+
+        .btn-action:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.25);
+            transform: scale(1.1);
+            filter: brightness(1.1);
+        }
+
+    .btn-add-brand {
+        background: linear-gradient(45deg, #28a745, #1e7e34);
+        border-color: #1e7e34;
+        font-weight: 700;
+        box-shadow: 0 5px 15px rgba(40,167,69,0.5);
+        transition: all 0.3s ease;
+    }
+
+        .btn-add-brand:hover {
+            background: linear-gradient(45deg, #218838, #19692c);
+            box-shadow: 0 8px 20px rgba(25,104,44,0.7);
+            transform: scale(1.08);
+        }
+</style>

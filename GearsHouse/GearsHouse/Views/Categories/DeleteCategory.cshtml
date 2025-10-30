@@ -1,0 +1,18 @@
+﻿@model GearsHouse.Models.Category
+
+@{
+    ViewData["Title"] = "Xóa Danh Mục";
+}
+
+<h2>Xóa Danh Mục</h2>
+
+<div class="alert alert-danger">
+    <p>Bạn có chắc chắn muốn xóa danh mục <strong>@Model.Name</strong> không?</p>
+</div>
+
+<form asp-action="DeleteCategoryConfirmed" method="post">
+    <input type="hidden" name="id" value="@Model.Id" />
+    <button type="submit" class="btn btn-danger">Xóa</button>
+    <a asp-action="Dashboard" asp-controller="Dashboard" asp-route-tab="category" class="btn btn-secondary">Quay lại</a>
+</form>
+

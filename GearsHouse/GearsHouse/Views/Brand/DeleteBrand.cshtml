@@ -1,0 +1,18 @@
+﻿@model GearsHouse.Models.Brand
+
+@{
+    ViewData["Title"] = "Xóa Thương Hiệu";
+}
+
+<h2>Xóa Thương Hiệu</h2>
+
+<div class="alert alert-danger">
+    <p>Bạn có chắc chắn muốn xóa thương hiệu <strong>@Model.Name</strong> không?</p>
+</div>
+
+<form asp-action="DeleteBrandConfirmed" method="post">
+    <input type="hidden" name="id" value="@Model.BrandId" />
+    <button type="submit" class="btn btn-danger">Xóa</button>
+    <a asp-action="Dashboard" asp-controller="Dashboard" asp-route-tab="Brand" class="btn btn-secondary">Quay lại</a>
+</form>
+

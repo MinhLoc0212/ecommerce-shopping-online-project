@@ -1,0 +1,45 @@
+﻿@model GearsHouse.Models.Category
+
+@{
+    ViewData["Title"] = "Thêm danh mục sản phẩm";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4 class="mb-0">Thêm danh mục sản phẩm</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="AddCategory" method="post">
+                        <div class="mb-3">
+                            <label for="Name" class="form-label">Tên danh mục</label>
+                            <input asp-for="Name" class="form-control" placeholder="Nhập tên danh mục" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+                            <button type="submit" class="btn btn-success">Lưu</button>
+                        </div>
+                    </form>
+
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success mt-3">
+                            @TempData["SuccessMessage"]
+                        </div>
+                    }
+
+                    @if (ViewBag.Message != null)
+                    {
+                        <div class="alert alert-danger mt-3">
+                            @ViewBag.Message
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

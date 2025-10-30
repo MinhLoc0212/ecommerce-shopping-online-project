@@ -1,0 +1,133 @@
+﻿@model List<GearsHouse.Models.Order>
+@using GearsHouse.Extensions
+@using GearsHouse.Models
+@using GearsHouse.Helpers
+
+@{
+    ViewData["Title"] = "Quản lý đơn hàng";
+}
+
+<div class="container-fluid py-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3">
+            <h2 class="mb-0 text-primary fw-bold">Quản lý đơn hàng</h2>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Mã đơn</th>
+                            <th>Khách hàng</th>
+                            <th>Ngày đặt</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                            <th class="text-center">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-medium">@order.Id</td>
+                                <td>@order.FullName</td>
+                                <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
+                                <td class="text-success fw-medium">@order.TotalPrice.ToString("N0") VNĐ</td>
+                                <td>
+                                    <form asp-action="UpdateStatus" method="post" class="d-flex align-items-center gap-2">
+                                        <input type="hidden" name="id" value="@order.Id" />
+                                        <select name="orderStatus" class="form-select form-select-sm shadow-sm">
+                                            @foreach (OrderStatus status in Enum.GetValues(typeof(OrderStatus)))
+                                            {
+                                                <option value="@status" selected="@(status == order.OrderStatus)">
+                                                    @status.GetDisplayName()
+                                                </option>
+                                            }
+                                        </select>
+                                        <button type="submit" class="btn btn-primary btn-sm shadow-sm">Cập nhật</button>
+                                    </form>
+                                </td>
+                                <td class="text-center">
+                                    <a asp-action="OrderDetail" asp-route-id="@order.Id" class="btn btn-sm btn-info">Chi tiết</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Custom styles */
+    .table {
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+        .table th {
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .table td {
+            vertical-align: middle;
+            border-top: 1px solid #ececec;
+        }
+
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+        transition: background-color 0.2s ease;
+    }
+
+    .form-select-sm {
+        min-width: 150px;
+        border-radius: 6px;
+        border: 1px solid #ced4da;
+    }
+
+    .btn-sm {
+        padding: 0.25rem 0.75rem;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+    .btn-outline-info {
+        border-color: #17a2b8;
+        color: #17a2b8;
+    }
+
+        .btn-outline-info:hover {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+    .card {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .text-primary {
+        color: #007bff !important;
+    }
+
+    .text-success {
+        color: #28a745 !important;
+    }
+
+    .shadow-sm {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+    }
+</style>

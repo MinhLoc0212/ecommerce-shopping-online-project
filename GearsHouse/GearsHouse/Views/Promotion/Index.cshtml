@@ -1,0 +1,46 @@
+﻿@model List<GearsHouse.Models.Promotion>
+
+@{
+    ViewData["Title"] = "Danh sách khuyến mãi";
+}
+
+<h2>Danh sách khuyến mãi</h2>
+
+<a href="/Promotion/Create" class="btn btn-primary mb-3">Tạo khuyến mãi mới</a>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Sản phẩm</th>
+            <th>Giảm (%)</th>
+            <th>Ngày bắt đầu</th>
+            <th>Ngày kết thúc</th>
+            <th>Trạng thái</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Product?.Name</td>
+                <td>@item.DiscountPercent%</td>
+                <td>@item.StartDate.ToString("dd/MM/yyyy")</td>
+                <td>@item.EndDate.ToString("dd/MM/yyyy")</td>
+                <td>
+                    @if (item.StartDate > DateTime.Now)
+                    {
+                        <span class="text-warning">Sắp mở khuyến mãi</span>
+                    }
+                    else if (item.StartDate <= DateTime.Now && item.EndDate >= DateTime.Now)
+                    {
+                        <span class="text-success">Đang diễn ra</span>
+                    }
+                    else
+                    {
+                        <span class="text-danger">Hết hạn</span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,50 @@
+﻿@model GearsHouse.Models.Category
+
+@{
+    ViewData["Title"] = "Cập nhật danh mục";
+}
+@{
+    var xRequestedWith = ViewContext?.HttpContext?.Request?.Headers["X-Requested-With"].ToString();
+    if (string.Equals(xRequestedWith, "XMLHttpRequest", StringComparison.OrdinalIgnoreCase))
+    {
+        Layout = null;
+    }
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4 class="mb-0">Cập nhật danh mục</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="UpdateCategory" method="post" id="category-update-form">
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="mb-3">
+                            <label for="Name" class="form-label">Tên danh mục</label>
+                            <input asp-for="Name" class="form-control" placeholder="Nhập tên danh mục" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a asp-controller="Dashboard" asp-action="CategoryIndex" class="btn btn-secondary">Quay lại</a>
+                            <button type="submit" class="btn btn-success">Lưu</button>
+                        </div>
+                    </form>
+
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success mt-3">@TempData["SuccessMessage"]</div>
+                    }
+
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger mt-3">@TempData["ErrorMessage"]</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

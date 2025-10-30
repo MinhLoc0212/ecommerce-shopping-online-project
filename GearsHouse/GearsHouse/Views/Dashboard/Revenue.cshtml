@@ -1,0 +1,207 @@
+@model RevenueViewModel
+@using System.Globalization
+@{
+    Layout = null;
+}
+
+<!-- Bootstrap Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+<!-- Nội dung chính -->
+<div class="main-content">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-primary text-white py-4">
+            <h2 class="mb-0 text-center fw-bold">Thông số tổng quát</h2>
+        </div>
+        <div class="card-body p-4">
+
+            <!-- 3 khối chỉ số -->
+            <div class="row text-white text-center mb-4 g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="stat-card bg-gradient-success p-4 rounded shadow-sm animate-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-uppercase fw-bold">Tổng Doanh Thu</h6>
+                                <p class="fs-3 fw-semibold mb-0">
+                                    @Model.TotalRevenue.ToString("C", CultureInfo.GetCultureInfo("vi-VN"))
+                                </p>
+                            </div>
+                            <i class="bi bi-cash-stack fs-1 opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="stat-card bg-gradient-info p-4 rounded shadow-sm animate-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-uppercase fw-bold">Tổng Số Đơn Hàng</h6>
+                                <p class="fs-3 fw-semibold mb-0">@Model.TotalOrders</p>
+                            </div>
+                            <i class="bi bi-bag-check fs-1 opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="stat-card bg-gradient-warning text-dark p-4 rounded shadow-sm animate-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-uppercase fw-bold">Giá Trị Trung Bình</h6>
+                                <p class="fs-3 fw-semibold mb-0">
+                                    @Model.AverageOrderValue.ToString("C", CultureInfo.GetCultureInfo("vi-VN"))
+                                </p>
+                            </div>
+                            <i class="bi bi-bar-chart-line fs-1 opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Biểu đồ doanh thu -->
+            <div class="my-5">
+                <div class="bg-white rounded shadow-sm p-3">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    $(document).ready(function () {
+        setTimeout(function () {
+            var ctx = document.getElementById('revenueChart').getContext('2d');
+            var revenueChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: @Html.Raw(Json.Serialize(Model.DailyRevenueData.Select(d => d.Date.ToString("dd/MM/yyyy")))),
+                    datasets: [{
+                        label: 'Doanh Thu',
+                        data: @Html.Raw(Json.Serialize(Model.DailyRevenueData.Select(d => d.TotalRevenue))),
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (tooltipItem) {
+                                    return tooltipItem.raw.toLocaleString() + ' VND';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Ngày',
+                                font: { size: 14 }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Doanh Thu (VND)',
+                                font: { size: 14 }
+                            },
+                            ticks: {
+                                callback: function (value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }, 200);
+    });
+</script>
+
+<style>
+    .main-content {
+        margin-left: 0; /* gần sát sidebar */
+        padding: 2rem 2rem 2rem 1rem;
+    }
+
+    @@media (max-width: 768px) {
+        .main-content
+
+    {
+        margin-left: 0;
+        padding: 1rem;
+    }
+
+    }
+
+    .card {
+        border-radius: 10px;
+        background: #f8f9fa;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .card-header {
+        border-radius: 10px 10px 0 0;
+    }
+
+    canvas {
+        max-height: 400px !important;
+        width: 100% !important;
+    }
+
+    .stat-card {
+        min-height: 120px;
+        transition: transform 0.4s ease, opacity 0.4s ease;
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    .animate-card {
+        animation: fadeScaleIn 0.6s forwards;
+    }
+
+    @@keyframes fadeScaleIn {
+        to
+
+    {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    }
+
+    .bg-gradient-success {
+        background: linear-gradient(135deg, #38d39f 0%, #0e8f5f 100%) !important;
+    }
+
+    .bg-gradient-info {
+        background: linear-gradient(135deg, #3ec6f1 0%, #0d7cae 100%) !important;
+    }
+
+    .bg-gradient-warning {
+        background: linear-gradient(135deg, #ffd454 0%, #d4a107 100%) !important;
+    }
+
+    .fw-semibold {
+        font-weight: 600;
+    }
+
+    .fw-bold {
+        font-weight: 700;
+    }
+</style>

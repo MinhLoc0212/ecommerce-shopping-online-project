@@ -1,0 +1,243 @@
+@model IEnumerable<GearsHouse.Models.Product>
+@{
+    Layout = null;
+}
+<h3 class="text-center text-primary mb-4 fw-bold">Danh sách Sản phẩm (Dashboard)</h3>
+
+<div class="table-responsive product-table-wrapper">
+    <table class="product-table">
+        <thead class="product-header">
+            <tr>
+                <th class="text-center"><i class="bi bi-box-seam me-1"></i> Tên Sản phẩm</th>
+                <th class="text-center"><i class="bi bi-currency-dollar me-1"></i> Giá</th>
+                <th class="text-center"><i class="bi bi-tags me-1"></i> Danh mục</th>
+                <th class="text-center"><i class="bi bi-gear me-1"></i> Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in Model)
+            {
+                <tr>
+                    <td class="text-center">@product.Name</td>
+                    <td class="text-center">@product.Price.ToString("#,##0 VND")</td>
+                    <td class="text-center">@product.Category?.Name</td>
+                    <td class="text-center">
+                        <a href="@Url.Action("Update", "Product", new { id = product.Id })" class="btn btn-warning btn-sm btn-action js-edit-product">
+                            <i class="bi bi-pencil-square"></i> Sửa
+                        </a>
+                        <form action="@Url.Action("Delete", "Product", new { id = product.Id })" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm btn-action" onclick="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này không?');">
+                                <i class="bi bi-trash"></i> Xóa
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div class="text-center mt-4">
+    <a href="@Url.Action("Add", "Product")" class="btn btn-success btn-lg btn-add-product">
+        <i class="bi bi-plus-circle me-2"></i> Thêm sản phẩm mới
+    </a>
+</div>
+
+<!-- Bootstrap Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+
+<style>
+    /* Wrapper bảng với viền đen vuông */
+    .product-table-wrapper {
+        border: 2px solid #000;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+        background: #fff;
+        border-radius: 0; /* Vuông */
+        overflow: visible;
+        /* Animation fade-in toàn bảng */
+        animation: fadeIn 1s ease forwards;
+    }
+
+    /* Bảng */
+    .product-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        border-radius: 0;
+    }
+
+    /* Header */
+    .product-header {
+        background-color: #212529; /* màu tối */
+        color: #fff;
+        font-weight: 700;
+        border-bottom: 3px solid #000;
+        border-radius: 0 !important;
+    }
+
+        .product-header th {
+            padding: 12px 15px;
+            border: 1px solid #000;
+            vertical-align: middle;
+            user-select: none;
+            transition: background-color 0.3s ease;
+        }
+
+            .product-header th:hover {
+                background-color: #343a40;
+                cursor: default;
+            }
+
+    /* Các ô trong tbody */
+    tbody tr:nth-child(odd) {
+        background-color: #f8f9fa;
+        transition: background-color 0.3s ease;
+    }
+
+    tbody tr:nth-child(even) {
+        background-color: #e9ecef;
+        transition: background-color 0.3s ease;
+    }
+
+    tbody tr:hover {
+        background-color: #d1e7dd !important;
+        box-shadow: inset 0 0 10px #93c6a1;
+        cursor: pointer;
+    }
+
+    tbody td {
+        padding: 12px 15px;
+        border: 1px solid #000;
+        vertical-align: middle;
+        transition: color 0.3s ease;
+    }
+
+    /* Nút hành động */
+    .btn-action {
+        border-radius: 6px;
+        font-weight: 600;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+    }
+
+        .btn-action:hover {
+            transform: scale(1.12) rotate(-2deg);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            background-color: #ffc107 !important; /* Màu vàng nổi bật khi hover cho btn-warning */
+            color: #000 !important;
+        }
+
+    .btn-danger.btn-action:hover {
+        background-color: #dc3545 !important;
+        transform: scale(1.1) rotate(2deg);
+        box-shadow: 0 6px 12px rgba(220, 53, 69, 0.5);
+        color: #fff !important;
+    }
+
+    /* Nút Thêm sản phẩm */
+    .btn-add-product {
+        border-radius: 8px;
+        font-weight: 700;
+        background: linear-gradient(45deg, #28a745, #218838);
+        border-color: #218838;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .btn-add-product:hover {
+            transform: scale(1.15) rotate(-1deg);
+            box-shadow: 0 8px 16px rgba(33, 136, 56, 0.7);
+        }
+
+    /* Icon nhỏ bên cạnh text */
+    .bi {
+        vertical-align: -.125em;
+        margin-right: 6px;
+        transition: transform 0.3s ease;
+    }
+    /* Icon hơi nhảy khi hover nút */
+    .btn:hover .bi {
+        transform: translateX(3px) rotate(15deg);
+    }
+
+    /* Canh giữa */
+    .text-center {
+        text-align: center !important;
+    }
+
+    /* === Animation keyframes === */
+
+    @@keyframes fadeIn {
+        from
+
+    {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+
+    }
+
+    @@keyframes fadeInUp {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    }
+
+    /* Ẩn các dòng ban đầu, cho animation chạy */
+    tbody tr {
+        opacity: 0;
+        animation: fadeInUp 0.5s ease forwards;
+    }
+
+        /* Delay animation cho từng dòng, tạo hiệu ứng lần lượt */
+        tbody tr:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        tbody tr:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        tbody tr:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        tbody tr:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        tbody tr:nth-child(5) {
+            animation-delay: 0.5s;
+        }
+
+        tbody tr:nth-child(6) {
+            animation-delay: 0.6s;
+        }
+
+        tbody tr:nth-child(7) {
+            animation-delay: 0.7s;
+        }
+
+        tbody tr:nth-child(8) {
+            animation-delay: 0.8s;
+        }
+
+        tbody tr:nth-child(9) {
+            animation-delay: 0.9s;
+        }
+
+        tbody tr:nth-child(10) {
+            animation-delay: 1s;
+        }
+
+</style>

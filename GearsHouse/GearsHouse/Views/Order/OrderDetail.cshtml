@@ -1,0 +1,200 @@
+﻿@model GearsHouse.Models.Order
+@using GearsHouse.Extensions
+@using GearsHouse.Helpers
+
+<div class="container py-5">
+    <div class="card border-0 shadow-lg">
+        <div class="card-header bg-gradient-primary text-white py-4">
+            <h2 class="mb-0 fw-bold">Chi tiết đơn hàng #@Model.Id</h2>
+        </div>
+        <div class="card-body p-4">
+            <!-- Thông tin đơn hàng -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h4 class="text-dark fw-semibold mb-3">Thông tin khách hàng</h4>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="label">Khách hàng:</span>
+                            <span class="value">@Model.FullName</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Số điện thoại:</span>
+                            <span class="value">@Model.PhoneNumber</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Địa chỉ giao hàng:</span>
+                            <span class="value">@Model.ShippingAddress</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h4 class="text-dark fw-semibold mb-3">Thông tin đơn hàng</h4>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="label">Ngày đặt:</span>
+                            <span class="value">@Model.OrderDate.ToString("dd/MM/yyyy")</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Phương thức thanh toán:</span>
+                            <span class="value">@Model.PaymentMethod</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Trạng thái:</span>
+                            <span class="badge status-badge @GetStatusClass(Model.OrderStatus)">
+                                @Model.OrderStatus.GetDisplayName()
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Ghi chú:</span>
+                            <span class="value">@(string.IsNullOrEmpty(Model.Notes) ? "Không có" : Model.Notes)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Danh sách sản phẩm -->
+            <h4 class="text-dark fw-semibold mb-3">Danh sách sản phẩm</h4>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Sản phẩm</th>
+                            <th>Giá</th>
+                            <th>Số lượng</th>
+                            <th>Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.OrderDetails)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-medium">@item.Product?.Name</td>
+                                <td>@item.Price.ToString("N0") VNĐ</td>
+                                <td>@item.Quantity</td>
+                                <td class="text-success fw-medium">@((item.Price * item.Quantity).ToString("N0")) VNĐ</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Tổng cộng -->
+            <div class="d-flex justify-content-end mt-4">
+                <h3 class="fw-bold text-primary">Tổng cộng: <span class="text-success">@Model.TotalPrice.ToString("N0") VNĐ</span></h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .container {
+        max-width: 1200px;
+    }
+
+    .card {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+    }
+
+    .info-grid {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .label {
+        font-weight: 600;
+        color: #495057;
+        min-width: 120px;
+    }
+
+    .value {
+        color: #212529;
+    }
+
+    .table th {
+        font-weight: 600;
+        padding: 1rem;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .table td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-top: 1px solid #ececec;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+        transition: background-color 0.3s ease;
+    }
+
+    .text-primary {
+        color: #007bff !important;
+    }
+
+    .text-success {
+        color: #28a745 !important;
+    }
+
+    .shadow-lg {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    /* Dynamic status colors */
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .status-processing {
+        background-color: #cce5ff;
+        color: #004085;
+    }
+
+    .status-shipped {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-delivered {
+        background-color: #cce5ff;
+        color: #004085;
+    }
+
+    .status-cancelled {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+</style>
+
+@{
+    string GetStatusClass(OrderStatus status)
+    {
+        return status switch
+        {
+            OrderStatus.ChoXacNhan => "status-pending",
+            OrderStatus.DangXuLy => "status-processing",
+            OrderStatus.DangGiaoHang => "status-shipped",
+            OrderStatus.HoanThanh => "status-delivered",
+            OrderStatus.DaHuy => "status-cancelled",
+            _ => "status-pending"
+        };
+    }
+}

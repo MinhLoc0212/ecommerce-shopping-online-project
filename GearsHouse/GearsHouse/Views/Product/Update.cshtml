@@ -1,0 +1,250 @@
+@model GearsHouse.Models.Product
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Cập nhật sản phẩm";
+}
+@{
+    var xRequestedWith = ViewContext?.HttpContext?.Request?.Headers["X-Requested-With"].ToString();
+    if (string.Equals(xRequestedWith, "XMLHttpRequest", StringComparison.OrdinalIgnoreCase))
+    {
+        Layout = null;
+    }
+}
+
+<div class="container mt-4 animate-fade-in">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+            }
+        </div>
+        <div class="col-lg-11">
+            <div class="card shadow border-orange border-3 rounded-4">
+                <div class="card-header bg-orange text-white rounded-top">
+                    <h3 class="mb-0"><i class="bi bi-pencil-square me-2"></i>CẬP NHẬT SẢN PHẨM</h3>
+                </div>
+                <div class="card-body p-4 bg-white rounded-bottom">
+                    <form asp-action="Update" method="post" enctype="multipart/form-data" id="product-update-form" novalidate>
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="row g-4">
+                            <!-- Bên trái: Ảnh hiện có & thay đổi ảnh -->
+                            <div class="col-lg-5">
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">
+                                        <i class="bi bi-image me-1 text-orange"></i>ẢNH CHÍNH
+                                    </label>
+                                    <input type="file" name="imageUrl" class="form-control" id="imageInput" accept="image/*" />
+                                    <div class="mt-3 d-flex justify-content-center">
+                                        <div class="image-preview-wrapper">
+                                            <img id="previewImage" src="@Model.ImageUrl" alt="Ảnh sản phẩm" class="img-preview-lg" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-2 d-flex align-items-center justify-content-between">
+                                    <label class="form-label fw-semibold mb-0">
+                                        <i class="bi bi-images me-1 text-orange"></i>ẢNH PHỤ HIỆN CÓ
+                                    </label>
+                                </div>
+                                <div class="gallery-grid">
+                                    @if (Model.Images != null && Model.Images.Count > 0)
+                                    {
+                                        foreach (var img in Model.Images)
+                                        {
+                                            <div class="gallery-item">
+                                                <img src="@img.Url" alt="Ảnh phụ" />
+                                                <form asp-controller="Product" asp-action="DeleteProductImage" method="post" class="delete-form" title="Xóa ảnh phụ">
+                                                    <input type="hidden" name="id" value="@img.Id" />
+                                                    <input type="hidden" name="productId" value="@Model.Id" />
+                                                    <button type="submit" class="delete-btn-x" onclick="return confirm('Xóa ảnh này?');">&times;</button>
+                                                </form>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="text-muted">Chưa có ảnh phụ nào.</div>
+                                    }
+                                </div>
+
+                                <div class="mt-4">
+                                    <label class="form-label fw-semibold">
+                                        <i class="bi bi-upload me-1 text-orange"></i>THÊM ẢNH PHỤ (có thể chọn nhiều)
+                                    </label>
+                                    <input type="file" name="galleryImages" id="galleryInput" class="form-control" accept="image/*" multiple />
+                                    <div class="mt-3" id="galleryPreview" style="display:flex; gap:10px; flex-wrap:wrap;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Bên phải: Thông tin sản phẩm -->
+                            <div class="col-lg-7">
+                                <div class="mb-3">
+                                    <label asp-for="Name" class="form-label fw-semibold"><i class="bi bi-tag me-1 text-orange"></i>TÊN SẢN PHẨM</label>
+                                    <input asp-for="Name" class="form-control" placeholder="Nhập tên sản phẩm" autocomplete="off" />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Price" class="form-label fw-semibold"><i class="bi bi-currency-dollar me-1 text-orange"></i>GIÁ</label>
+                                    <input asp-for="Price" class="form-control" />
+                                    <span asp-validation-for="Price" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="CategoryId" class="form-label fw-semibold"><i class="bi bi-collection me-1 text-orange"></i>DANH MỤC</label>
+                                    <select asp-for="CategoryId" asp-items="ViewBag.Categories" class="form-select"></select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="BrandId" class="form-label fw-semibold"><i class="bi bi-building me-1 text-orange"></i>THƯƠNG HIỆU</label>
+                                    <select asp-for="BrandId" asp-items="ViewBag.Brands" class="form-select"></select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Description" class="form-label fw-semibold"><i class="bi bi-text-left me-1 text-orange"></i>MÔ TẢ</label>
+                                    <textarea asp-for="Description" class="form-control" id="descriptionEditor"></textarea>
+                                    <span asp-validation-for="Description" class="text-danger"></span>
+                                </div>
+
+                                <div class="text-end mt-4">
+                                    <button type="submit" class="btn btn-orange px-4 py-2 shadow-sm">
+                                        <i class="bi bi-save me-1"></i>Cập nhật
+                                    </button>
+                                    <a asp-controller="Dashboard" asp-action="Dashboard" asp-route-tab="product" class="btn btn-outline-secondary ms-2">
+                                        <i class="bi bi-arrow-left me-1"></i>Quay lại
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TinyMCE -->
+<script src="https://cdn.tiny.cloud/1/mceyvkr5qw1v3d6pw7hqems6xoqgcxo582jxoxtkqhpm9cp3/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+    tinymce.init({
+        selector: '#descriptionEditor',
+        plugins: 'table lists',
+        height: 300
+    });
+</script>
+
+<script>
+    // Xem trước ảnh chính
+    (function () {
+        const imageInput = document.getElementById('imageInput');
+        const previewImage = document.getElementById('previewImage');
+        if (imageInput) {
+            imageInput.addEventListener('change', function (event) {
+                const file = event.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    previewImage.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+    })();
+
+    // Xem trước ảnh phụ mới upload
+    (function () {
+        const galleryInput = document.getElementById('galleryInput');
+        const galleryPreview = document.getElementById('galleryPreview');
+        if (galleryInput) {
+            galleryInput.addEventListener('change', function (event) {
+                const files = Array.from(event.target.files || []);
+                galleryPreview.innerHTML = '';
+                files.forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const wrap = document.createElement('div');
+                        wrap.className = 'gallery-preview-item';
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        wrap.appendChild(img);
+                        galleryPreview.appendChild(wrap);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            });
+        }
+    })();
+</script>
+
+<style>
+    .bg-orange { background-color: #fd7e14 !important; }
+    .text-orange { color: #fd7e14; }
+    .border-orange { border-color: #fd7e14 !important; }
+
+    .img-preview-lg {
+        max-width: 100%;
+        max-height: 380px;
+        border-radius: 12px;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        object-fit: contain;
+    }
+    .image-preview-wrapper { position: relative; display: inline-block; }
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 12px;
+    }
+    .gallery-item {
+        position: relative;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        background: #fff;
+    }
+    .gallery-item img {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+        display: block;
+    }
+    .delete-form { position: absolute; top: 6px; right: 6px; }
+    .delete-btn-x {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: rgba(220, 53, 69, 0.9);
+        color: #fff;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        line-height: 1;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        transition: background 0.2s ease-in-out;
+    }
+    .delete-btn-x:hover { background: #dc3545; }
+    .gallery-preview-item {
+        width: 120px;
+        height: 120px;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .gallery-preview-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .form-label { font-weight: 600; }
+    textarea.form-control { min-height: 150px; }
+</style>

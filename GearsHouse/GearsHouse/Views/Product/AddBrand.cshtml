@@ -1,0 +1,38 @@
+﻿@model GearsHouse.Models.Brand
+
+@{
+    ViewData["Title"] = "Thêm Thương Hiệu";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4 class="mb-0">Thêm Thương Hiệu</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="AddBrand" method="post">
+                        <div class="mb-3">
+                            <label for="Name" class="form-label">Tên Thương Hiệu</label>
+                            <input asp-for="Name" class="form-control" placeholder="Nhập tên thương hiệu" required />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-success">Lưu</button>
+                            <a asp-controller="Product" asp-action="Index" class="btn btn-secondary">Quay lại</a>
+                        </div>
+                    </form>
+
+                    @if (!string.IsNullOrEmpty(ViewBag.Message))
+                    {
+                        <div class="alert alert-success mt-3">
+                            @ViewBag.Message
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

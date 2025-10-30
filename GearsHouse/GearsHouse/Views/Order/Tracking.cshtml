@@ -1,0 +1,132 @@
+﻿@using System.ComponentModel.DataAnnotations
+@model List<GearsHouse.Models.Order>
+
+<div class="container py-5">
+    <div class="card border-0 shadow-lg">
+        <div class="card-header bg-gradient-primary text-white py-3">
+            <h2 class="mb-0 fw-bold">Theo dõi đơn hàng</h2>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-dark">
+                        <tr>
+                            <th class="ps-4">Mã đơn hàng</th>
+                            <th>Ngày đặt</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-medium text-primary">@order.Id</td>
+                                <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
+                                <td class="fw-medium text-success">@order.TotalPrice.ToString("N0") VNĐ</td>
+                                <td>
+                                    <span class="badge status-badge @GetStatusClass(order.OrderStatus)">
+                                        @Html.DisplayFor(modelItem => order.OrderStatus)
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Custom styles */
+    .container {
+        max-width: 1200px;
+    }
+
+    .card {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+    }
+
+    .table th {
+        font-weight: 600;
+        padding: 1rem;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .table td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-top: 1px solid #ececec;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+        transition: background-color 0.3s ease;
+    }
+
+    .text-primary {
+        color: #007bff !important;
+    }
+
+    .text-success {
+        color: #28a745 !important;
+    }
+
+    .shadow-lg {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    /* Dynamic status colors */
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .status-processing {
+        background-color: #cce5ff;
+        color: #004085;
+    }
+
+    .status-shipped {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-delivered {
+        background-color: #cce5ff;
+        color: #004085;
+    }
+
+    .status-cancelled {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+</style>
+
+@{
+    string GetStatusClass(OrderStatus status)
+    {
+        return status switch
+        {
+            OrderStatus.ChoXacNhan => "status-pending",
+            OrderStatus.DangXuLy => "status-processing",
+            OrderStatus.DangGiaoHang => "status-shipped",
+            OrderStatus.HoanThanh => "status-delivered",
+            OrderStatus.DaHuy => "status-cancelled",
+            _ => "status-pending"
+        };
+    }
+}

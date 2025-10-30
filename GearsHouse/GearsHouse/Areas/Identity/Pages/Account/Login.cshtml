@@ -1,0 +1,167 @@
+﻿@page
+@model LoginModel
+@{
+    ViewData["Title"] = "Đăng nhập";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+<style>
+    body {
+        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #e1e8f0;
+        height: 100vh;
+        margin: 0;
+    }
+
+    .login-card {
+        background: #1a1f29;
+        border-radius: 15px;
+        box-shadow: 0 15px 25px rgba(0, 0, 0, 0.6);
+        padding: 30px 35px;
+        width: 400px;
+        color: #e1e8f0;
+    }
+
+    h2 {
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        color: #ff5722; /* đổi sang cam */
+        margin-bottom: 30px;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    label {
+        color: #ffab91; /* cam nhạt */
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 16px;
+    }
+
+        label i {
+            color: #ff5722; /* cam đậm */
+            font-size: 18px;
+        }
+
+    .input-icon input.form-control {
+        background: #121621;
+        border: 1.8px solid #3a4550;
+        border-radius: 12px;
+        color: #a7bbc7;
+        padding: 10px 15px;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+        .input-icon input.form-control:focus {
+            border-color: #ff5722; /* cam */
+            box-shadow: 0 0 8px #ff5722;
+            outline: none;
+            color: #fff;
+            background: #18202b;
+        }
+
+    .form-check-label {
+        color: #ffab91; /* cam nhạt */
+        user-select: none;
+    }
+
+    .btn-primary {
+        background: #ff5722; /* cam */
+        border: none;
+        font-weight: 700;
+        letter-spacing: 1px;
+        padding: 12px 0;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(255, 87, 34, 0.6);
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        width: 100%;
+    }
+
+        .btn-primary:hover {
+            background: #e64a19; /* cam tối hơn */
+            box-shadow: 0 8px 20px rgba(230, 74, 25, 0.8);
+        }
+
+    p.text-center a {
+        color: #ff5722; /* cam */
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s ease;
+    }
+
+        p.text-center a:hover {
+            color: #e64a19; /* cam tối */
+            text-decoration: underline;
+        }
+
+    [role="alert"] {
+        color: #ff6b6b;
+        font-weight: 600;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+</style>
+
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="card login-card shadow-lg">
+        <h2><i class="fas fa-sign-in-alt"></i> Đăng nhập</h2>
+        <form id="account" method="post" novalidate>
+            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+            <div class="mb-4 input-icon">
+                <label asp-for="Input.Email">
+                    <i class="fas fa-envelope"></i>
+                    Email
+                </label>
+                <input asp-for="Input.Email" class="form-control" autocomplete="username" required />
+            </div>
+
+            <div class="mb-4 input-icon">
+                <label asp-for="Input.Password">
+                    <i class="fas fa-lock"></i>
+                    Mật khẩu
+                </label>
+                <input asp-for="Input.Password" type="password" class="form-control" id="login-password" required />
+            </div>
+
+            <div class="form-check mb-3">
+                <input type="checkbox" class="form-check-input" id="show-login-password"
+                       onclick="togglePassword('login-password');" />
+                <label class="form-check-label" for="show-login-password">Hiển thị mật khẩu</label>
+            </div>
+
+            <div class="form-check mb-4">
+                <input class="form-check-input" asp-for="Input.RememberMe" id="rememberMe" />
+                <label class="form-check-label" for="rememberMe">Ghi nhớ đăng nhập</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập
+            </button>
+
+            <p class="text-center mt-3">
+                <a asp-page="./ForgotPassword"><i class="fas fa-question-circle"></i> Quên mật khẩu?</a>
+            </p>
+            <p class="text-center">
+                <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl"><i class="fas fa-user-plus"></i> Chưa có tài khoản? Đăng ký</a>
+            </p>
+        </form>
+    </div>
+</div>
+
+<script>
+    function togglePassword(inputId) {
+        var input = document.getElementById(inputId);
+        input.type = (input.type === "password") ? "text" : "password";
+    }
+</script>
