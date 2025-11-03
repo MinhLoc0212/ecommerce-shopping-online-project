@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using GearsHouse.Models;
 using GearsHouse.Repositories;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -14,6 +14,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<InvoicePdfGenerator>();
+builder.Services.Configure<VNPaySettings>(builder.Configuration.GetSection("VNPay"));
+builder.Services.AddScoped<VNPayService>();
 
 
 // Đặt trước AddControllersWithViews();

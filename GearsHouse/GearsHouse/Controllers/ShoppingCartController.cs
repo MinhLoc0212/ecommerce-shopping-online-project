@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,18 +18,21 @@ namespace GearsHouse.Controllers
         private readonly IProductRepository _productRepository;
         private readonly EmailService _emailService;
         private readonly InvoicePdfGenerator _pdfGenerator;
+        private readonly VNPayService _vnpayService;
         
 
 
         public ShoppingCartController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IProductRepository productRepository,
             EmailService emailService,
-    InvoicePdfGenerator pdfGenerator)
+            InvoicePdfGenerator pdfGenerator,
+            VNPayService vnpayService)
         {
             _productRepository = productRepository;
             _context = context;
             _userManager = userManager;
             _emailService = emailService;
             _pdfGenerator = pdfGenerator;
+            _vnpayService = vnpayService;
             
         }
 
@@ -292,6 +295,18 @@ namespace GearsHouse.Controllers
             _context.Orders.Update(existingOrder);
             await _context.SaveChangesAsync();
 
+            // Nếu chọn VNPay, chuyển hướng tới cổng thanh toán
+            if (string.Equals(existingOrder.PaymentMethod, "VNPay", StringComparison.OrdinalIgnoreCase))
+            {
+                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                if (string.IsNullOrEmpty(ipAddress) || ipAddress == "::1")
+                {
+                    ipAddress = "127.0.0.1";
+                }
+                var paymentUrl = _vnpayService.CreatePaymentUrl(existingOrder, ipAddress);
+                return Redirect(paymentUrl);
+            }
+
             // Xóa giỏ hàng trong database sau khi hoàn tất đơn hàng
             var user = await _userManager.GetUserAsync(User);
             var cartItems = _context.CartItems.Where(i => i.UserId == user.Id);
@@ -437,6 +452,106 @@ namespace GearsHouse.Controllers
             }
 
             return RedirectToAction("Index", "ShoppingCart");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> VNPayReturn()
+        {
+            // Xác thực chữ ký từ VNPay
+            if (!_vnpayService.ValidateSignature(Request.Query))
+            {
+                TempData["ErrorMessage"] = "Xác thực thanh toán không thành công.";
+                return RedirectToAction("Index", "ShoppingCart");
+            }
+
+            var txnRef = Request.Query["vnp_TxnRef"].ToString();
+            if (!int.TryParse(txnRef, out var orderId))
+            {
+                TempData["ErrorMessage"] = "Tham chiếu đơn hàng không hợp lệ.";
+                return RedirectToAction("Index", "ShoppingCart");
+            }
+
+            var order = await _context.Orders
+                .Include(o => o.OrderDetails)
+                .ThenInclude(od => od.Product)
+                .FirstOrDefaultAsync(o => o.Id == orderId);
+
+            if (order == null)
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy đơn hàng.";
+                return RedirectToAction("Index", "ShoppingCart");
+            }
+
+            if (!VNPayService.IsSuccessResponse(Request.Query))
+            {
+                TempData["ErrorMessage"] = "Thanh toán VNPay thất bại hoặc bị hủy.";
+                return RedirectToAction("Checkout", new { id = order.Id });
+            }
+
+            // Thanh toán thành công: xoá giỏ, gửi email và hiển thị hoàn tất
+            var user = await _userManager.GetUserAsync(User);
+            var cartItems = _context.CartItems.Where(i => i.UserId == user.Id);
+            _context.CartItems.RemoveRange(cartItems);
+            await _context.SaveChangesAsync();
+
+            var email = user.Email;
+            string pdfPath = _pdfGenerator.GenerateInvoicePdf(order, order.OrderDetails.ToList());
+
+            string subject = $"[GEARSHOUSE] Xác nhận đơn hàng #{order.Id}";
+            string body = $@"
+<html>
+<body style='font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f8f8f8;'>
+    <table style='width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px; border-radius: 10px;'>
+        <tr>
+            <td style='text-align: center;'>
+                <h1 style='color: #333333;'>Cảm ơn bạn đã đặt hàng tại GEARSHOUSE!</h1>
+                <p style='font-size: 18px; color: #555555;'>Mã đơn hàng của bạn là <strong style='color: #e74c3c;'>#{order.Id}</strong>.</p>
+                <p style='font-size: 16px; color: #555555;'>Hóa đơn mua hàng đã được đính kèm trong email này. Chúng tôi sẽ xử lý đơn hàng và giao đến bạn sớm nhất!</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <table style='width: 100%;'>
+                    <tr>
+                        <th style='background-color: #e74c3c; color: #ffffff; padding: 10px; text-align: left;'>Sản phẩm</th>
+                        <th style='background-color: #e74c3c; color: #ffffff; padding: 10px; text-align: left;'>Số lượng</th>
+                        <th style='background-color: #e74c3c; color: #ffffff; padding: 10px; text-align: left;'>Giá</th>
+                    </tr>";
+
+            foreach (var item in order.OrderDetails)
+            {
+                body += $@"
+                    <tr>
+                        <td style='padding: 10px; border: 1px solid #ddd;'>{item.Product.Name}</td>
+                        <td style='padding: 10px; border: 1px solid #ddd;'>{item.Quantity}</td>
+                        <td style='padding: 10px; border: 1px solid #ddd;'>{item.Price:N0} VNĐ</td>
+                    </tr>";
+            }
+
+            body += $@"
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td style='padding-top: 20px;'>
+                <p style='font-size: 18px; color: #555555; font-weight: bold;'>Tổng tiền: <span style='color: #e74c3c;'>{order.TotalPrice:N0} VNĐ</span></p>
+                <p style='font-size: 16px; color: #555555;'>Thanh toán VNPay thành công.</p>
+            </td>
+        </tr>
+        <tr>
+            <td style='padding-top: 20px; text-align: center;'>
+                <p style='font-size: 16px; color: #555555;'>Trân trọng,</p>
+                <p style='font-size: 16px; color: #555555; font-weight: bold;'>GEARSHOUSE</p>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+";
+
+            await _emailService.SendEmailAsync(email, subject, body, pdfPath);
+
+            return View("OrderCompleted", order.Id);
         }
     }
 }

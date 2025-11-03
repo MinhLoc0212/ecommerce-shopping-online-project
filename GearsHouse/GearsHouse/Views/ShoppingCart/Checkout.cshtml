@@ -1,4 +1,4 @@
-﻿@model GearsHouse.Models.Order
+@model GearsHouse.Models.Order
 
 @{
     ViewData["Title"] = "Checkout";
@@ -196,6 +196,7 @@
         <p class="text-center text-muted">Vui lòng nhập thông tin để hoàn tất đơn hàng</p>
 
         <form id="checkoutForm" asp-action="Checkout" method="post">
+            <input type="hidden" asp-for="Id" />
             <div class="mb-3">
                 <label asp-for="FullName" class="form-label fw-semibold">
                     <i class="bi bi-person-fill"></i> 👤 Họ và Tên
@@ -230,27 +231,16 @@
                 <select asp-for="PaymentMethod" class="form-select" required onchange="togglePaymentOptions()">
                     <option value="">-- Chọn phương thức thanh toán --</option>
                     <option value="COD">Thanh toán khi nhận hàng (COD)</option>
-                    <option value="Online">Thanh toán trực tuyến</option>
+                    <option value="VNPay">Thanh toán qua VNPay</option>
                 </select>
                 <span asp-validation-for="PaymentMethod" class="text-danger"></span>
             </div>
 
-            <div id="onlinePaymentDetails" style="display: none;">
+            <div id="vnpayPaymentDetails" style="display: none;">
                 <h4 class="text-center">
-                    <i class="bi bi-wallet2"></i> 💳 Thông tin thanh toán trực tuyến
+                    <i class="bi bi-wallet2"></i> 💳 Thanh toán qua VNPay
                 </h4>
-                <p><strong>Ngân hàng:</strong> Ngân hàng ABC</p>
-                <p><strong>Số tài khoản:</strong> 1234567890</p>
-                <p><strong>Chủ tài khoản:</strong> Công ty XYZ</p>
-                <p>
-                    <strong>Hướng dẫn thanh toán:</strong><br />
-                    Vui lòng chuyển khoản với nội dung: "<strong>HoVaTen_@(Model?.Id ?? 0)</strong>"
-                </p>
-                <div>
-                    <label class="form-label fw-semibold">Mã QR thanh toán</label>
-                    <img src="~/image/maqr.png" alt="Mã QR thanh toán" class="img-fluid rounded border" />
-                    <p class="mt-2 text-muted">Quét mã QR để thanh toán trực tuyến.</p>
-                </div>
+                <p class="text-muted text-center">Bạn sẽ được chuyển đến cổng VNPay để thanh toán an toàn.</p>
             </div>
 
             <div class="d-grid gap-2 mt-4">
@@ -273,8 +263,8 @@
 <script>
     function togglePaymentOptions() {
         var paymentMethod = document.querySelector('select[name="PaymentMethod"]').value;
-        var onlinePaymentDetails = document.getElementById('onlinePaymentDetails');
-        onlinePaymentDetails.style.display = (paymentMethod === 'Online') ? 'block' : 'none';
+        var vnpayPaymentDetails = document.getElementById('vnpayPaymentDetails');
+        vnpayPaymentDetails.style.display = (paymentMethod === 'VNPay') ? 'block' : 'none';
     }
 
     function disableValidation() {
