@@ -387,6 +387,10 @@
                         <div class="card product-card" tabindex="0" role="link" aria-label="Xem chi tiết sản phẩm @product.Name">
                             <div class="card-img-wrapper">
                                 <img src="@product.ImageUrl" class="card-img-top" alt="@product.Name" loading="lazy">
+                                @if (product.Quantity == 0)
+                                {
+                                    <span class="badge bg-secondary position-absolute top-0 start-0 m-2">Hết hàng</span>
+                                }
                                 @if (ViewBag.ProductDiscounts?.ContainsKey(product.Id) == true)
                                 {
                                     var discountData = ((decimal price, int percent))ViewBag.ProductDiscounts[product.Id];
@@ -401,7 +405,11 @@
                                     @if (!string.IsNullOrEmpty(brandName)) { <span class="badge bg-light text-dark border">@brandName</span> }
                                     @if (!string.IsNullOrEmpty(categoryName)) { <span class="badge bg-light text-dark border">@categoryName</span> }
                                 </div>
-                                @if (ViewBag.ProductDiscounts?.ContainsKey(product.Id) == true)
+                                @if (product.Quantity == 0)
+                                {
+                                    <p class="text-danger fw-bold">Hết hàng</p>
+                                }
+                                else if (ViewBag.ProductDiscounts?.ContainsKey(product.Id) == true)
                                 {
                                     var discount = ((decimal price, int percent))ViewBag.ProductDiscounts[product.Id];
                                     <p class="text-muted text-decoration-line-through">@string.Format("{0:N0} đ", product.Price)</p>

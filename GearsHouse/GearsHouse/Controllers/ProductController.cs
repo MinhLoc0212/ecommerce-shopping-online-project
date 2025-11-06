@@ -237,12 +237,13 @@ namespace GearsHouse.Controllers
                 bool isProductChanged = false;
                 bool hasNewGalleryImages = galleryImages != null && galleryImages.Any(img => img != null && img.Length > 0);
 
-                // Kiểm tra nếu tên sản phẩm, giá, mô tả, danh mục hoặc thương hiệu có thay đổi không
+                // Kiểm tra nếu tên sản phẩm, giá, mô tả, danh mục, thương hiệu hoặc số lượng có thay đổi không
                 if (existingProduct.Name != product.Name) isProductChanged = true;
                 if (existingProduct.Price != product.Price) isProductChanged = true;
                 if (existingProduct.Description != product.Description) isProductChanged = true;
                 if (existingProduct.CategoryId != product.CategoryId) isProductChanged = true;
                 if (existingProduct.BrandId != product.BrandId) isProductChanged = true;
+                if (existingProduct.Quantity != product.Quantity) isProductChanged = true;
                 // Nếu có upload ảnh chính mới thì cũng xem như có thay đổi
                 if (imageUrl != null) isProductChanged = true;
 
@@ -263,6 +264,7 @@ namespace GearsHouse.Controllers
                     existingProduct.Description = product.Description;
                     existingProduct.CategoryId = product.CategoryId;
                     existingProduct.BrandId = product.BrandId;
+                    existingProduct.Quantity = product.Quantity;
                     existingProduct.ImageUrl = product.ImageUrl;
 
                     await _productRepository.UpdateAsync(existingProduct);

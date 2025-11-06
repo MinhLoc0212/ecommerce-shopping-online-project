@@ -1,4 +1,4 @@
-﻿    @model GearsHouse.Models.ShoppingCart
+@model GearsHouse.Models.ShoppingCart
 
     @{
         int? lastProductId = Context.Session.GetInt32("LastProductId");
@@ -6,6 +6,13 @@
 
     <div class="container my-5">
         <h2 class="text-center mb-4 fw-bold text-uppercase">🛒 Giỏ hàng của bạn</h2>
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger" role="alert">
+                @TempData["ErrorMessage"]
+            </div>
+        }
 
         @if (Model.Items.Any())
         {

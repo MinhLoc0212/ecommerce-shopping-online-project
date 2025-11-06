@@ -43,14 +43,32 @@ namespace GearsHouse.Controllers
             var product = await _context.Products.FindAsync(productId);
             if (product == null) return Json(new { success = false, message = "Sản phẩm không tồn tại." });
 
+            if (product.Quantity <= 0)
+            {
+                return Json(new { success = false, message = "Sản phẩm đã hết hàng." });
+            }
+
             decimal discountedPrice = await GetDiscountedPrice(productId, product.Price);
 
             var existingItem = await _context.CartItems
                 .FirstOrDefaultAsync(i => i.UserId == user.Id && i.ProductId == productId );
 
+            int currentQty = existingItem?.Quantity ?? 0;
+            int requestedQty = currentQty + Math.Max(quantity, 1);
+
+            if (requestedQty > product.Quantity)
+            {
+                int available = product.Quantity - currentQty;
+                string msg = available > 0
+                    ? $"Số lượng yêu cầu vượt quá tồn kho. Chỉ còn {available}."
+                    : "Sản phẩm đã hết hàng trong giỏ của bạn.";
+                int totalItemsFail = await _context.CartItems.Where(i => i.UserId == user.Id).SumAsync(i => i.Quantity);
+                return Json(new { success = false, message = msg, totalItems = totalItemsFail });
+            }
+
             if (existingItem != null)
             {
-                existingItem.Quantity += quantity;
+                existingItem.Quantity = requestedQty;
             }
             else
             {
@@ -61,8 +79,7 @@ namespace GearsHouse.Controllers
                     Name = product.Name,
                     OriginalPrice = product.Price,
                     Price = discountedPrice,
-                    Quantity = quantity,
-                    
+                    Quantity = Math.Max(quantity, 1),
                     ImageUrl = product.ImageUrl
                 };
                 _context.CartItems.Add(cartItem);
@@ -95,24 +112,30 @@ namespace GearsHouse.Controllers
             var existingItem = await _context.CartItems
                 .FirstOrDefaultAsync(i => i.UserId == user.Id && i.ProductId == productId);
 
+            // Nếu sản phẩm đã có trong giỏ, không cộng dồn nữa — chỉ chuyển tới giỏ
             if (existingItem != null)
             {
-                existingItem.Quantity += quantity;
+                return RedirectToAction("Index");
             }
-            else
+
+            // Nếu chưa có, thêm mới với số lượng được chọn, kiểm tra tồn kho
+            if (quantity > product.Quantity)
             {
-                var cartItem = new CartItemEntity
-                {
-                    UserId = user.Id,
-                    ProductId = productId,
-                    Name = product.Name,
-                    OriginalPrice = product.Price,
-                    Price = discountedPrice,
-                    Quantity = quantity,
-                    ImageUrl = product.ImageUrl
-                };
-                _context.CartItems.Add(cartItem);
+                TempData["ErrorMessage"] = $"Số lượng yêu cầu vượt quá tồn kho (còn {product.Quantity}).";
+                return RedirectToAction("Index");
             }
+
+            var cartItem = new CartItemEntity
+            {
+                UserId = user.Id,
+                ProductId = productId,
+                Name = product.Name,
+                OriginalPrice = product.Price,
+                Price = discountedPrice,
+                Quantity = quantity,
+                ImageUrl = product.ImageUrl
+            };
+            _context.CartItems.Add(cartItem);
 
             await _context.SaveChangesAsync();
 
@@ -303,9 +326,13 @@ namespace GearsHouse.Controllers
                 {
                     ipAddress = "127.0.0.1";
                 }
-                var paymentUrl = _vnpayService.CreatePaymentUrl(existingOrder, ipAddress);
+                var returnUrl = $"{Request.Scheme}://{Request.Host}/ShoppingCart/VNPayReturn";
+                var paymentUrl = _vnpayService.CreatePaymentUrl(existingOrder, ipAddress, returnUrl);
                 return Redirect(paymentUrl);
             }
+
+            // Giảm tồn kho cho từng sản phẩm trong đơn hàng (không dùng VNPay)
+            await DecreaseStockForOrder(existingOrder);
 
             // Xóa giỏ hàng trong database sau khi hoàn tất đơn hàng
             var user = await _userManager.GetUserAsync(User);
@@ -406,8 +433,22 @@ namespace GearsHouse.Controllers
 
             if (item != null)
             {
-                item.Quantity++;
-                await _context.SaveChangesAsync();
+                var product = await _context.Products.FindAsync(productId);
+                if (product == null)
+                {
+                    TempData["ErrorMessage"] = "Sản phẩm không tồn tại.";
+                    return RedirectToAction("Index");
+                }
+
+                if (item.Quantity >= product.Quantity)
+                {
+                    TempData["ErrorMessage"] = $"Số lượng trong giỏ đã đạt tối đa tồn kho ({product.Quantity}).";
+                }
+                else
+                {
+                    item.Quantity++;
+                    await _context.SaveChangesAsync();
+                }
             }
 
             return RedirectToAction("Index");
@@ -488,7 +529,8 @@ namespace GearsHouse.Controllers
                 return RedirectToAction("Checkout", new { id = order.Id });
             }
 
-            // Thanh toán thành công: xoá giỏ, gửi email và hiển thị hoàn tất
+            // Thanh toán thành công: giảm tồn kho, xoá giỏ, gửi email và hiển thị hoàn tất
+            await DecreaseStockForOrder(order);
             var user = await _userManager.GetUserAsync(User);
             var cartItems = _context.CartItems.Where(i => i.UserId == user.Id);
             _context.CartItems.RemoveRange(cartItems);
@@ -552,6 +594,23 @@ namespace GearsHouse.Controllers
             await _emailService.SendEmailAsync(email, subject, body, pdfPath);
 
             return View("OrderCompleted", order.Id);
+        }
+
+        // Helper: giảm số lượng tồn kho theo chi tiết đơn hàng
+        private async Task DecreaseStockForOrder(Order order)
+        {
+            if (order?.OrderDetails == null || !order.OrderDetails.Any()) return;
+
+            foreach (var detail in order.OrderDetails)
+            {
+                var product = await _context.Products.FindAsync(detail.ProductId);
+                if (product == null) continue;
+
+                var newQty = product.Quantity - detail.Quantity;
+                product.Quantity = newQty < 0 ? 0 : newQty;
+            }
+
+            await _context.SaveChangesAsync();
         }
     }
 }

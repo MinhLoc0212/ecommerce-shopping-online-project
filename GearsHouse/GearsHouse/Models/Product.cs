@@ -19,6 +19,8 @@ namespace GearsHouse.Models
         [Required]
         public int BrandId { get; set; }
         public Brand? Brand { get; set; }
-        
+
+        public int Quantity { get; set; }
+
     }
 }

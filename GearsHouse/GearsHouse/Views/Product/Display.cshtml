@@ -77,6 +77,12 @@
                         <span class="price-current">@string.Format("{0:N0} VND", Model.Price)</span>
                     </div>
                 }
+                @if (Model.Quantity == 0)
+                {
+                    <div class="alert alert-warning mt-2 mb-0 py-2 px-3" role="status">
+                        Hết hàng
+                    </div>
+                }
             </div>
 
             <div class="meta mb-3 text-muted">
@@ -86,18 +92,18 @@
 
             <div class="qty-block d-flex align-items-center my-3">
                 <span class="me-2 fw-semibold">Số lượng:</span>
-                <button class="btn btn-outline-secondary qty-btn" onclick="decreaseQuantity()" aria-label="Giảm số lượng">-</button>
-                <input type="number" id="quantity" value="1" min="1" class="mx-2 text-center form-control qty-input" aria-label="Số lượng" />
-                <button class="btn btn-outline-secondary qty-btn" onclick="increaseQuantity()" aria-label="Tăng số lượng">+</button>
+                <button class="btn btn-outline-secondary qty-btn" onclick="decreaseQuantity()" aria-label="Giảm số lượng" @(Model.Quantity == 0 ? "disabled" : null)>-</button>
+                <input type="number" id="quantity" value="1" min="1" max="@Model.Quantity" class="mx-2 text-center form-control qty-input" aria-label="Số lượng" @(Model.Quantity == 0 ? "disabled" : null) />
+                <button class="btn btn-outline-secondary qty-btn" onclick="increaseQuantity()" aria-label="Tăng số lượng" @(Model.Quantity == 0 ? "disabled" : null)>+</button>
             </div>
 
             <div id="cartMessage" class="alert alert-success d-none mt-3" role="alert"></div>
 
             <div class="action-block d-flex flex-wrap gap-2 mt-3">
-                <button id="addToCartBtn" class="btn btn-warning btn-lg" data-product-id="@Model.Id">
+                <button id="addToCartBtn" class="btn btn-warning btn-lg" data-product-id="@Model.Id" @(Model.Quantity == 0 ? "disabled" : null)>
                     <i class="bi bi-cart-plus me-1"></i> Thêm vào giỏ
                 </button>
-                <button id="buyNowBtn" class="btn btn-primary btn-lg" data-product-id="@Model.Id">
+                <button id="buyNowBtn" class="btn btn-primary btn-lg" data-product-id="@Model.Id" @(Model.Quantity == 0 ? "disabled" : null)>
                     <i class="bi bi-lightning-charge me-1"></i> Mua ngay
                 </button>
                 <a asp-action="Index" class="btn btn-outline-secondary">
@@ -334,7 +340,9 @@
 <script>
     function increaseQuantity() {
         let qtyInput = document.getElementById("quantity");
-        qtyInput.value = parseInt(qtyInput.value) + 1;
+        const maxStock = @Model.Quantity;
+        let next = parseInt(qtyInput.value) + 1;
+        qtyInput.value = (next > maxStock) ? maxStock : next;
     }
 
     function decreaseQuantity() {

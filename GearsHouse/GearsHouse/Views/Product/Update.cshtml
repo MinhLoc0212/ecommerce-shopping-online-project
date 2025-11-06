@@ -97,6 +97,12 @@
                                 </div>
 
                                 <div class="mb-3">
+                                    <label asp-for="Quantity" class="form-label fw-semibold"><i class="bi bi-archive me-1 text-orange"></i>SỐ LƯỢNG TỒN KHO</label>
+                                    <input asp-for="Quantity" type="number" min="0" step="1" class="form-control" placeholder="Nhập số lượng" />
+                                    <span asp-validation-for="Quantity" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
                                     <label asp-for="CategoryId" class="form-label fw-semibold"><i class="bi bi-collection me-1 text-orange"></i>DANH MỤC</label>
                                     <select asp-for="CategoryId" asp-items="ViewBag.Categories" class="form-select"></select>
                                 </div>

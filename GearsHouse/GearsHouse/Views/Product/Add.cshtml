@@ -31,6 +31,14 @@
                         </div>
 
                         <div class="mb-4">
+                            <label asp-for="Quantity" class="form-label fw-semibold">
+                                <i class="fas fa-boxes-stacked me-1 text-orange"></i>SỐ LƯỢNG TỒN KHO
+                            </label>
+                            <input asp-for="Quantity" type="number" min="0" step="1" class="form-control" placeholder="Nhập số lượng" autocomplete="off" />
+                            <span asp-validation-for="Quantity" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-4">
                             <label asp-for="Description" class="form-label fw-semibold">
                                 <i class="fas fa-align-left me-1 text-orange"></i>THÔNG TIN CHI TIẾT
                             </label>

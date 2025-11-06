@@ -1,4 +1,4 @@
-﻿using System.Security.Cryptography;
+using System.Security.Cryptography;
 using System.Text;
 using System.Net;
 using Microsoft.Extensions.Options;
@@ -18,7 +18,7 @@ namespace GearsHouse.Services
             _logger = logger;
         }
 
-        public string CreatePaymentUrl(Order order, string ipAddress)
+        public string CreatePaymentUrl(Order order, string ipAddress, string returnUrl)
         {
             var createDate = DateTime.Now;
             var expireDate = createDate.AddMinutes(15);
@@ -34,7 +34,7 @@ namespace GearsHouse.Services
                 ["vnp_TxnRef"] = order.Id.ToString(),
                 ["vnp_OrderInfo"] = $"Thanh toan don hang {order.Id}",
                 ["vnp_OrderType"] = "other",
-                ["vnp_ReturnUrl"] = _settings.ReturnUrl,
+                ["vnp_ReturnUrl"] = returnUrl,
                 ["vnp_IpAddr"] = ipAddress,
                 ["vnp_Locale"] = "vn",
                 ["vnp_CreateDate"] = createDate.ToString("yyyyMMddHHmmss"),
