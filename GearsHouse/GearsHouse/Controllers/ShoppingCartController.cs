@@ -219,27 +219,9 @@ namespace GearsHouse.Controllers
                 return RedirectToAction("Index");
             }
 
-            var user = await _userManager.GetUserAsync(User);
-
-            var order = new Order
-            {
-                UserId = user.Id,
-                OrderDate = DateTime.UtcNow,
-                TotalPrice = cart.Items.Sum(i => i.Price * i.Quantity),
-                OrderDetails = cart.Items.Select(i => new OrderDetail
-                {
-                    ProductId = i.ProductId,
-                    Quantity = i.Quantity,
-                    Price = i.Price
-                }).ToList()
-            };
-
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
-
-            HttpContext.Session.Remove("Cart");
-
-            return RedirectToAction("Checkout", new { orderId = order.Id });
+            // Không tạo đơn trước khi người dùng xác nhận Checkout.
+            // Chuyển người dùng sang trang Checkout (GET) để nhập thông tin và xác nhận.
+            return RedirectToAction("Checkout");
         }
 
         [HttpPost]
@@ -277,12 +259,50 @@ namespace GearsHouse.Controllers
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction("Checkout", new { id = order.Id });
+            return RedirectToAction("CheckoutExisting", new { id = order.Id });
         }
 
 
         [HttpGet]
-        public async Task<IActionResult> Checkout(int id)
+        public async Task<IActionResult> Checkout()
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            var cartItems = await _context.CartItems
+                .Where(i => i.UserId == user.Id)
+                .ToListAsync();
+
+            if (!cartItems.Any())
+            {
+                return RedirectToAction("Index");
+            }
+
+            var order = new Order
+            {
+                Id = 0, // chưa tạo đơn trong DB
+                UserId = user.Id,
+                OrderDate = DateTime.UtcNow,
+                TotalPrice = cartItems.Sum(i => i.Price * i.Quantity),
+                OrderDetails = new List<OrderDetail>()
+            };
+
+            foreach (var ci in cartItems)
+            {
+                var product = await _context.Products.FindAsync(ci.ProductId);
+                order.OrderDetails.Add(new OrderDetail
+                {
+                    ProductId = ci.ProductId,
+                    Quantity = ci.Quantity,
+                    Price = ci.Price,
+                    Product = product
+                });
+            }
+
+            return View(order);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CheckoutExisting(int id)
         {
             var order = await _context.Orders
                 .Include(o => o.OrderDetails)
@@ -294,19 +314,46 @@ namespace GearsHouse.Controllers
                 return NotFound();
             }
 
-            return View(order);
+            // Reuse the Checkout view for existing orders
+            return View("Checkout", order);
         }
 
         [HttpPost]
         public async Task<IActionResult> Checkout(Order order)
         {
+            var user = await _userManager.GetUserAsync(User);
+
+            // Nếu chưa có đơn trong DB (đi từ giỏ hàng), tạo mới từ giỏ
             var existingOrder = await _context.Orders
                 .Include(o => o.OrderDetails)
                 .ThenInclude(od => od.Product)
                 .FirstOrDefaultAsync(o => o.Id == order.Id);
 
             if (existingOrder == null)
-                return NotFound();
+            {
+                var cartItems = await _context.CartItems
+                    .Where(i => i.UserId == user.Id)
+                    .ToListAsync();
+
+                if (!cartItems.Any())
+                {
+                    TempData["ErrorMessage"] = "Giỏ hàng trống.";
+                    return RedirectToAction("Index");
+                }
+
+                existingOrder = new Order
+                {
+                    UserId = user.Id,
+                    OrderDate = DateTime.UtcNow,
+                    TotalPrice = cartItems.Sum(i => i.Price * i.Quantity),
+                    OrderDetails = cartItems.Select(i => new OrderDetail
+                    {
+                        ProductId = i.ProductId,
+                        Quantity = i.Quantity,
+                        Price = i.Price
+                    }).ToList()
+                };
+            }
 
             // Cập nhật thông tin đơn hàng
             existingOrder.FullName = order.FullName;
@@ -315,7 +362,15 @@ namespace GearsHouse.Controllers
             existingOrder.Notes = order.Notes;
             existingOrder.PaymentMethod = order.PaymentMethod;
 
-            _context.Orders.Update(existingOrder);
+            // Lưu đơn lần đầu sau khi đã có đầy đủ thông tin bắt buộc
+            if (existingOrder.Id == 0)
+            {
+                _context.Orders.Add(existingOrder);
+            }
+            else
+            {
+                _context.Orders.Update(existingOrder);
+            }
             await _context.SaveChangesAsync();
 
             // Nếu chọn VNPay, chuyển hướng tới cổng thanh toán
@@ -331,13 +386,17 @@ namespace GearsHouse.Controllers
                 return Redirect(paymentUrl);
             }
 
+            // Thanh toán không dùng VNPay: coi đơn hàng là đã xác nhận và bắt đầu xử lý
+            existingOrder.OrderStatus = OrderStatus.DangXuLy;
+            _context.Orders.Update(existingOrder);
+            await _context.SaveChangesAsync();
+
             // Giảm tồn kho cho từng sản phẩm trong đơn hàng (không dùng VNPay)
             await DecreaseStockForOrder(existingOrder);
 
             // Xóa giỏ hàng trong database sau khi hoàn tất đơn hàng
-            var user = await _userManager.GetUserAsync(User);
-            var cartItems = _context.CartItems.Where(i => i.UserId == user.Id);
-            _context.CartItems.RemoveRange(cartItems);
+            var userCartItems = _context.CartItems.Where(i => i.UserId == user.Id);
+            _context.CartItems.RemoveRange(userCartItems);
             await _context.SaveChangesAsync();
 
             // Gửi email xác nhận đơn hàng
@@ -526,10 +585,14 @@ namespace GearsHouse.Controllers
             if (!VNPayService.IsSuccessResponse(Request.Query))
             {
                 TempData["ErrorMessage"] = "Thanh toán VNPay thất bại hoặc bị hủy.";
-                return RedirectToAction("Checkout", new { id = order.Id });
+                return RedirectToAction("CheckoutExisting", new { id = order.Id });
             }
 
             // Thanh toán thành công: giảm tồn kho, xoá giỏ, gửi email và hiển thị hoàn tất
+            order.OrderStatus = OrderStatus.DangXuLy;
+            _context.Orders.Update(order);
+            await _context.SaveChangesAsync();
+
             await DecreaseStockForOrder(order);
             var user = await _userManager.GetUserAsync(User);
             var cartItems = _context.CartItems.Where(i => i.UserId == user.Id);

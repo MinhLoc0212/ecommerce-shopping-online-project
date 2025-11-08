@@ -250,12 +250,21 @@
             </div>
         </form>
 
-        <form asp-controller="ShoppingCart" asp-action="CancelOrder" method="post" class="mt-3" onsubmit="disableValidation()">
-            <input type="hidden" name="id" value="@Model.Id" />
-            <button type="submit" class="btn btn-outline-secondary btn-lg">
+        @if (Model.Id > 0)
+        {
+            <form asp-controller="ShoppingCart" asp-action="CancelOrder" method="post" class="mt-3" onsubmit="disableValidation()">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-outline-secondary btn-lg">
+                    <i class="bi bi-arrow-left"></i> Quay lại giỏ hàng
+                </button>
+            </form>
+        }
+        else
+        {
+            <a asp-controller="ShoppingCart" asp-action="Index" class="btn btn-outline-secondary btn-lg mt-3">
                 <i class="bi bi-arrow-left"></i> Quay lại giỏ hàng
-            </button>
-        </form>
+            </a>
+        }
     </div>
 
 </div>

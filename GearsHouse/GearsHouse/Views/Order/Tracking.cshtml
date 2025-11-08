@@ -2,92 +2,82 @@
 @model List<GearsHouse.Models.Order>
 
 <div class="container py-5">
-    <div class="card border-0 shadow-lg">
-        <div class="card-header bg-gradient-primary text-white py-3">
-            <h2 class="mb-0 fw-bold">Theo dõi đơn hàng</h2>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light text-dark">
-                        <tr>
-                            <th class="ps-4">Mã đơn hàng</th>
-                            <th>Ngày đặt</th>
-                            <th>Tổng tiền</th>
-                            <th>Trạng thái</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var order in Model)
+    <h2 class="mb-4 fw-bold">Đơn hàng của bạn</h2>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-light border">Bạn chưa có đơn hàng nào.</div>
+    }
+    else
+    {
+        foreach (var order in Model)
+        {
+            <div class="card order-card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold">Mã đơn: #@order.Id</div>
+                            <div class="text-muted small">Ngày đặt: @order.OrderDate.ToString("dd/MM/yyyy")</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold text-danger">@order.TotalPrice.ToString("N0") VNĐ</div>
+                            <span class="badge status-badge @GetStatusClass(order.OrderStatus)">@Html.DisplayFor(modelItem => order.OrderStatus)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="products">
+                        @foreach (var item in order.OrderDetails ?? new List<GearsHouse.Models.OrderDetail>())
                         {
-                            <tr>
-                                <td class="ps-4 fw-medium text-primary">@order.Id</td>
-                                <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
-                                <td class="fw-medium text-success">@order.TotalPrice.ToString("N0") VNĐ</td>
-                                <td>
-                                    <span class="badge status-badge @GetStatusClass(order.OrderStatus)">
-                                        @Html.DisplayFor(modelItem => order.OrderStatus)
-                                    </span>
-                                </td>
-                            </tr>
+                            var product = item.Product;
+                            <div class="product-row d-flex align-items-center py-2 border-bottom">
+                                <div class="thumb me-3">
+                                    @if (!string.IsNullOrEmpty(product?.ImageUrl))
+                                    {
+                                        <img src="@product.ImageUrl" alt="@product?.Name" />
+                                    }
+                                    else
+                                    {
+                                        <div class="thumb-placeholder"></div>
+                                    }
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-medium">@(product?.Name ?? ($"Sản phẩm #{item.ProductId}"))</div>
+                                    <div class="text-muted small">Số lượng: @item.Quantity</div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="text-muted small">Đơn giá</div>
+                                    <div class="fw-semibold">@item.Price.ToString("N0") VNĐ</div>
+                                    <div class="text-muted small">Thành tiền: @((item.Price * item.Quantity).ToString("N0")) VNĐ</div>
+                                </div>
+                            </div>
                         }
-                    </tbody>
-                </table>
+                    </div>
+                </div>
+                @if (order.OrderStatus == GearsHouse.Models.OrderStatus.HoanThanh)
+                {
+                    <div class="card-footer bg-white d-flex justify-content-end gap-2">
+                        <form asp-controller="Order" asp-action="Reorder" method="post" class="d-inline">
+                            <input type="hidden" name="id" value="@order.Id" />
+                            <button type="submit" class="btn btn-primary">Mua lại</button>
+                        </form>
+                        <button type="button" class="btn btn-outline-secondary" disabled>Yêu cầu hoàn tiền/trả hàng</button>
+                    </div>
+                }
             </div>
-        </div>
-    </div>
+        }
+    }
 </div>
 
 <style>
     /* Custom styles */
-    .container {
-        max-width: 1200px;
-    }
-
-    .card {
-        border-radius: 12px;
-        overflow: hidden;
-    }
-
-    .bg-gradient-primary {
-        background: linear-gradient(135deg, #007bff, #0056b3);
-    }
-
-    .table th {
-        font-weight: 600;
-        padding: 1rem;
-        border-bottom: 2px solid #dee2e6;
-    }
-
-    .table td {
-        padding: 1rem;
-        vertical-align: middle;
-        border-top: 1px solid #ececec;
-    }
-
-    .table-hover tbody tr:hover {
-        background-color: #f8f9fa;
-        transition: background-color 0.3s ease;
-    }
-
-    .text-primary {
-        color: #007bff !important;
-    }
-
-    .text-success {
-        color: #28a745 !important;
-    }
-
-    .shadow-lg {
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
-    }
-
-    .status-badge {
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        font-size: 0.9rem;
-        font-weight: 500;
-    }
+    .container { max-width: 1200px; }
+    .order-card { border-radius: 12px; overflow: hidden; }
+    .status-badge { padding: 0.4rem 0.8rem; border-radius: 16px; font-size: 0.85rem; font-weight: 500; }
+    .product-row:last-child { border-bottom: 0 !important; }
+    .thumb { width: 64px; height: 64px; border: 1px solid #eee; border-radius: 8px; background: #fff; display: flex; align-items: center; justify-content: center; }
+    .thumb img { max-width: 60px; max-height: 60px; object-fit: contain; }
+    .thumb-placeholder { width: 60px; height: 60px; background: #f4f4f4; border-radius: 6px; }
 
     /* Dynamic status colors */
     .status-pending {

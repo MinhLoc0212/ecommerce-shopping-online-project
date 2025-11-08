@@ -7,6 +7,20 @@
     <div class="container my-5">
         <h2 class="text-center mb-4 fw-bold text-uppercase">🛒 Giỏ hàng của bạn</h2>
 
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success" role="alert">
+                @TempData["SuccessMessage"]
+            </div>
+        }
+
+        @if (TempData["WarningMessage"] != null)
+        {
+            <div class="alert alert-warning" role="alert">
+                @TempData["WarningMessage"]
+            </div>
+        }
+
         @if (TempData["ErrorMessage"] != null)
         {
             <div class="alert alert-danger" role="alert">
@@ -91,9 +105,7 @@
                     <h4 class="text-danger fw-bold">@Model.Items.Sum(i => i.Price * i.Quantity).ToString("#,##0") VND</h4>
                 </div>
                 <div class="text-end mt-3">
-                    <form asp-controller="ShoppingCart" asp-action="CreateOrder" method="post">
-                        <button type="submit" class="btn btn-success btn-lg">🛍️ Thanh toán ngay</button>
-                    </form>
+                    <a asp-controller="ShoppingCart" asp-action="Checkout" class="btn btn-success btn-lg">🛍️ Thanh toán ngay</a>
 
 
                     @if (lastProductId.HasValue)

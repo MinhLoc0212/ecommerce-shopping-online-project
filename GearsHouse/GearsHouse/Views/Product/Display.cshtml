@@ -48,6 +48,18 @@
             <div id="imageModal" class="image-modal" onclick="this.classList.remove('show')">
                 <img id="imageModalImg" alt="Zoom ảnh sản phẩm" />
             </div>
+
+            <!-- Mô tả sản phẩm hiển thị dưới ảnh (thu gọn/ mở rộng) -->
+            <div class="mt-4 text-start">
+                <h5 class="fw-semibold mb-2">Thông tin sản phẩm</h5>
+                <div id="descCollapsible" class="desc-collapsible collapsed">
+                    <div class="description">
+                        @Html.Raw(Model.Description)
+                    </div>
+                    <div class="desc-fade"></div>
+                </div>
+                <button id="descToggle" type="button" class="btn btn-link p-0 mt-2">Hiển thị thêm</button>
+            </div>
         </div>
         <div class="col-md-6">
             <div class="product-header d-flex align-items-start justify-content-between">
@@ -125,28 +137,12 @@
             </div>
 
             <div class="mt-4">
-                <ul class="nav nav-tabs" id="detailTab" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="desc-tab" data-bs-toggle="tab" data-bs-target="#desc-content" type="button" role="tab" aria-controls="desc-content" aria-selected="true">Mô tả</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="policy-tab" data-bs-toggle="tab" data-bs-target="#policy-content" type="button" role="tab" aria-controls="policy-content" aria-selected="false">Chính sách</button>
-                    </li>
+                <h5 class="fw-semibold mb-2">Chính sách</h5>
+                <ul class="mb-0 p-3 border rounded bg-white">
+                    <li>Giao hàng tiêu chuẩn 2-5 ngày, miễn phí đơn từ 1.000.000đ</li>
+                    <li>Bảo hành theo chính sách của hãng và nhà bán</li>
+                    <li>Đổi trả trong 7 ngày đối với lỗi do nhà sản xuất</li>
                 </ul>
-                <div class="tab-content p-3 border rounded-bottom">
-                    <div class="tab-pane fade show active" id="desc-content" role="tabpanel" aria-labelledby="desc-tab">
-                        <div class="description">
-                            @Html.Raw(Model.Description)
-                        </div>
-                    </div>
-                    <div class="tab-pane fade" id="policy-content" role="tabpanel" aria-labelledby="policy-tab">
-                        <ul class="mb-0">
-                            <li>Giao hàng tiêu chuẩn 2-5 ngày, miễn phí đơn từ 1.000.000đ</li>
-                            <li>Bảo hành theo chính sách của hãng và nhà bán</li>
-                            <li>Đổi trả trong 7 ngày đối với lỗi do nhà sản xuất</li>
-                        </ul>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -193,6 +189,19 @@
         .product-detail .nav-tabs .nav-link.active { color: #ff5c00 !important; }
         .product-detail .tab-content { background: #fff; border: 1px solid #eaeaea; border-top: none; border-radius: 0 0 12px 12px; }
         .tab-content { background: #fff; }
+
+        /* Sản phẩm đã xem - thu nhỏ card */
+        .recent-viewed .card { border: 1px solid #eee; border-radius: 10px; }
+        .recent-viewed .card-img-top { height: 110px; width: 100%; object-fit: contain; object-position: center; background-color: #fff; padding: 6px; }
+        .recent-viewed .card-body { padding: 8px !important; }
+        .recent-viewed .card-body .small { font-size: .9rem; }
+        .recent-viewed .card-body .price { font-size: .9rem; }
+
+        /* Mô tả thu gọn/mở rộng */
+        .desc-collapsible { position: relative; }
+        .desc-collapsible.collapsed { max-height: 240px; overflow: hidden; }
+        .desc-fade { position: absolute; left: 0; right: 0; bottom: 0; height: 60px; background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1)); display: none; }
+        #descToggle { font-weight: 600; }
     </style>
 
     <script>
@@ -229,6 +238,48 @@
                     modal.classList.add('show');
                 });
             }
+        })();
+    </script>
+
+    <!-- Script thu gọn/mở rộng mô tả -->
+    <script>
+        (function () {
+            function updateFade(wrapper, fade) {
+                if (!wrapper || !fade) return;
+                const shouldShow = wrapper.classList.contains('collapsed') && (wrapper.scrollHeight > wrapper.clientHeight + 1);
+                fade.style.display = shouldShow ? 'block' : 'none';
+            }
+
+            function evaluateOverflow(wrapper, toggleBtn, fade) {
+                if (!wrapper || !toggleBtn) return;
+                const needToggle = wrapper.scrollHeight > wrapper.clientHeight + 1;
+                toggleBtn.style.display = needToggle ? 'inline' : 'none';
+                updateFade(wrapper, fade);
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                const wrapper = document.getElementById('descCollapsible');
+                const toggleBtn = document.getElementById('descToggle');
+                const fade = wrapper ? wrapper.querySelector('.desc-fade') : null;
+                if (!wrapper || !toggleBtn) return;
+
+                function updateLabel() {
+                    toggleBtn.textContent = wrapper.classList.contains('collapsed') ? 'Hiển thị thêm' : 'Thu gọn';
+                }
+
+                updateLabel();
+                evaluateOverflow(wrapper, toggleBtn, fade);
+
+                toggleBtn.addEventListener('click', function () {
+                    wrapper.classList.toggle('collapsed');
+                    updateLabel();
+                    updateFade(wrapper, fade);
+                });
+
+                window.addEventListener('resize', function () {
+                    evaluateOverflow(wrapper, toggleBtn, fade);
+                });
+            });
         })();
     </script>
 </div>
@@ -337,6 +388,35 @@
 
 
 <!-- Script cập nhật số lượng -->
+@{
+    var recentProducts = ViewBag.RecentlyViewed as List<GearsHouse.Models.Product>;
+}
+@if (User.Identity.IsAuthenticated && recentProducts != null && recentProducts.Any())
+{
+    <hr class="my-5" />
+    <div class="container recent-viewed" id="recentViewedSection">
+        <h4 class="fw-bold">Sản phẩm đã xem</h4>
+        <div class="row g-3" id="recentViewedRow">
+            @foreach (var p in recentProducts)
+            {
+                <div class="col-6 col-sm-4 col-md-2 recent-item">
+                    <a href="/Product/Display/@p.Id" class="text-decoration-none">
+                        <div class="card h-100 shadow-sm">
+                            <img src="@p.ImageUrl" class="card-img-top" alt="@p.Name" loading="lazy" />
+                            <div class="card-body p-2">
+                                <div class="small text-truncate">@p.Name</div>
+                                <div class="fw-semibold text-danger price">@string.Format("{0:N0} VND", p.Price)</div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+        <button id="recentViewMore" type="button" class="btn btn-link p-0 mt-2">Xem thêm</button>
+    </div>
+}
+
+<!-- Script cập nhật số lượng -->
 <script>
     function increaseQuantity() {
         let qtyInput = document.getElementById("quantity");
@@ -351,6 +431,56 @@
             qtyInput.value = parseInt(qtyInput.value) - 1;
         }
     }
+</script>
+
+<!-- Script hiển thị thêm cho "Sản phẩm đã xem" -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const row = document.getElementById('recentViewedRow');
+        const items = row ? Array.from(row.querySelectorAll('.recent-item')) : [];
+        const btn = document.getElementById('recentViewMore');
+        if (!row || items.length === 0 || !btn) return;
+
+        function getPerRow() {
+            const first = items[0];
+            const itemWidth = first.getBoundingClientRect().width;
+            const containerWidth = row.getBoundingClientRect().width;
+            const perRow = Math.max(1, Math.floor(containerWidth / itemWidth));
+            return perRow;
+        }
+
+        let perRow = getPerRow();
+        let visibleCount = perRow;
+
+        function renderVisibility() {
+            items.forEach((el, idx) => {
+                el.classList.toggle('d-none', idx >= visibleCount);
+            });
+            if (visibleCount >= items.length) {
+                btn.textContent = 'Thu gọn';
+            } else {
+                btn.textContent = 'Xem thêm';
+            }
+            btn.style.display = (items.length > perRow) ? 'inline' : 'none';
+        }
+
+        renderVisibility();
+
+        btn.addEventListener('click', function () {
+            if (visibleCount >= items.length) {
+                visibleCount = perRow; // Thu gọn về một hàng
+            } else {
+                visibleCount = Math.min(items.length, visibleCount + perRow); // Hiển thị thêm theo từng hàng
+            }
+            renderVisibility();
+        });
+
+        window.addEventListener('resize', function () {
+            perRow = getPerRow();
+            visibleCount = Math.max(perRow, Math.min(visibleCount, items.length));
+            renderVisibility();
+        });
+    });
 </script>
         
 <!-- Script AJAX -->

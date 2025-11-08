@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using System.Security.Claims;
+using GearsHouse.Extensions;
 using System.Data;
 using GearsHouse.Models;
 using GearsHouse.Repositories;
@@ -188,6 +190,38 @@ namespace GearsHouse.Controllers
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
             ViewBag.Reviews = reviews;
+
+            // Lưu lịch sử xem sản phẩm theo tài khoản (Session theo UserId)
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var sessionKey = $"RECENTLY_VIEWED_{userId}";
+
+                var viewedIds = HttpContext.Session.GetObjectFromJson<List<int>>(sessionKey) ?? new List<int>();
+                // Đưa sản phẩm hiện tại lên đầu, loại bỏ trùng
+                viewedIds.RemoveAll(pid => pid == product.Id);
+                viewedIds.Insert(0, product.Id);
+                // Giới hạn 12 sản phẩm đã xem gần đây
+                if (viewedIds.Count > 12)
+                {
+                    viewedIds = viewedIds.Take(12).ToList();
+                }
+                HttpContext.Session.SetObjectAsJson(sessionKey, viewedIds);
+
+                // Tải danh sách sản phẩm đã xem (không gồm sản phẩm hiện tại) để hiển thị
+                var recentIds = viewedIds.Where(pid => pid != product.Id).Take(8).ToList();
+                if (recentIds.Any())
+                {
+                    var recentProducts = await _context.Products
+                        .Where(p => recentIds.Contains(p.Id))
+                        .ToListAsync();
+                    // Sắp xếp theo thứ tự trong recentIds
+                    ViewBag.RecentlyViewed = recentIds
+                        .Select(id2 => recentProducts.FirstOrDefault(p => p.Id == id2))
+                        .Where(p => p != null)
+                        .ToList();
+                }
+            }
 
             return View(product);
         }
