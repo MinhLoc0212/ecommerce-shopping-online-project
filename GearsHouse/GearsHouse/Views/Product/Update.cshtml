@@ -136,13 +136,40 @@
 </div>
 
 <!-- TinyMCE -->
-<script src="https://cdn.tiny.cloud/1/mceyvkr5qw1v3d6pw7hqems6xoqgcxo582jxoxtkqhpm9cp3/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
 <script>
-    tinymce.init({
-        selector: '#descriptionEditor',
-        plugins: 'table lists',
-        height: 300
-    });
+    (function () {
+        var cdns = [
+            'https://cdn.tiny.cloud/1/mceyvkr5qw1v3d6pw7hqems6xoqgcxo582jxoxtkqhpm9cp3/tinymce/7/tinymce.min.js',
+            'https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js'
+        ];
+        function init() {
+            if (!window.tinymce) return;
+            try { tinymce.remove('#descriptionEditor'); } catch (e) {}
+            tinymce.init({
+                selector: '#descriptionEditor',
+                menubar: false,
+                plugins: 'table lists',
+                toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright | numlist bullist | table',
+                height: 300,
+                content_style: 'body{font-family:\'Segoe UI\', sans-serif; font-size:1rem; color:#212529; background-color:#fff; padding:10px;}',
+                setup: function (editor) { editor.on('change', function () { editor.save(); }); }
+            });
+        }
+        function load(idx) {
+            if (window.tinymce) { init(); return; }
+            if (idx >= cdns.length) return;
+            var s = document.createElement('script');
+            s.src = cdns[idx];
+            s.referrerPolicy = 'origin';
+            s.defer = true;
+            s.onload = init;
+            s.onerror = function () { load(idx + 1); };
+            document.head.appendChild(s);
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function () { load(0); });
+        } else { load(0); }
+    })();
 </script>
 
 <script>

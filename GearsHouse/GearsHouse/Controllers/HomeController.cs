@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using GearsHouse.Models;
 using GearsHouse.Repositories;
 using Microsoft.AspNetCore.Authorization;
@@ -30,10 +30,13 @@ namespace GearsHouse.Controllers
             if (User.Identity.IsAuthenticated)
             {
                 var user = await _userManager.GetUserAsync(User);
-                var roles = await _userManager.GetRolesAsync(user);
-                if (roles.Contains("Admin"))
+                if (user != null)
                 {
-                    return RedirectToAction("Dashboard", "Dashboard");
+                    var roles = await _userManager.GetRolesAsync(user);
+                    if (roles.Contains("Admin"))
+                    {
+                        return RedirectToAction("Dashboard", "Dashboard");
+                    }
                 }
             }
             var products = await _productRepository.GetAllAsync();

@@ -26,6 +26,9 @@ namespace GearsHouse.Models
 
         public string? Notes { get; set; }
 
+        // Mã giảm giá áp dụng cho đơn (tuỳ chọn)
+        public string? CouponCode { get; set; }
+
         [Required(ErrorMessage = "Vui lòng chọn phương thức thanh toán")]
         public string PaymentMethod { get; set; } // "COD" hoặc "Online"
 

@@ -187,6 +187,21 @@
                 }
             </tbody>
         </table>
+        <div class="card mt-3 p-3" style="border: 1.5px solid #0d6efd; border-radius: 12px; background: #f1f9ff;">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Tổng tiền gốc:</span>
+                <span id="originalTotal" class="fw-bold text-danger">@Model.OrderDetails.Sum(i => i.Price * i.Quantity).ToString("#,##0") VNĐ</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+                <span class="fw-bold">Giảm giá áp dụng:</span>
+                <span id="discountAmount" class="fw-bold text-success">0 VNĐ</span>
+            </div>
+            <hr />
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Tổng sau giảm:</span>
+                <span id="finalTotal" class="fw-bold text-primary">@Model.OrderDetails.Sum(i => i.Price * i.Quantity).ToString("#,##0") VNĐ</span>
+            </div>
+        </div>
     </div>
 
     <div class="checkout-form">
@@ -223,6 +238,17 @@
                     <i class="bi bi-journal-text"></i> 📝 Ghi chú (nếu có)
                 </label>
                 <textarea asp-for="Notes" class="form-control" placeholder="Nhập ghi chú cho đơn hàng..."></textarea>
+            </div>
+            <div class="mb-3">
+                <label asp-for="CouponCode" class="form-label fw-semibold">
+                    <i class="bi bi-ticket-perforated"></i> 🎫 Mã giảm giá (tuỳ chọn)
+                </label>
+                <div class="input-group">
+                    <input asp-for="CouponCode" class="form-control" placeholder="Nhập mã nếu có..." />
+                    <button type="button" class="btn btn-primary" onclick="applyCoupon()">Áp dụng</button>
+                </div>
+                <span asp-validation-for="CouponCode" class="text-danger"></span>
+                <div id="couponMessage" class="mt-2"></div>
             </div>
             <div class="mb-3">
                 <label asp-for="PaymentMethod" class="form-label fw-semibold">
@@ -278,5 +304,49 @@
 
     function disableValidation() {
         document.getElementById("checkoutForm").setAttribute("novalidate", "novalidate");
+    }
+
+    function formatCurrencyVND(value) {
+        try {
+            return Number(value).toLocaleString('vi-VN') + ' VNĐ';
+        } catch (e) {
+            return value + ' VNĐ';
+        }
+    }
+
+    async function applyCoupon() {
+        const input = document.querySelector('input[name="CouponCode"]');
+        const code = (input.value || '').trim().toUpperCase();
+        const messageBox = document.getElementById('couponMessage');
+        messageBox.innerHTML = '';
+
+        if (!code) {
+            messageBox.innerHTML = '<div class="alert alert-warning py-2">Vui lòng nhập mã giảm giá.</div>';
+            return;
+        }
+
+        const originalTotal = @Model.OrderDetails.Sum(i => i.Price * i.Quantity);
+
+        try {
+            const resp = await fetch('/ShoppingCart/ApplyCoupon', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ code: code, orderId: '@Model.Id' })
+            });
+            const data = await resp.json();
+            if (data.success) {
+                document.getElementById('discountAmount').innerText = formatCurrencyVND(data.discountAmount);
+                document.getElementById('finalTotal').innerText = formatCurrencyVND(data.finalTotal);
+                messageBox.innerHTML = '<div class="alert alert-success py-2">Áp dụng mã thành công!</div>';
+            } else {
+                // reset discount view
+                document.getElementById('discountAmount').innerText = formatCurrencyVND(0);
+                document.getElementById('finalTotal').innerText = formatCurrencyVND(originalTotal);
+                const alertClass = data.used ? 'alert-danger' : 'alert-warning';
+                messageBox.innerHTML = `<div class="${alertClass} py-2">${data.message || 'Mã giảm giá không hợp lệ.'}</div>`;
+            }
+        } catch (err) {
+            messageBox.innerHTML = '<div class="alert alert-danger py-2">Có lỗi khi áp dụng mã. Vui lòng thử lại.</div>';
+        }
     }
 </script>

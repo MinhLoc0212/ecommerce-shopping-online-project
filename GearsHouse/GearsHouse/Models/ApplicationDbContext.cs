@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace GearsHouse.Models
@@ -21,6 +21,7 @@ options) : base(options)
         public DbSet<Promotion> Promotions { get; set; }
         public DbSet<CartItemEntity> CartItems { get; set; }
         public DbSet<Review> Reviews { get; set; }
+        public DbSet<CouponCode> CouponCodes { get; set; }
 
     }
 }

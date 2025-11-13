@@ -29,7 +29,8 @@ namespace GearsHouse.Services
                 ["vnp_Version"] = "2.1.0",
                 ["vnp_Command"] = "pay",
                 ["vnp_TmnCode"] = _settings.TmnCode,
-                ["vnp_Amount"] = ((long)(order.TotalPrice * 100)).ToString(),
+                // Làm tròn số tiền nhân 100 để tránh sai số thập phân
+                ["vnp_Amount"] = ((long)Math.Round(order.TotalPrice * 100m, MidpointRounding.AwayFromZero)).ToString(),
                 ["vnp_CurrCode"] = "VND",
                 ["vnp_TxnRef"] = order.Id.ToString(),
                 ["vnp_OrderInfo"] = $"Thanh toan don hang {order.Id}",
@@ -40,6 +41,16 @@ namespace GearsHouse.Services
                 ["vnp_CreateDate"] = createDate.ToString("yyyyMMddHHmmss"),
                 ["vnp_ExpireDate"] = expireDate.ToString("yyyyMMddHHmmss")
             };
+
+            // Cảnh báo nếu ReturnUrl là localhost/127.0.0.1 vì VNPay không thể tìm thấy website
+            if (Uri.TryCreate(returnUrl, UriKind.Absolute, out var returnUri))
+            {
+                var host = returnUri.Host;
+                if (string.Equals(host, "localhost", StringComparison.OrdinalIgnoreCase) || host == "127.0.0.1")
+                {
+                    _logger.LogWarning("VNPay ReturnUrl đang sử dụng {Host}. VNPay yêu cầu domain public đã đăng ký; điều này có thể gây lỗi 'Không tìm thấy website'.", host);
+                }
+            }
 
             // Tạo chuỗi đã encode để ký (theo demo: UrlEncode key & value)
             var signData = BuildQueryEncoded(vnpParams);
@@ -52,6 +63,7 @@ namespace GearsHouse.Services
             // Tạo query string đầy đủ cho URL (đã encode)
             var fullQuery = BuildQueryEncoded(vnpParams);
             var url = $"{_settings.BaseUrl}?{fullQuery}&vnp_SecureHashType=HMACSHA512&vnp_SecureHash={secureHash}";
+            _logger.LogInformation("VNPay Redirect URL: {Url}", url);
             return url;
         }
 

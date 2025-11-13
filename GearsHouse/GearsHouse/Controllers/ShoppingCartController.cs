@@ -19,13 +19,15 @@ namespace GearsHouse.Controllers
         private readonly EmailService _emailService;
         private readonly InvoicePdfGenerator _pdfGenerator;
         private readonly VNPayService _vnpayService;
+        private readonly VNPaySettings _vnpaySettings;
         
 
 
         public ShoppingCartController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IProductRepository productRepository,
             EmailService emailService,
             InvoicePdfGenerator pdfGenerator,
-            VNPayService vnpayService)
+            VNPayService vnpayService,
+            Microsoft.Extensions.Options.IOptions<VNPaySettings> vnpOptions)
         {
             _productRepository = productRepository;
             _context = context;
@@ -33,6 +35,7 @@ namespace GearsHouse.Controllers
             _emailService = emailService;
             _pdfGenerator = pdfGenerator;
             _vnpayService = vnpayService;
+            _vnpaySettings = vnpOptions.Value;
             
         }
 
@@ -361,6 +364,33 @@ namespace GearsHouse.Controllers
             existingOrder.ShippingAddress = order.ShippingAddress;
             existingOrder.Notes = order.Notes;
             existingOrder.PaymentMethod = order.PaymentMethod;
+            existingOrder.CouponCode = string.IsNullOrWhiteSpace(order.CouponCode) ? null : order.CouponCode.Trim().ToUpperInvariant();
+
+            // Áp dụng mã giảm giá (nếu hợp lệ) trước khi thanh toán
+            if (!string.IsNullOrEmpty(existingOrder.CouponCode))
+            {
+                var coupon = await _context.CouponCodes
+                    .FirstOrDefaultAsync(c => c.UserId == user.Id && c.Code == existingOrder.CouponCode && !c.IsUsed);
+                if (coupon != null)
+                {
+                    var grossTotal = existingOrder.OrderDetails.Sum(od => od.Price * od.Quantity);
+                    if (grossTotal >= coupon.MinOrderTotal)
+                    {
+                        existingOrder.TotalPrice = Math.Max(0, existingOrder.TotalPrice - coupon.Amount);
+                    }
+                    else
+                    {
+                        // Không đủ điều kiện để áp dụng mã
+                        TempData["WarningMessage"] = $"Đơn hàng phải từ {coupon.MinOrderTotal:N0} VNĐ mới dùng mã.";
+                        existingOrder.CouponCode = null;
+                    }
+                }
+                else
+                {
+                    TempData["WarningMessage"] = "Mã giảm giá không hợp lệ hoặc đã sử dụng.";
+                    existingOrder.CouponCode = null;
+                }
+            }
 
             // Lưu đơn lần đầu sau khi đã có đầy đủ thông tin bắt buộc
             if (existingOrder.Id == 0)
@@ -373,7 +403,7 @@ namespace GearsHouse.Controllers
             }
             await _context.SaveChangesAsync();
 
-            // Nếu chọn VNPay, chuyển hướng tới cổng thanh toán
+            // Nếu chọn VNPay, chuyển hướng tới cổng thanh toán (đã áp dụng mã nếu hợp lệ)
             if (string.Equals(existingOrder.PaymentMethod, "VNPay", StringComparison.OrdinalIgnoreCase))
             {
                 var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
@@ -381,8 +411,8 @@ namespace GearsHouse.Controllers
                 {
                     ipAddress = "127.0.0.1";
                 }
-                var returnUrl = $"{Request.Scheme}://{Request.Host}/ShoppingCart/VNPayReturn";
-                var paymentUrl = _vnpayService.CreatePaymentUrl(existingOrder, ipAddress, returnUrl);
+                // Sử dụng ReturnUrl cấu hình để tránh sai khác domain/port
+                var paymentUrl = _vnpayService.CreatePaymentUrl(existingOrder, ipAddress, _vnpaySettings.ReturnUrl);
                 return Redirect(paymentUrl);
             }
 
@@ -447,6 +477,44 @@ namespace GearsHouse.Controllers
                 <p style='font-size: 16px; color: #555555;'>Chúng tôi sẽ gửi thông tin vận chuyển sớm. Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi!</p>
             </td>
         </tr>
+";
+
+            // Phát hành mã giảm giá 1.000.000 nếu tổng >= 10.000.000 VNĐ và gắn vào cùng email
+            string? issuedCodeForEmail = null;
+            var grossTotalForIssueEmail = existingOrder.OrderDetails.Sum(od => od.Price * od.Quantity);
+            if (grossTotalForIssueEmail >= 10_000_000m)
+            {
+                var newCode = GenerateCouponCode();
+                var issue = new CouponCode
+                {
+                    Code = newCode,
+                    UserId = user.Id,
+                    Amount = 1_000_000m,
+                    MinOrderTotal = 5_000_000m,
+                    IsUsed = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.CouponCodes.Add(issue);
+                await _context.SaveChangesAsync();
+                issuedCodeForEmail = newCode;
+            }
+
+            if (!string.IsNullOrEmpty(issuedCodeForEmail))
+            {
+                body += $@"
+        <tr>
+            <td style='padding-top: 10px;'>
+                <div style='background:#f1f9ff;border:1.5px solid #0d6efd;border-radius:12px;padding:16px;'>
+                    <h3 style='color:#0d6efd;margin-top:0;'>🎁 Quà tặng mã giảm giá</h3>
+                    <p style='font-size:16px;color:#333;'>Đơn hàng của bạn đạt từ 10.000.000 VNĐ, chúng tôi tặng bạn mã giảm giá 
+                    <strong style='color:#e74c3c;'>{issuedCodeForEmail}</strong> trị giá <strong>1.000.000 VNĐ</strong> cho đơn tiếp theo từ 
+                    <strong>5.000.000 VNĐ</strong>. Mã chỉ dùng một lần.</p>
+                </div>
+            </td>
+        </tr>";
+            }
+
+            body += $@"
         <tr>
             <td style='padding-top: 20px; text-align: center;'>
                 <p style='font-size: 16px; color: #555555;'>Trân trọng,</p>
@@ -460,7 +528,91 @@ namespace GearsHouse.Controllers
 
             await _emailService.SendEmailAsync(email, subject, body, pdfPath);
 
+            // Đánh dấu mã giảm giá đã dùng (nếu có)
+            if (!string.IsNullOrEmpty(existingOrder.CouponCode))
+            {
+                var usedCoupon = await _context.CouponCodes
+                    .FirstOrDefaultAsync(c => c.UserId == user.Id && c.Code == existingOrder.CouponCode && !c.IsUsed);
+                if (usedCoupon != null)
+                {
+                    usedCoupon.IsUsed = true;
+                    usedCoupon.UsedOrderId = existingOrder.Id;
+                    usedCoupon.UsedAt = DateTime.UtcNow;
+                    _context.CouponCodes.Update(usedCoupon);
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            // Đã gộp nội dung mã giảm giá vào email xác nhận, không gửi email riêng
+
             return View("OrderCompleted", existingOrder.Id);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ApplyCoupon(string code, int? orderId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Bạn cần đăng nhập để áp dụng mã." });
+            }
+
+            code = (code ?? string.Empty).Trim().ToUpperInvariant();
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                return Json(new { success = false, message = "Vui lòng nhập mã giảm giá." });
+            }
+
+            // Lấy tổng tiền hiện tại từ đơn tồn tại hoặc giỏ hàng
+            decimal grossTotal = 0m;
+            if (orderId.HasValue && orderId.Value > 0)
+            {
+                var order = await _context.Orders
+                    .Include(o => o.OrderDetails)
+                    .FirstOrDefaultAsync(o => o.Id == orderId.Value);
+                if (order == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy đơn hàng." });
+                }
+                grossTotal = order.OrderDetails.Sum(od => od.Price * od.Quantity);
+            }
+            else
+            {
+                var cartItems = await _context.CartItems.Where(c => c.UserId == user.Id).ToListAsync();
+                grossTotal = cartItems.Sum(ci => ci.Price * ci.Quantity);
+                if (grossTotal <= 0)
+                {
+                    return Json(new { success = false, message = "Giỏ hàng trống." });
+                }
+            }
+
+            var coupon = await _context.CouponCodes
+                .FirstOrDefaultAsync(c => c.UserId == user.Id && c.Code == code);
+
+            if (coupon == null)
+            {
+                return Json(new { success = false, message = "Mã giảm giá không hợp lệ." });
+            }
+
+            if (coupon.IsUsed)
+            {
+                return Json(new { success = false, used = true, message = "Mã giảm giá này đã được sử dụng." });
+            }
+
+            if (grossTotal < coupon.MinOrderTotal)
+            {
+                return Json(new { success = false, message = $"Đơn hàng phải từ {coupon.MinOrderTotal:N0} VNĐ mới dùng mã." });
+            }
+
+            var finalTotal = Math.Max(0, grossTotal - coupon.Amount);
+            return Json(new
+            {
+                success = true,
+                discountAmount = coupon.Amount,
+                minOrderTotal = coupon.MinOrderTotal,
+                grossTotal,
+                finalTotal
+            });
         }
 
 
@@ -654,9 +806,69 @@ namespace GearsHouse.Controllers
 </html>
 ";
 
+            // Gộp nội dung phát hành mã giảm giá vào email xác nhận VNPay nếu đủ điều kiện
+            string? issuedCodeForEmailVnpay = null;
+            var grossTotalForIssueVnpay = order.OrderDetails.Sum(od => od.Price * od.Quantity);
+            if (grossTotalForIssueVnpay >= 10_000_000m)
+            {
+                var newCode = GenerateCouponCode();
+                var issue = new CouponCode
+                {
+                    Code = newCode,
+                    UserId = user.Id,
+                    Amount = 1_000_000m,
+                    MinOrderTotal = 5_000_000m,
+                    IsUsed = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.CouponCodes.Add(issue);
+                await _context.SaveChangesAsync();
+                issuedCodeForEmailVnpay = newCode;
+            }
+
+            if (!string.IsNullOrEmpty(issuedCodeForEmailVnpay))
+            {
+                body += $@"
+        <tr>
+            <td style='padding-top: 10px;'>
+                <div style='background:#f1f9ff;border:1.5px solid #0d6efd;border-radius:12px;padding:16px;'>
+                    <h3 style='color:#0d6efd;margin-top:0;'>🎁 Quà tặng mã giảm giá</h3>
+                    <p style='font-size:16px;color:#333;'>Đơn hàng của bạn đạt từ 10.000.000 VNĐ, chúng tôi tặng bạn mã giảm giá 
+                    <strong style='color:#e74c3c;'>{issuedCodeForEmailVnpay}</strong> trị giá <strong>1.000.000 VNĐ</strong> cho đơn tiếp theo từ 
+                    <strong>5.000.000 VNĐ</strong>. Mã chỉ dùng một lần.</p>
+                </div>
+            </td>
+        </tr>";
+            }
+
             await _emailService.SendEmailAsync(email, subject, body, pdfPath);
 
+            // Đánh dấu mã giảm giá đã dùng (nếu có)
+            if (!string.IsNullOrEmpty(order.CouponCode))
+            {
+                var usedCoupon = await _context.CouponCodes
+                    .FirstOrDefaultAsync(c => c.UserId == user.Id && c.Code == order.CouponCode && !c.IsUsed);
+                if (usedCoupon != null)
+                {
+                    usedCoupon.IsUsed = true;
+                    usedCoupon.UsedOrderId = order.Id;
+                    usedCoupon.UsedAt = DateTime.UtcNow;
+                    _context.CouponCodes.Update(usedCoupon);
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            // Đã gộp nội dung mã giảm giá vào email xác nhận, không gửi email riêng
+
             return View("OrderCompleted", order.Id);
+        }
+
+        private static string GenerateCouponCode()
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            var random = new Random();
+            return new string(Enumerable.Repeat(chars, 7)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
         // Helper: giảm số lượng tồn kho theo chi tiết đơn hàng
