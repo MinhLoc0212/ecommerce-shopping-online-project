@@ -1,0 +1,105 @@
+<!-- Views/Shared/_ChatWidget.cshtml -->
+@inject Microsoft.AspNetCore.Identity.UserManager<GearsHouse.Models.ApplicationUser> UserManager
+@if (User.Identity.IsAuthenticated)
+{
+    <div id="chatWidget" style="position:fixed; bottom:20px; right:20px; z-index:9999;">
+        <button id="chatToggle" class="btn btn-success rounded-circle" style="width:56px; height:56px;"><i class="bi bi-chat-dots"></i></button>
+        <div id="chatBox" class="card shadow" style="width:320px; display:none;">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Hỗ trợ</span>
+                <button class="btn btn-sm btn-outline-secondary" id="chatClose">×</button>
+            </div>
+            <div class="card-body" id="chatBody" style="height:300px; overflow:auto;"></div>
+            <div class="card-footer">
+                <div class="input-group">
+                    <input id="chatMsgInput" class="form-control" placeholder="Nhập tin nhắn">
+                    <button class="btn btn-primary" id="chatMsgSend">Gửi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <style>
+        .cw-row { display:flex; margin:8px 0; }
+        .cw-right { justify-content:flex-end; }
+        .cw-left { justify-content:flex-start; }
+        .cw-bubble { position:relative; padding:8px 12px; border-radius:14px; max-width:80%; box-shadow:0 4px 10px rgba(0,0,0,0.05); }
+        .cw-staff { background:#eef1f4; color:#111827; }
+        .cw-customer { background:#e7f0ff; color:#0b5ed7; }
+        .cw-bubble:after { content:""; position:absolute; bottom:6px; width:0; height:0; border:8px solid transparent; }
+        .cw-right .cw-bubble:after { right:-5px; border-left-color:#e7f0ff; border-right:0; }
+        .cw-left .cw-bubble:after { left:-5px; border-right-color:#eef1f4; border-left:0; }
+        .cw-meta { margin-top:3px; font-size:11px; color:#6b7280; }
+        .cw-right .cw-meta { text-align:right; }
+        .cw-left .cw-meta { text-align:left; }
+        .cw-date-sep { text-align:center; margin:8px 0; }
+        .cw-date-sep .pill { display:inline-block; background:#e5e7eb; color:#374151; padding:3px 9px; border-radius:999px; font-size:12px; }
+    </style>
+    <script>
+        let threadId = 0;
+        let lastId = 0;
+        let lastDateShown = '';
+        function ensureThread(){
+            if(threadId) return Promise.resolve();
+            return fetch('/Chat/MyThread').then(r=>r.json()).then(d=>{ threadId = d.threadId; });
+        }
+        function appendMessage(isStaff, content, at){
+            const body = document.getElementById('chatBody');
+            const atStr = String(at||'').trim();
+            const parts = atStr.split(' ');
+            let time = atStr; let date = '';
+            if (parts.length >= 2) { time = parts[0]; date = parts[1]; }
+            if (date && lastDateShown !== date) {
+                const sep = document.createElement('div');
+                sep.className = 'cw-date-sep';
+                const pill = document.createElement('span');
+                pill.className = 'pill';
+                pill.textContent = date;
+                sep.appendChild(pill);
+                body.appendChild(sep);
+                lastDateShown = date;
+            }
+            const row = document.createElement('div');
+            row.className = 'cw-row ' + (isStaff ? 'cw-left' : 'cw-right');
+            const bubble = document.createElement('div');
+            bubble.className = 'cw-bubble ' + (isStaff ? 'cw-staff' : 'cw-customer');
+            bubble.textContent = content;
+            const meta = document.createElement('div');
+            meta.className = 'cw-meta';
+            meta.textContent = time;
+            row.appendChild(bubble);
+            row.appendChild(meta);
+            body.appendChild(row);
+            body.scrollTop = body.scrollHeight;
+        }
+        function poll(){
+            if(!threadId) return;
+            fetch(`/Chat/Messages?threadId=${threadId}&afterId=${lastId||''}`)
+                .then(r=>r.json())
+                .then(list=>{
+                    if(!Array.isArray(list)) return;
+                    list.forEach(m=>{
+                        appendMessage(!!m.isStaff, String(m.content||''), String(m.at||''));
+                        lastId = Math.max(lastId, m.id||0);
+                    });
+                });
+        }
+        document.getElementById('chatToggle').addEventListener('click',()=>{
+            document.getElementById('chatBox').style.display='block';
+            lastDateShown = '';
+            ensureThread().then(()=>{ poll(); });
+        });
+        document.getElementById('chatClose').addEventListener('click',()=>{
+            document.getElementById('chatBox').style.display='none';
+        });
+        document.getElementById('chatMsgSend').addEventListener('click',()=>{
+            ensureThread().then(()=>{
+                const input = document.getElementById('chatMsgInput');
+                const content = (input.value||'').trim();
+                if(!content) return;
+                fetch('/Chat/Send', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:new URLSearchParams({ threadId, content }) })
+                    .then(()=>{ input.value=''; poll(); });
+            });
+        });
+        setInterval(poll, 2000);
+    </script>
+}

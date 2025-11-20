@@ -22,6 +22,7 @@ options) : base(options)
         public DbSet<CartItemEntity> CartItems { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<CouponCode> CouponCodes { get; set; }
-
+        public DbSet<ChatThread> ChatThreads { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
     }
 }

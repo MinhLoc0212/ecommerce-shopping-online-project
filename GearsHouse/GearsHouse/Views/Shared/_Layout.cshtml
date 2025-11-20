@@ -344,6 +344,7 @@
                     @RenderBody()
                 </div>
             </main>
+            @await Html.PartialAsync("_ChatWidget")
             @if (!hideLayout)
             {
                 <footer class="bg-dark text-white pt-5 pb-4 mt-auto">

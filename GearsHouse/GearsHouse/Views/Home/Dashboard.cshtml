@@ -272,7 +272,12 @@
                     <i class="fas fa-users-cog"></i><span class="text">Quản lý nhân viên</span>
                 </a>
             </li>
-
+            <li>
+                <a href="#" id="chat-link" class="@(activeTab == "chat" ? "active" : "")">
+                    <i class="fas fa-comments"></i><span class="text">Chat hỗ trợ</span>
+                </a>
+            </li>
+            
             <li class="admin-label">
                 <i class="fas fa-user-shield admin-icon"></i>
                 <span class="admin-text">ADMIN</span>
@@ -313,6 +318,113 @@
 
 @section Scripts {
     <script>
+        function initChatDashboard() {
+            var currentThread = 0;
+            var lastId = 0;
+            var lastDateShown = '';
+
+            function clearMessages(){
+                var box = document.getElementById('chatMessages');
+                if (box) { box.innerHTML = ''; }
+                lastId = 0;
+                lastDateShown = '';
+            }
+
+            function appendMessage(isStaff, content, at){
+                var box = document.getElementById('chatMessages');
+                if (!box) return;
+                var atStr = String(at||'').trim();
+                var parts = atStr.split(' ');
+                var time = atStr;
+                var date = '';
+                if (parts.length >= 2) { time = parts[0]; date = parts[1]; }
+                if (date && lastDateShown !== date) {
+                    var sep = document.createElement('div');
+                    sep.className = 'date-sep';
+                    var pill = document.createElement('span');
+                    pill.className = 'pill';
+                    pill.textContent = date;
+                    sep.appendChild(pill);
+                    box.appendChild(sep);
+                    lastDateShown = date;
+                }
+                var row = document.createElement('div');
+                row.className = 'msg-row ' + (isStaff ? 'msg-right' : 'msg-left');
+                var bubble = document.createElement('div');
+                bubble.className = 'bubble ' + (isStaff ? 'bubble-staff' : 'bubble-customer');
+                bubble.textContent = content;
+                var meta = document.createElement('div');
+                meta.className = 'msg-meta';
+                meta.textContent = time;
+                row.appendChild(bubble);
+                row.appendChild(meta);
+                box.appendChild(row);
+                box.scrollTop = box.scrollHeight;
+            }
+
+            function loadMessages(){
+                if(!currentThread) return;
+                fetch('/Chat/Messages?threadId=' + currentThread + '&afterId=' + (lastId||''))
+                    .then(function(r){ return r.json(); })
+                    .then(function(list){
+                        if(!Array.isArray(list)) return;
+                        list.forEach(function(m){
+                            appendMessage(!!m.isStaff, String(m.content||''), String(m.at||''));
+                            lastId = Math.max(lastId, m.id||0);
+                        });
+                    });
+            }
+
+            function selectThread(id){
+                currentThread = parseInt(id||0);
+                sessionStorage.setItem('chat:threadId', String(currentThread||''));
+                clearMessages();
+                loadMessages();
+                var info = document.getElementById('chatThreadInfo');
+                if (info) { info.textContent = currentThread ? ('#' + currentThread) : ''; }
+                var input = document.getElementById('chatInput');
+                var send = document.getElementById('chatSend');
+                if (input) { input.disabled = !currentThread; }
+                if (send) { send.disabled = !currentThread; }
+                var list = document.querySelectorAll('#threadList .thread-item');
+                list.forEach(function(el){ el.classList.remove('active'); });
+                var currentEl = document.querySelector('#threadList .thread-item[data-thread="' + currentThread + '"]');
+                if (currentEl) currentEl.classList.add('active');
+            }
+
+            var saved = parseInt(sessionStorage.getItem('chat:threadId')||'0');
+            if (saved) {
+                selectThread(saved);
+            } else {
+                var first = document.querySelector('#threadList a[data-thread]');
+                if (first) selectThread(first.getAttribute('data-thread'));
+            }
+
+            var threadList = document.getElementById('threadList');
+            if (threadList) {
+                threadList.addEventListener('click', function(e){
+                    var a = e.target.closest('a[data-thread]');
+                    if(!a) return;
+                    e.preventDefault();
+                    selectThread(a.getAttribute('data-thread'));
+                });
+            }
+
+            var sendBtn = document.getElementById('chatSend');
+            if (sendBtn) {
+                sendBtn.addEventListener('click', function(){
+                    var input = document.getElementById('chatInput');
+                    var content = ((input && input.value) || '').trim();
+                    if(!content || !currentThread) return;
+                    fetch('/Chat/Send', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: new URLSearchParams({ threadId: currentThread, content: content }) })
+                        .then(function(){ if (input) input.value=''; loadMessages(); });
+                });
+            }
+
+            if (window.chatPollTimer) { clearInterval(window.chatPollTimer); }
+            window.chatPollTimer = setInterval(loadMessages, 2000);
+        }
+
         function loadContent(tab, pushState = true) {
             var tabUrls = {
                 product: '@Url.Action("ProductIndex", "Dashboard")',
@@ -321,7 +433,8 @@
                 promotion: '@Url.Action("PromotionIndex", "Dashboard")',
                 order: '@Url.Action("OrderIndex", "Dashboard")',
                 user: '@Url.Action("UserIndex", "Dashboard")',
-                revenue: '@Url.Action("Revenue", "Dashboard")'
+                revenue: '@Url.Action("Revenue", "Dashboard")',
+                chat: '@Url.Action("Dashboard", "Chat")'
             };
 
             $.ajax({
@@ -330,6 +443,8 @@
                 headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 success: function (data) {
                     $("#ajax-content").html(data);
+                    if (window.chatPollTimer) { clearInterval(window.chatPollTimer); window.chatPollTimer = null; }
+                    if (tab === 'chat') { initChatDashboard(); }
                     if (pushState) {
                         history.pushState(null, null, '@Url.Action("Dashboard", "Dashboard")?tab=' + tab);
                     }
@@ -647,6 +762,7 @@
                     error: function () { alert('Không thể tạo khuyến mãi. Vui lòng thử lại!'); }
                 });
             });
+
         });
     </script>
 }

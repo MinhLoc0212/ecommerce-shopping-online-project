@@ -1,0 +1,67 @@
+@model List<GearsHouse.Models.ChatThread>
+@{
+    Layout = null;
+    ViewData["Title"] = "Chat hỗ trợ";
+}
+<style>
+    .chat-wrapper { display: flex; gap: 16px; }
+    .chat-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.06); overflow: hidden; }
+    .chat-card .card-header { padding: 12px 16px; border-bottom: 1px solid #e5e7eb; background: linear-gradient(90deg,#f8fafc,#f1f5f9); }
+    .chat-card .card-body { padding: 12px 16px; }
+    .chat-thread-list { height: 520px; overflow: auto; }
+    .chat-main { height: 520px; display: flex; flex-direction: column; }
+    .chat-header { display: flex; align-items: center; justify-content: space-between; }
+    .chat-title { font-weight: 700; }
+    .chat-messages { flex: 1; overflow: auto; padding: 16px; background: #f8fafc; }
+    .chat-input { padding: 8px 16px 16px; }
+    .msg-row { display: flex; margin: 10px 0; }
+    .msg-right { justify-content: flex-end; }
+    .msg-left { justify-content: flex-start; }
+    .bubble { position: relative; padding: 10px 14px; border-radius: 16px; max-width: 65%; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .bubble-staff { background: #e7f0ff; color: #0b5ed7; }
+    .bubble-customer { background: #eef1f4; color: #111827; }
+    .bubble:after { content: ""; position: absolute; bottom: 8px; width: 0; height: 0; border: 10px solid transparent; }
+    .msg-right .bubble:after { right: -6px; border-left-color: #e7f0ff; border-right: 0; }
+    .msg-left .bubble:after { left: -6px; border-right-color: #eef1f4; border-left: 0; }
+    .msg-meta { margin-top: 4px; font-size: 11px; color: #6b7280; }
+    .msg-right .msg-meta { text-align: right; }
+    .msg-left .msg-meta { text-align: left; }
+    .thread-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-bottom: 1px solid #eef2f7; text-decoration: none; color: #111827; transition: background 0.2s ease; }
+    .thread-item:hover { background: #f3f4f6; }
+    .thread-item.active { background: #e7f0ff; }
+    .thread-badge { font-size: 12px; }
+    .date-sep { text-align:center; margin: 10px 0; }
+    .date-sep .pill { display:inline-block; background:#e5e7eb; color:#374151; padding:4px 10px; border-radius:999px; font-size:12px; }
+</style>
+<div class="container py-3">
+    <div class="chat-wrapper">
+        <div class="col-md-4">
+            <div class="chat-card">
+                <div class="card-header">Cuộc trò chuyện</div>
+                <div class="card-body chat-thread-list" id="threadList">
+                    @foreach (var t in Model)
+                    {
+                        <a href="#" class="thread-item" data-thread="@t.Id">
+                            <span>#@t.Id</span>
+                            <span class="badge thread-badge @(t.IsClosed ? "bg-secondary" : "bg-success")">@((t.IsClosed) ? "Đã đóng" : "Đang mở")</span>
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="chat-card chat-main">
+                <div class="card-header chat-header">
+                    <div class="chat-title">Chat hỗ trợ <span id="chatThreadInfo" class="text-muted"></span></div>
+                </div>
+                <div class="card-body chat-messages" id="chatMessages"></div>
+                <div class="card-body chat-input">
+                    <div class="input-group">
+                        <input id="chatInput" class="form-control" placeholder="Nhập tin nhắn">
+                        <button class="btn btn-primary" id="chatSend">Gửi</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

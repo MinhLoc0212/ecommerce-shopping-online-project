@@ -227,10 +227,25 @@
                 <span asp-validation-for="PhoneNumber" class="text-danger"></span>
             </div>
             <div class="mb-3">
-                <label asp-for="ShippingAddress" class="form-label fw-semibold">
+                <label class="form-label fw-semibold">
                     <i class="bi bi-geo-alt-fill"></i> 🏠 Địa chỉ giao hàng
                 </label>
-                <input asp-for="ShippingAddress" class="form-control" placeholder="Nhập địa chỉ của bạn..." required />
+                <div class="row g-2">
+                    <div class="col-12">
+                        <input id="streetAddress" class="form-control" placeholder="Số nhà, đường..." required />
+                    </div>
+                    <div class="col-md-6">
+                        <select id="provinceSelect" class="form-select" required>
+                            <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <select id="districtSelect" class="form-select" required disabled>
+                            <option value="">-- Chọn Quận/Huyện --</option>
+                        </select>
+                    </div>
+                </div>
+                <input asp-for="ShippingAddress" type="hidden" />
                 <span asp-validation-for="ShippingAddress" class="text-danger"></span>
             </div>
             <div class="mb-3">
@@ -301,6 +316,108 @@
         var vnpayPaymentDetails = document.getElementById('vnpayPaymentDetails');
         vnpayPaymentDetails.style.display = (paymentMethod === 'VNPay') ? 'block' : 'none';
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const provinceSelect = document.getElementById('provinceSelect');
+        const districtSelect = document.getElementById('districtSelect');
+        const streetInput = document.getElementById('streetAddress');
+        const shippingHidden = document.querySelector('input[name="ShippingAddress"]');
+
+        let provinces = [];
+
+        fetch('https://provinces.open-api.vn/api/?depth=2')
+            .then(r => r.json())
+            .then(data => {
+                provinces = data || [];
+                provinceSelect.innerHTML = '<option value="">-- Chọn Tỉnh/Thành phố --</option>' +
+                    provinces.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+            })
+            .catch(() => {
+                provinceSelect.innerHTML = '<option value="">Không tải được danh sách tỉnh/thành</option>';
+            });
+
+        provinceSelect.addEventListener('change', () => {
+            const selected = provinces.find(p => p.name === provinceSelect.value);
+            if (!selected) {
+                districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+                districtSelect.disabled = true;
+            } else {
+                districtSelect.disabled = false;
+                districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>' +
+                    (selected.districts || []).map(d => `<option value="${d.name}">${d.name}</option>`).join('');
+            }
+            updateShippingAddress();
+        });
+
+        districtSelect.addEventListener('change', updateShippingAddress);
+        streetInput.addEventListener('input', updateShippingAddress);
+
+        document.getElementById('checkoutForm').addEventListener('submit', (e) => {
+            updateShippingAddress();
+            if (!shippingHidden.value.trim()) {
+                e.preventDefault();
+                alert('Vui lòng nhập địa chỉ đầy đủ, chọn Tỉnh/Thành phố và Quận/Huyện.');
+            }
+        });
+
+        function updateShippingAddress() {
+            const parts = [streetInput.value.trim()];
+            if (districtSelect.value) parts.push(districtSelect.value.trim());
+            if (provinceSelect.value) parts.push(provinceSelect.value.trim());
+            shippingHidden.value = parts.filter(Boolean).join(', ');
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const provinceSelect = document.getElementById('provinceSelect');
+        const districtSelect = document.getElementById('districtSelect');
+        const streetInput = document.getElementById('streetAddress');
+        const shippingHidden = document.querySelector('input[name="ShippingAddress"]');
+
+        let provinces = [];
+
+        fetch('https://provinces.open-api.vn/api/?depth=2')
+            .then(r => r.json())
+            .then(data => {
+                provinces = data || [];
+                provinceSelect.innerHTML = '<option value="">-- Chọn Tỉnh/Thành phố --</option>' +
+                    provinces.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+            })
+            .catch(() => {
+                provinceSelect.innerHTML = '<option value="">Không tải được danh sách tỉnh/thành</option>';
+            });
+
+        provinceSelect.addEventListener('change', () => {
+            const selected = provinces.find(p => p.name === provinceSelect.value);
+            if (!selected) {
+                districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+                districtSelect.disabled = true;
+            } else {
+                districtSelect.disabled = false;
+                districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>' +
+                    (selected.districts || []).map(d => `<option value="${d.name}">${d.name}</option>`).join('');
+            }
+            updateShippingAddress();
+        });
+
+        districtSelect.addEventListener('change', updateShippingAddress);
+        streetInput.addEventListener('input', updateShippingAddress);
+
+        document.getElementById('checkoutForm').addEventListener('submit', (e) => {
+            updateShippingAddress();
+            if (!shippingHidden.value.trim()) {
+                e.preventDefault();
+                alert('Vui lòng nhập địa chỉ đầy đủ, chọn Tỉnh/Thành phố và Quận/Huyện.');
+            }
+        });
+
+        function updateShippingAddress() {
+            const parts = [streetInput.value.trim()];
+            if (districtSelect.value) parts.push(districtSelect.value.trim());
+            if (provinceSelect.value) parts.push(provinceSelect.value.trim());
+            shippingHidden.value = parts.filter(Boolean).join(', ');
+        }
+    });
 
     function disableValidation() {
         document.getElementById("checkoutForm").setAttribute("novalidate", "novalidate");
