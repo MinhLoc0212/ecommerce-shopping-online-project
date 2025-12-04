@@ -301,6 +301,11 @@ namespace GearsHouse.Controllers
                 });
             }
 
+            var productIds = cartItems.Select(i => i.ProductId).Distinct().ToList();
+            var now = DateTime.Now;
+            var hasPromo = await _context.Promotions.AnyAsync(p => productIds.Contains(p.ProductId) && now >= p.StartDate && now <= p.EndDate);
+            ViewBag.HasPromo = hasPromo;
+
             return View(order);
         }
 
@@ -317,7 +322,11 @@ namespace GearsHouse.Controllers
                 return NotFound();
             }
 
-            // Reuse the Checkout view for existing orders
+            var productIds = order.OrderDetails.Select(od => od.ProductId).Distinct().ToList();
+            var now = DateTime.Now;
+            var hasPromo = await _context.Promotions.AnyAsync(p => productIds.Contains(p.ProductId) && now >= p.StartDate && now <= p.EndDate);
+            ViewBag.HasPromo = hasPromo;
+
             return View("Checkout", order);
         }
 
@@ -369,26 +378,36 @@ namespace GearsHouse.Controllers
             // Áp dụng mã giảm giá (nếu hợp lệ) trước khi thanh toán
             if (!string.IsNullOrEmpty(existingOrder.CouponCode))
             {
-                var coupon = await _context.CouponCodes
-                    .FirstOrDefaultAsync(c => c.UserId == user.Id && c.Code == existingOrder.CouponCode && !c.IsUsed);
-                if (coupon != null)
+                var productIdsForOrder = existingOrder.OrderDetails.Select(od => od.ProductId).Distinct().ToList();
+                var now = DateTime.Now;
+                var hasPromo = await _context.Promotions.AnyAsync(p => productIdsForOrder.Contains(p.ProductId) && now >= p.StartDate && now <= p.EndDate);
+                if (hasPromo)
                 {
-                    var grossTotal = existingOrder.OrderDetails.Sum(od => od.Price * od.Quantity);
-                    if (grossTotal >= coupon.MinOrderTotal)
-                    {
-                        existingOrder.TotalPrice = Math.Max(0, existingOrder.TotalPrice - coupon.Amount);
-                    }
-                    else
-                    {
-                        // Không đủ điều kiện để áp dụng mã
-                        TempData["WarningMessage"] = $"Đơn hàng phải từ {coupon.MinOrderTotal:N0} VNĐ mới dùng mã.";
-                        existingOrder.CouponCode = null;
-                    }
+                    TempData["WarningMessage"] = "Không áp dụng mã giảm giá cho sản phẩm đang được khuyến mãi.";
+                    existingOrder.CouponCode = null;
                 }
                 else
                 {
-                    TempData["WarningMessage"] = "Mã giảm giá không hợp lệ hoặc đã sử dụng.";
-                    existingOrder.CouponCode = null;
+                    var coupon = await _context.CouponCodes
+                        .FirstOrDefaultAsync(c => c.UserId == user.Id && c.Code == existingOrder.CouponCode && !c.IsUsed);
+                    if (coupon != null)
+                    {
+                        var grossTotal = existingOrder.OrderDetails.Sum(od => od.Price * od.Quantity);
+                        if (grossTotal >= coupon.MinOrderTotal)
+                        {
+                            existingOrder.TotalPrice = Math.Max(0, existingOrder.TotalPrice - coupon.Amount);
+                        }
+                        else
+                        {
+                            TempData["WarningMessage"] = $"Đơn hàng phải từ {coupon.MinOrderTotal:N0} VNĐ mới dùng mã.";
+                            existingOrder.CouponCode = null;
+                        }
+                    }
+                    else
+                    {
+                        TempData["WarningMessage"] = "Mã giảm giá không hợp lệ hoặc đã sử dụng.";
+                        existingOrder.CouponCode = null;
+                    }
                 }
             }
 
@@ -411,8 +430,10 @@ namespace GearsHouse.Controllers
                 {
                     ipAddress = "127.0.0.1";
                 }
-                // Sử dụng ReturnUrl cấu hình để tránh sai khác domain/port
-                var paymentUrl = _vnpayService.CreatePaymentUrl(existingOrder, ipAddress, _vnpaySettings.ReturnUrl);
+                var host = Request.Host.HasValue ? Request.Host.Value : string.Empty;
+                var scheme = string.IsNullOrEmpty(Request.Scheme) ? "https" : Request.Scheme;
+                var dynamicReturn = (!string.IsNullOrEmpty(host)) ? $"{scheme}://{host}/ShoppingCart/VNPayReturn" : _vnpaySettings.ReturnUrl;
+                var paymentUrl = _vnpayService.CreatePaymentUrl(existingOrder, ipAddress, dynamicReturn);
                 return Redirect(paymentUrl);
             }
 
@@ -508,7 +529,7 @@ namespace GearsHouse.Controllers
                     <h3 style='color:#0d6efd;margin-top:0;'>🎁 Quà tặng mã giảm giá</h3>
                     <p style='font-size:16px;color:#333;'>Đơn hàng của bạn đạt từ 10.000.000 VNĐ, chúng tôi tặng bạn mã giảm giá 
                     <strong style='color:#e74c3c;'>{issuedCodeForEmail}</strong> trị giá <strong>1.000.000 VNĐ</strong> cho đơn tiếp theo từ 
-                    <strong>5.000.000 VNĐ</strong>. Mã chỉ dùng một lần.</p>
+                    <strong>5.000.000 VNĐ</strong>. Mã chỉ dùng một lần và KHÔNG áp dụng cho các sản phẩm đang được khuyến mãi.</p>
                 </div>
             </td>
         </tr>";
@@ -597,6 +618,27 @@ namespace GearsHouse.Controllers
             if (coupon.IsUsed)
             {
                 return Json(new { success = false, used = true, message = "Mã giảm giá này đã được sử dụng." });
+            }
+
+            // Kiểm tra sản phẩm đang khuyến mãi
+            List<int> productIds;
+            if (orderId.HasValue && orderId.Value > 0)
+            {
+                var order = await _context.Orders
+                    .Include(o => o.OrderDetails)
+                    .FirstOrDefaultAsync(o => o.Id == orderId.Value);
+                productIds = order?.OrderDetails.Select(od => od.ProductId).Distinct().ToList() ?? new List<int>();
+            }
+            else
+            {
+                var cartItems = await _context.CartItems.Where(c => c.UserId == user.Id).ToListAsync();
+                productIds = cartItems.Select(ci => ci.ProductId).Distinct().ToList();
+            }
+            var now = DateTime.Now;
+            var hasPromo = await _context.Promotions.AnyAsync(p => productIds.Contains(p.ProductId) && now >= p.StartDate && now <= p.EndDate);
+            if (hasPromo)
+            {
+                return Json(new { success = false, promoBlocked = true, message = "Không áp dụng mã giảm giá cho sản phẩm đang được khuyến mãi" });
             }
 
             if (grossTotal < coupon.MinOrderTotal)

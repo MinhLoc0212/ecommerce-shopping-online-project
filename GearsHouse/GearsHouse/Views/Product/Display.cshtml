@@ -49,17 +49,7 @@
                 <img id="imageModalImg" alt="Zoom ảnh sản phẩm" />
             </div>
 
-            <!-- Mô tả sản phẩm hiển thị dưới ảnh (thu gọn/ mở rộng) -->
-            <div class="mt-4 text-start">
-                <h5 class="fw-semibold mb-2">Thông tin sản phẩm</h5>
-                <div id="descCollapsible" class="desc-collapsible collapsed">
-                    <div class="description">
-                        @Html.Raw(Model.Description)
-                    </div>
-                    <div class="desc-fade"></div>
-                </div>
-                <button id="descToggle" type="button" class="btn btn-link p-0 mt-2">Hiển thị thêm</button>
-            </div>
+            
         </div>
         <div class="col-md-6">
             <div class="product-header d-flex align-items-start justify-content-between">
@@ -144,6 +134,28 @@
                     <li>Đổi trả trong 7 ngày đối với lỗi do nhà sản xuất</li>
                 </ul>
             </div>
+
+            
+        </div>
+    </div>
+
+    <div class="row g-4 mt-4 align-items-start">
+        <div class="col-md-8">
+            <h5 class="fw-semibold mb-2">Thông tin sản phẩm</h5>
+            <div id="descCollapsible" class="desc-collapsible">
+                <div class="description">
+                    @Html.Raw(Model.ProductInfo)
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            @if (!string.IsNullOrEmpty(Model.TechnicalSpecs))
+            {
+                <h5 class="fw-semibold mb-2">Thông số kỹ thuật</h5>
+                <div class="p-3 border rounded bg-white">
+                    @Html.Raw(Model.TechnicalSpecs)
+                </div>
+            }
         </div>
     </div>
 
@@ -197,11 +209,16 @@
         .recent-viewed .card-body .small { font-size: .9rem; }
         .recent-viewed .card-body .price { font-size: .9rem; }
 
-        /* Mô tả thu gọn/mở rộng */
+        /* Mô tả hiển thị đầy đủ */
         .desc-collapsible { position: relative; }
-        .desc-collapsible.collapsed { max-height: 240px; overflow: hidden; }
-        .desc-fade { position: absolute; left: 0; right: 0; bottom: 0; height: 60px; background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1)); display: none; }
-        #descToggle { font-weight: 600; }
+        /* Giới hạn nội dung rich text không tràn cột */
+        .desc-collapsible .description { overflow-wrap: anywhere; word-break: break-word; }
+        .desc-collapsible .description img,
+        .desc-collapsible .description video,
+        .desc-collapsible .description iframe { max-width: 100% !important; height: auto !important; display: block; }
+        .desc-collapsible .description table { width: 100% !important; table-layout: fixed; }
+        .desc-collapsible .description th,
+        .desc-collapsible .description td { word-break: break-word; }
     </style>
 
     <script>
@@ -241,47 +258,7 @@
         })();
     </script>
 
-    <!-- Script thu gọn/mở rộng mô tả -->
-    <script>
-        (function () {
-            function updateFade(wrapper, fade) {
-                if (!wrapper || !fade) return;
-                const shouldShow = wrapper.classList.contains('collapsed') && (wrapper.scrollHeight > wrapper.clientHeight + 1);
-                fade.style.display = shouldShow ? 'block' : 'none';
-            }
-
-            function evaluateOverflow(wrapper, toggleBtn, fade) {
-                if (!wrapper || !toggleBtn) return;
-                const needToggle = wrapper.scrollHeight > wrapper.clientHeight + 1;
-                toggleBtn.style.display = needToggle ? 'inline' : 'none';
-                updateFade(wrapper, fade);
-            }
-
-            document.addEventListener('DOMContentLoaded', function () {
-                const wrapper = document.getElementById('descCollapsible');
-                const toggleBtn = document.getElementById('descToggle');
-                const fade = wrapper ? wrapper.querySelector('.desc-fade') : null;
-                if (!wrapper || !toggleBtn) return;
-
-                function updateLabel() {
-                    toggleBtn.textContent = wrapper.classList.contains('collapsed') ? 'Hiển thị thêm' : 'Thu gọn';
-                }
-
-                updateLabel();
-                evaluateOverflow(wrapper, toggleBtn, fade);
-
-                toggleBtn.addEventListener('click', function () {
-                    wrapper.classList.toggle('collapsed');
-                    updateLabel();
-                    updateFade(wrapper, fade);
-                });
-
-                window.addEventListener('resize', function () {
-                    evaluateOverflow(wrapper, toggleBtn, fade);
-                });
-            });
-        })();
-    </script>
+    
 </div>
 
 <hr class="my-5" />

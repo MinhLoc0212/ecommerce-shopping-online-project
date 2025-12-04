@@ -26,14 +26,14 @@
         padding: 0 15px;
         background: #fff;
         border-radius: 12px;
-        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
         transition: box-shadow 0.3s ease;
     }
 
-        .checkout-products:hover,
-        .checkout-form:hover {
-            box-shadow: 0 12px 25px rgba(0,0,0,0.15);
-        }
+    .checkout-products:hover,
+    .checkout-form:hover {
+        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+    }
 
     /* Bảng sản phẩm */
     table {
@@ -59,29 +59,29 @@
         border-radius: 10px;
     }
 
-        tbody tr:hover {
-            background-color: #e3f0ff;
-        }
+    tbody tr:hover {
+        background-color: #e3f0ff;
+    }
 
-        tbody tr td {
-            vertical-align: middle !important;
-            text-align: center;
-            padding: 15px;
-            border-radius: 8px;
-        }
+    tbody tr td {
+        vertical-align: middle !important;
+        text-align: center;
+        padding: 15px;
+        border-radius: 8px;
+    }
 
-            tbody tr td img {
-                max-width: 80px;
-                max-height: 80px;
-                object-fit: contain;
-                border-radius: 8px;
-                box-shadow: 0 3px 8px rgba(13, 110, 253, 0.2);
-                transition: transform 0.3s ease;
-            }
+    tbody tr td img {
+        max-width: 80px;
+        max-height: 80px;
+        object-fit: contain;
+        border-radius: 8px;
+        box-shadow: 0 3px 8px rgba(13, 110, 253, 0.2);
+        transition: transform 0.3s ease;
+    }
 
-                tbody tr td img:hover {
-                    transform: scale(1.05);
-                }
+    tbody tr td img:hover {
+        transform: scale(1.05);
+    }
 
     /* Form thanh toán */
     .checkout-form h2 {
@@ -108,12 +108,12 @@
         transition: border-color 0.3s ease;
     }
 
-        input.form-control:focus,
-        select.form-select:focus,
-        textarea.form-control:focus {
-            border-color: #0d6efd;
-            box-shadow: 0 0 8px rgba(13, 110, 253, 0.3);
-        }
+    input.form-control:focus,
+    select.form-select:focus,
+    textarea.form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 8px rgba(13, 110, 253, 0.3);
+    }
 
     button.btn {
         border-radius: 50px;
@@ -139,24 +139,22 @@
         margin-top: 20px;
     }
 
-        #onlinePaymentDetails h4 {
-            color: #0d6efd;
-            margin-bottom: 15px;
-        }
+    #onlinePaymentDetails h4 {
+        color: #0d6efd;
+        margin-bottom: 15px;
+    }
 
     /* Animation fade in */
-    @@  keyframes fadeIn {
-        0%
+    @@ keyframes fadeIn {
+        0% {
+            opacity: 0;
+            transform: translateY(15px);
+        }
 
-    {
-        opacity: 0;
-        transform: translateY(15px);
-    }
-
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
 
     }
 </style>
@@ -175,6 +173,7 @@
             </thead>
             <tbody>
                 @foreach (var item in Model.OrderDetails)
+
                 {
                     <tr>
                         <td>
@@ -190,7 +189,8 @@
         <div class="card mt-3 p-3" style="border: 1.5px solid #0d6efd; border-radius: 12px; background: #f1f9ff;">
             <div class="d-flex justify-content-between align-items-center">
                 <span class="fw-bold">Tổng tiền gốc:</span>
-                <span id="originalTotal" class="fw-bold text-danger">@Model.OrderDetails.Sum(i => i.Price * i.Quantity).ToString("#,##0") VNĐ</span>
+                <span id="originalTotal" class="fw-bold text-danger">@Model.OrderDetails.Sum(i => i.Price *
+                    i.Quantity).ToString("#,##0") VNĐ</span>
             </div>
             <div class="d-flex justify-content-between align-items-center mt-2">
                 <span class="fw-bold">Giảm giá áp dụng:</span>
@@ -199,7 +199,8 @@
             <hr />
             <div class="d-flex justify-content-between align-items-center">
                 <span class="fw-bold">Tổng sau giảm:</span>
-                <span id="finalTotal" class="fw-bold text-primary">@Model.OrderDetails.Sum(i => i.Price * i.Quantity).ToString("#,##0") VNĐ</span>
+                <span id="finalTotal" class="fw-bold text-primary">@Model.OrderDetails.Sum(i => i.Price *
+                    i.Quantity).ToString("#,##0") VNĐ</span>
             </div>
         </div>
     </div>
@@ -223,7 +224,8 @@
                 <label asp-for="PhoneNumber" class="form-label fw-semibold">
                     <i class="bi bi-telephone-fill"></i> 📞 Số điện thoại
                 </label>
-                <input asp-for="PhoneNumber" class="form-control" placeholder="Nhập số điện thoại của bạn..." required />
+                <input asp-for="PhoneNumber" class="form-control" placeholder="Nhập số điện thoại của bạn..."
+                    required />
                 <span asp-validation-for="PhoneNumber" class="text-danger"></span>
             </div>
             <div class="mb-3">
@@ -259,11 +261,22 @@
                     <i class="bi bi-ticket-perforated"></i> 🎫 Mã giảm giá (tuỳ chọn)
                 </label>
                 <div class="input-group">
-                    <input asp-for="CouponCode" class="form-control" placeholder="Nhập mã nếu có..." />
-                    <button type="button" class="btn btn-primary" onclick="applyCoupon()">Áp dụng</button>
+                    @{
+                        var couponDisabled = ViewBag.HasPromo == true ? "disabled" : null;
+                    }
+                    <input asp-for="CouponCode" class="form-control" placeholder="Nhập mã nếu có..."
+                        disabled="@couponDisabled" />
+                    <button type="button" class="btn btn-primary" onclick="applyCoupon()" @(ViewBag.HasPromo == true ?
+                        "disabled" : "")>Áp dụng</button>
                 </div>
                 <span asp-validation-for="CouponCode" class="text-danger"></span>
-                <div id="couponMessage" class="mt-2"></div>
+                <div id="couponMessage" class="mt-2">
+                    @if (ViewBag.HasPromo == true)
+
+                    {
+                        <div class="alert alert-info py-2">Không áp dụng mã giảm giá cho sản phẩm đang được khuyến mãi</div>
+                    }
+                </div>
             </div>
             <div class="mb-3">
                 <label asp-for="PaymentMethod" class="form-label fw-semibold">
@@ -292,15 +305,19 @@
         </form>
 
         @if (Model.Id > 0)
+
         {
-            <form asp-controller="ShoppingCart" asp-action="CancelOrder" method="post" class="mt-3" onsubmit="disableValidation()">
+            <form asp-controller="ShoppingCart" asp-action="CancelOrder" method="post" class="mt-3"
+                onsubmit="disableValidation()">
                 <input type="hidden" name="id" value="@Model.Id" />
                 <button type="submit" class="btn btn-outline-secondary btn-lg">
                     <i class="bi bi-arrow-left"></i> Quay lại giỏ hàng
                 </button>
             </form>
         }
+
         else
+
         {
             <a asp-controller="ShoppingCart" asp-action="Index" class="btn btn-outline-secondary btn-lg mt-3">
                 <i class="bi bi-arrow-left"></i> Quay lại giỏ hàng

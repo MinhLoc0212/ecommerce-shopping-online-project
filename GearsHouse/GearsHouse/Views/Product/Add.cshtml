@@ -38,12 +38,22 @@
                             <span asp-validation-for="Quantity" class="text-danger"></span>
                         </div>
 
+                        
+
                         <div class="mb-4">
-                            <label asp-for="Description" class="form-label fw-semibold">
-                                <i class="fas fa-align-left me-1 text-orange"></i>THÔNG TIN CHI TIẾT
+                            <label asp-for="ProductInfo" class="form-label fw-semibold">
+                                <i class="fas fa-info-circle me-1 text-orange"></i>THÔNG TIN SẢN PHẨM
                             </label>
-                            <textarea asp-for="Description" class="form-control" placeholder="Enter product description" rows="4"></textarea>
-                            <span asp-validation-for="Description" class="text-danger"></span>
+                            <textarea asp-for="ProductInfo" class="form-control" placeholder="Mô tả chi tiết sản phẩm" rows="5" id="ProductInfo"></textarea>
+                            <span asp-validation-for="ProductInfo" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="TechnicalSpecs" class="form-label fw-semibold">
+                                <i class="fas fa-clipboard-list me-1 text-orange"></i>THÔNG SỐ KỸ THUẬT
+                            </label>
+                            <textarea asp-for="TechnicalSpecs" class="form-control" placeholder="Liệt kê thông số kỹ thuật" rows="6" id="TechnicalSpecs"></textarea>
+                            <span asp-validation-for="TechnicalSpecs" class="text-danger"></span>
                         </div>
 
                         <div class="mb-4">
@@ -180,13 +190,22 @@
         ];
         function init() {
             if (!window.tinymce) return;
-            try { tinymce.remove('#Description'); } catch (e) {}
+            try { tinymce.remove('#ProductInfo'); tinymce.remove('#TechnicalSpecs'); } catch (e) {}
             tinymce.init({
-                selector: '#Description',
+                selector: '#ProductInfo',
                 menubar: false,
                 plugins: 'table lists',
                 toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright | numlist bullist | table',
-                height: 250,
+                height: 280,
+                content_style: 'body{font-family:\'Segoe UI\', sans-serif; font-size:1rem; color:#212529; background-color:#fff; padding:10px;}',
+                setup: function (editor) { editor.on('change', function () { editor.save(); }); }
+            });
+            tinymce.init({
+                selector: '#TechnicalSpecs',
+                menubar: false,
+                plugins: 'table lists',
+                toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright | numlist bullist | table',
+                height: 280,
                 content_style: 'body{font-family:\'Segoe UI\', sans-serif; font-size:1rem; color:#212529; background-color:#fff; padding:10px;}',
                 setup: function (editor) { editor.on('change', function () { editor.save(); }); }
             });

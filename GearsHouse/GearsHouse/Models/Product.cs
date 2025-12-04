@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
@@ -11,7 +11,8 @@ namespace GearsHouse.Models
         public string Name { get; set; }
         [Range(1, 999999999)]
         public decimal Price { get; set; }
-        public string Description { get; set; }
+        public string? ProductInfo { get; set; }
+        public string? TechnicalSpecs { get; set; }
         public string? ImageUrl { get; set; }
         public List<ProductImage>? Images { get; set; }
         public int CategoryId { get; set; }

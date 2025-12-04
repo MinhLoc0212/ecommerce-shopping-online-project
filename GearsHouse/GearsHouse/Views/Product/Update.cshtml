@@ -112,10 +112,18 @@
                                     <select asp-for="BrandId" asp-items="ViewBag.Brands" class="form-select"></select>
                                 </div>
 
+                                
+
                                 <div class="mb-3">
-                                    <label asp-for="Description" class="form-label fw-semibold"><i class="bi bi-text-left me-1 text-orange"></i>MÔ TẢ</label>
-                                    <textarea asp-for="Description" class="form-control" id="descriptionEditor"></textarea>
-                                    <span asp-validation-for="Description" class="text-danger"></span>
+                                    <label asp-for="ProductInfo" class="form-label fw-semibold"><i class="bi bi-info-circle me-1 text-orange"></i>THÔNG TIN SẢN PHẨM</label>
+                                    <textarea asp-for="ProductInfo" class="form-control" id="productInfoEditor"></textarea>
+                                    <span asp-validation-for="ProductInfo" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="TechnicalSpecs" class="form-label fw-semibold"><i class="bi bi-clipboard-data me-1 text-orange"></i>THÔNG SỐ KỸ THUẬT</label>
+                                    <textarea asp-for="TechnicalSpecs" class="form-control" id="technicalSpecsEditor"></textarea>
+                                    <span asp-validation-for="TechnicalSpecs" class="text-danger"></span>
                                 </div>
 
                                 <div class="text-end mt-4">
@@ -144,13 +152,22 @@
         ];
         function init() {
             if (!window.tinymce) return;
-            try { tinymce.remove('#descriptionEditor'); } catch (e) {}
+            try { tinymce.remove('#productInfoEditor'); tinymce.remove('#technicalSpecsEditor'); } catch (e) {}
             tinymce.init({
-                selector: '#descriptionEditor',
+                selector: '#productInfoEditor',
                 menubar: false,
                 plugins: 'table lists',
                 toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright | numlist bullist | table',
-                height: 300,
+                height: 280,
+                content_style: 'body{font-family:\'Segoe UI\', sans-serif; font-size:1rem; color:#212529; background-color:#fff; padding:10px;}',
+                setup: function (editor) { editor.on('change', function () { editor.save(); }); }
+            });
+            tinymce.init({
+                selector: '#technicalSpecsEditor',
+                menubar: false,
+                plugins: 'table lists',
+                toolbar: 'undo redo | bold italic underline | alignleft aligncenter alignright | numlist bullist | table',
+                height: 280,
                 content_style: 'body{font-family:\'Segoe UI\', sans-serif; font-size:1rem; color:#212529; background-color:#fff; padding:10px;}',
                 setup: function (editor) { editor.on('change', function () { editor.save(); }); }
             });
