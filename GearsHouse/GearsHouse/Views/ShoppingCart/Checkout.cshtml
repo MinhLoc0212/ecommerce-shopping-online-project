@@ -286,6 +286,7 @@
                     <option value="">-- Chọn phương thức thanh toán --</option>
                     <option value="COD">Thanh toán khi nhận hàng (COD)</option>
                     <option value="VNPay">Thanh toán qua VNPay</option>
+                    <option value="MoMo">Thanh toán qua MoMo</option>
                 </select>
                 <span asp-validation-for="PaymentMethod" class="text-danger"></span>
             </div>
@@ -296,6 +297,16 @@
                 </h4>
                 <p class="text-muted text-center">Bạn sẽ được chuyển đến cổng VNPay để thanh toán an toàn.</p>
             </div>
+            <div id="momoPaymentDetails" style="display: none;">
+                <h4 class="text-center">
+                    <i class="bi bi-phone"></i> 💳 Thanh toán qua MoMo
+                </h4>
+                <p class="text-muted text-center">Bạn sẽ được chuyển đến ví MoMo để thanh toán an toàn.</p>
+            </div>
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger mt-3">@TempData["ErrorMessage"]</div>
+            }
 
             <div class="d-grid gap-2 mt-4">
                 <button type="submit" class="btn btn-success btn-lg">
@@ -331,7 +342,9 @@
     function togglePaymentOptions() {
         var paymentMethod = document.querySelector('select[name="PaymentMethod"]').value;
         var vnpayPaymentDetails = document.getElementById('vnpayPaymentDetails');
+        var momoPaymentDetails = document.getElementById('momoPaymentDetails');
         vnpayPaymentDetails.style.display = (paymentMethod === 'VNPay') ? 'block' : 'none';
+        momoPaymentDetails.style.display = (paymentMethod === 'MoMo') ? 'block' : 'none';
     }
 
     document.addEventListener('DOMContentLoaded', () => {

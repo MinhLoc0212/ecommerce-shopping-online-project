@@ -16,6 +16,8 @@ builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<InvoicePdfGenerator>();
 builder.Services.Configure<VNPaySettings>(builder.Configuration.GetSection("VNPay"));
 builder.Services.AddScoped<VNPayService>();
+builder.Services.Configure<MomoSettings>(builder.Configuration.GetSection("MomoAPI"));
+builder.Services.AddScoped<MomoService>();
 
 
 // Đặt trước AddControllersWithViews();

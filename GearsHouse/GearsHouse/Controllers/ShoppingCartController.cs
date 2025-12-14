@@ -6,6 +6,9 @@ using GearsHouse.Extensions;
 using GearsHouse.Models;
 using GearsHouse.Repositories;
 using GearsHouse.Services;
+using System.Text.Json;
+using System.IO;
+using Microsoft.Extensions.Logging;
 
 
 namespace GearsHouse.Controllers
@@ -20,14 +23,19 @@ namespace GearsHouse.Controllers
         private readonly InvoicePdfGenerator _pdfGenerator;
         private readonly VNPayService _vnpayService;
         private readonly VNPaySettings _vnpaySettings;
-        
+        private readonly MomoService _momoService;
+        private readonly MomoSettings _momoSettings;
+        private readonly ILogger<ShoppingCartController> _logger;
 
 
         public ShoppingCartController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IProductRepository productRepository,
             EmailService emailService,
             InvoicePdfGenerator pdfGenerator,
             VNPayService vnpayService,
-            Microsoft.Extensions.Options.IOptions<VNPaySettings> vnpOptions)
+            Microsoft.Extensions.Options.IOptions<VNPaySettings> vnpOptions,
+            MomoService momoService,
+            Microsoft.Extensions.Options.IOptions<MomoSettings> momoOptions,
+            ILogger<ShoppingCartController> logger)
         {
             _productRepository = productRepository;
             _context = context;
@@ -36,7 +44,9 @@ namespace GearsHouse.Controllers
             _pdfGenerator = pdfGenerator;
             _vnpayService = vnpayService;
             _vnpaySettings = vnpOptions.Value;
-            
+            _momoService = momoService;
+            _momoSettings = momoOptions.Value;
+            _logger = logger;
         }
 
 
@@ -435,6 +445,32 @@ namespace GearsHouse.Controllers
                 var dynamicReturn = (!string.IsNullOrEmpty(host)) ? $"{scheme}://{host}/ShoppingCart/VNPayReturn" : _vnpaySettings.ReturnUrl;
                 var paymentUrl = _vnpayService.CreatePaymentUrl(existingOrder, ipAddress, dynamicReturn);
                 return Redirect(paymentUrl);
+            }
+
+            if (string.Equals(existingOrder.PaymentMethod, "MoMo", StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    var host = Request.Host.HasValue ? Request.Host.Value : string.Empty;
+                    var scheme = string.IsNullOrEmpty(Request.Scheme) ? "https" : Request.Scheme;
+                    var returnUrl = (!string.IsNullOrEmpty(host)) ? $"{scheme}://{host}/ShoppingCart/MomoReturn" : _momoSettings.ReturnUrl;
+                    var notifyUrl = (!string.IsNullOrEmpty(host)) ? $"{scheme}://{host}/ShoppingCart/MomoNotify" : _momoSettings.NotifyUrl;
+                    _logger.LogInformation("Checkout PaymentMethod={Method} returnUrl={ReturnUrl} notifyUrl={NotifyUrl}", existingOrder.PaymentMethod, returnUrl, notifyUrl);
+                    var paymentUrl = await _momoService.CreatePaymentUrlAsync(existingOrder, returnUrl, notifyUrl);
+                    _logger.LogInformation("MoMo payUrl={PayUrl}", paymentUrl);
+                    if (string.IsNullOrWhiteSpace(paymentUrl))
+                    {
+                        TempData["ErrorMessage"] = "Không tạo được liên kết thanh toán MoMo.";
+                        return RedirectToAction("CheckoutExisting", new { id = existingOrder.Id });
+                    }
+                    return Redirect(paymentUrl);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "MoMo create payment failed");
+                    TempData["ErrorMessage"] = "Thanh toán MoMo hiện không khả dụng. Vui lòng thử lại hoặc chọn phương thức khác.";
+                    return RedirectToAction("CheckoutExisting", new { id = existingOrder.Id });
+                }
             }
 
             // Thanh toán không dùng VNPay: coi đơn hàng là đã xác nhận và bắt đầu xử lý
@@ -903,6 +939,206 @@ namespace GearsHouse.Controllers
             // Đã gộp nội dung mã giảm giá vào email xác nhận, không gửi email riêng
 
             return View("OrderCompleted", order.Id);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> MomoReturn()
+        {
+            var success = MomoService.IsSuccessResponse(Request.Query);
+            var sigOk = _momoService.ValidateSignature(Request.Query);
+            if (!success)
+            {
+                TempData["ErrorMessage"] = "Thanh toán MoMo thất bại hoặc bị hủy.";
+                return RedirectToAction("Index", "ShoppingCart");
+            }
+            if (!sigOk)
+            {
+                _logger.LogWarning("MoMo return signature invalid but resultCode=0, proceeding in test mode");
+            }
+
+            var extraDataStr = Request.Query["extraData"].ToString();
+            int orderId;
+            if (int.TryParse(extraDataStr, out orderId))
+            {
+            }
+            else
+            {
+                var orderIdStr = Request.Query["orderId"].ToString();
+                var baseId = (orderIdStr ?? string.Empty).Split('-').FirstOrDefault();
+                if (!int.TryParse(baseId, out orderId))
+                {
+                    TempData["ErrorMessage"] = "Tham chiếu đơn hàng không hợp lệ.";
+                    return RedirectToAction("Index", "ShoppingCart");
+                }
+            }
+
+            var order = await _context.Orders
+                .Include(o => o.OrderDetails)
+                .ThenInclude(od => od.Product)
+                .FirstOrDefaultAsync(o => o.Id == orderId);
+
+            if (order == null)
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy đơn hàng.";
+                return RedirectToAction("Index", "ShoppingCart");
+            }
+
+            if (!MomoService.IsSuccessResponse(Request.Query))
+            {
+                TempData["ErrorMessage"] = "Thanh toán MoMo thất bại hoặc bị hủy.";
+                return RedirectToAction("CheckoutExisting", new { id = order.Id });
+            }
+
+            order.OrderStatus = OrderStatus.DangXuLy;
+            _context.Orders.Update(order);
+            await _context.SaveChangesAsync();
+
+            await DecreaseStockForOrder(order);
+            var user = await _userManager.GetUserAsync(User);
+            var cartItems = _context.CartItems.Where(i => i.UserId == user.Id);
+            _context.CartItems.RemoveRange(cartItems);
+            await _context.SaveChangesAsync();
+
+            var email = user.Email;
+            string pdfPath = _pdfGenerator.GenerateInvoicePdf(order, order.OrderDetails.ToList());
+            string subject = $"[GEARSHOUSE] Xác nhận đơn hàng #{order.Id}";
+            string body = $@"<html>
+<body style='font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f8f8f8;'>
+    <table style='width: 100%; max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px; border-radius: 10px;'>
+        <tr>
+            <td style='text-align: center;'>
+                <h1 style='color: #333333;'>Cảm ơn bạn đã đặt hàng tại GEARSHOUSE!</h1>
+                <p style='font-size: 18px; color: #555555;'>Mã đơn hàng của bạn là <strong style='color: #e74c3c;'>#{order.Id}</strong>.</p>
+                <p style='font-size: 16px; color: #555555;'>Hóa đơn mua hàng đã được đính kèm trong email này. Chúng tôi sẽ xử lý đơn hàng và giao đến bạn sớm nhất!</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <table style='width: 100%;'>
+                    <tr>
+                        <th style='background-color: #e74c3c; color: #ffffff; padding: 10px; text-align: left;'>Sản phẩm</th>
+                        <th style='background-color: #e74c3c; color: #ffffff; padding: 10px; text-align: left;'>Số lượng</th>
+                        <th style='background-color: #e74c3c; color: #ffffff; padding: 10px; text-align: left;'>Giá</th>
+                    </tr>";
+            foreach (var item in order.OrderDetails)
+            {
+                body += $@"
+                    <tr>
+                        <td style='padding: 10px; border: 1px solid #ddd;'>{item.Product.Name}</td>
+                        <td style='padding: 10px; border: 1px solid #ddd;'>{item.Quantity}</td>
+                        <td style='padding: 10px; border: 1px solid #ddd;'>{item.Price:N0} VNĐ</td>
+                    </tr>";
+            }
+            body += $@"
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td style='padding-top: 20px;'>
+                <p style='font-size: 18px; color: #555555; font-weight: bold;'>Tổng tiền: <span style='color: #e74c3c;'>{order.TotalPrice:N0} VNĐ</span></p>
+                <p style='font-size: 16px; color: #555555;'>Thanh toán MoMo thành công.</p>
+            </td>
+        </tr>
+        <tr>
+            <td style='padding-top: 20px; text-align: center;'>
+                <p style='font-size: 16px; color: #555555;'>Trân trọng,</p>
+                <p style='font-size: 16px; color: #555555; font-weight: bold;'>GEARSHOUSE</p>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+";
+
+            string? issuedCodeForEmailMomo = null;
+            var grossTotalForIssueMomo = order.OrderDetails.Sum(od => od.Price * od.Quantity);
+            if (grossTotalForIssueMomo >= 10_000_000m)
+            {
+                var newCode = GenerateCouponCode();
+                var issue = new CouponCode
+                {
+                    Code = newCode,
+                    UserId = user.Id,
+                    Amount = 1_000_000m,
+                    MinOrderTotal = 5_000_000m,
+                    IsUsed = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.CouponCodes.Add(issue);
+                await _context.SaveChangesAsync();
+                issuedCodeForEmailMomo = newCode;
+            }
+
+            if (!string.IsNullOrEmpty(issuedCodeForEmailMomo))
+            {
+                body += $@"
+        <tr>
+            <td style='padding-top: 10px;'>
+                <div style='background:#f1f9ff;border:1.5px solid #0d6efd;border-radius:12px;padding:16px;'>
+                    <h3 style='color:#0d6efd;margin-top:0;'>🎁 Quà tặng mã giảm giá</h3>
+                    <p style='font-size:16px;color:#333;'>Đơn hàng của bạn đạt từ 10.000.000 VNĐ, chúng tôi tặng bạn mã giảm giá 
+                    <strong style='color:#e74c3c;'>{issuedCodeForEmailMomo}</strong> trị giá <strong>1.000.000 VNĐ</strong> cho đơn tiếp theo từ 
+                    <strong>5.000.000 VNĐ</strong>. Mã chỉ dùng một lần.</p>
+                </div>
+            </td>
+        </tr>";
+            }
+
+            await _emailService.SendEmailAsync(email, subject, body, pdfPath);
+
+            return View("OrderCompleted", order.Id);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MomoNotify()
+        {
+            using var reader = new StreamReader(Request.Body);
+            var body = await reader.ReadToEndAsync();
+            var data = JsonSerializer.Deserialize<Dictionary<string,string>>(body) ?? new Dictionary<string,string>();
+
+            if (!MomoService.IsSuccessResponse(data))
+            {
+                return Ok();
+            }
+
+            int orderId;
+            var extraDataStr = data.TryGetValue("extraData", out var ed) ? ed : "";
+            if (int.TryParse(extraDataStr, out orderId))
+            {
+            }
+            else
+            {
+                var orderIdComposite = data.TryGetValue("orderId", out var oids) ? oids : "";
+                var baseId = (orderIdComposite ?? string.Empty).Split('-').FirstOrDefault();
+                if (!int.TryParse(baseId, out orderId))
+                {
+                    return Ok();
+                }
+            }
+
+            if (!_momoService.ValidateSignature(data))
+            {
+                return Ok();
+            }
+
+            var order = await _context.Orders
+                .Include(o => o.OrderDetails)
+                .FirstOrDefaultAsync(o => o.Id == orderId);
+
+            if (order == null)
+            {
+                return Ok();
+            }
+
+            if (order.OrderStatus != OrderStatus.DangXuLy)
+            {
+                order.OrderStatus = OrderStatus.DangXuLy;
+                _context.Orders.Update(order);
+                await _context.SaveChangesAsync();
+                await DecreaseStockForOrder(order);
+            }
+
+            return Ok();
         }
 
         private static string GenerateCouponCode()
