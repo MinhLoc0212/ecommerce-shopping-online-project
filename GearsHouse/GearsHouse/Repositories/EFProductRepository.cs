@@ -1,4 +1,4 @@
-﻿using GearsHouse.Models;
+using GearsHouse.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace GearsHouse.Repositories
@@ -16,6 +16,7 @@ namespace GearsHouse.Repositories
             // return await _context.Products.ToListAsync();
             return await _context.Products
             .Include(p => p.Category) // Include thông tin về category
+            .Include(p => p.Brand)    // Include thông tin về brand
             .ToListAsync();
         }
         public async Task<Product> GetByIdAsync(int id)

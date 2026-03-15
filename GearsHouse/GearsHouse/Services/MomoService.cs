@@ -1,4 +1,4 @@
-﻿using GearsHouse.Models;
+using GearsHouse.Models;
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 using System.Text;
@@ -32,28 +32,44 @@ namespace GearsHouse.Services
             var requestId = Guid.NewGuid().ToString();
             var orderInfo = $"Thanh toan don hang {order.Id}";
             var partnerOrderId = $"{order.Id}-{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
-            var extraData = order.Id.ToString();
-            _logger.LogInformation("MoMo partnerOrderId={PartnerOrderId} extraData={ExtraData}", partnerOrderId, extraData);
+            var extraData = ""; // Set extraData to empty string if not used, avoiding null issues
 
-            var raw = $"accessKey={_settings.AccessKey}&amount={amount}&extraData={extraData}&ipnUrl={notifyUrl}&orderId={partnerOrderId}&orderInfo={orderInfo}&partnerCode={_settings.PartnerCode}&redirectUrl={returnUrl}&requestId={requestId}&requestType={_settings.RequestType}";
-            var signature = HmacSha256(_settings.SecretKey, raw);
-            _logger.LogInformation("MoMo Signature Raw: {Raw}", raw);
-            _logger.LogInformation("MoMo Signature Generated: {Signature}", signature);
-
-            var payload = new Dictionary<string, string>
+            // Build raw signature string using SortedDictionary to ensure correct order
+            var rawData = new SortedDictionary<string, string>(StringComparer.Ordinal)
             {
-                ["partnerCode"] = _settings.PartnerCode,
-                ["accessKey"] = _settings.AccessKey,
-                ["requestId"] = requestId,
-                ["amount"] = amount,
-                ["orderId"] = partnerOrderId,
-                ["orderInfo"] = orderInfo,
-                ["redirectUrl"] = returnUrl,
-                ["ipnUrl"] = notifyUrl,
-                ["extraData"] = extraData,
-                ["requestType"] = _settings.RequestType,
-                ["lang"] = "vi",
-                ["signature"] = signature
+                { "partnerCode", _settings.PartnerCode },
+                { "accessKey", _settings.AccessKey },
+                { "requestId", requestId },
+                { "amount", amount },
+                { "orderId", partnerOrderId },
+                { "orderInfo", orderInfo },
+                { "redirectUrl", returnUrl },
+                { "ipnUrl", notifyUrl },
+                { "extraData", extraData },
+                { "requestType", _settings.RequestType }
+            };
+
+            var raw = BuildRaw(rawData);
+            var signature = HmacSha256(_settings.SecretKey, raw);
+            
+            _logger.LogInformation("MoMo Raw: {Raw}", raw);
+            _logger.LogInformation("MoMo Signature: {Signature}", signature);
+
+            // Construct payload
+            var payload = new Dictionary<string, object>
+            {
+                { "partnerCode", _settings.PartnerCode },
+                { "accessKey", _settings.AccessKey },
+                { "requestId", requestId },
+                { "amount", long.Parse(amount) }, // Send as number
+                { "orderId", partnerOrderId },
+                { "orderInfo", orderInfo },
+                { "redirectUrl", returnUrl },
+                { "ipnUrl", notifyUrl },
+                { "extraData", extraData },
+                { "requestType", _settings.RequestType },
+                { "lang", "vi" },
+                { "signature", signature }
             };
 
             var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
@@ -65,8 +81,9 @@ namespace GearsHouse.Services
             if (doc.RootElement.TryGetProperty("resultCode", out var rc) && rc.GetInt32() != 0)
             {
                 var msg = doc.RootElement.TryGetProperty("message", out var m) ? m.GetString() : "";
-                _logger.LogWarning("MoMo error resultCode={Code} message={Msg}", rc.GetInt32(), msg);
-                throw new InvalidOperationException("Không tạo được liên kết thanh toán MoMo.");
+                var localMsg = doc.RootElement.TryGetProperty("localMessage", out var lm) ? lm.GetString() : "";
+                _logger.LogWarning("MoMo error resultCode={Code} message={Msg} localMessage={LocalMsg}", rc.GetInt32(), msg, localMsg);
+                throw new InvalidOperationException($"MoMo Error: {msg}");
             }
             if (doc.RootElement.TryGetProperty("payUrl", out var payUrlElem))
             {

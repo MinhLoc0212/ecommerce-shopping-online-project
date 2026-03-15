@@ -1,37 +1,92 @@
-@model GearsHouse.Models.Brand
 
-@{
-    ViewData["Title"] = "Thêm Thương Hiệu";
-}
-
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow-lg border-0 rounded-3">
-                <div class="card-header bg-primary text-white text-center">
-                    <h4 class="mb-0">Thêm Thương Hiệu</h4>
+<div class="max-w-4xl mx-auto relative z-10 gsap-fade-up">
+    <!-- Page Header -->
+    <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+            <h2 class="text-3xl font-bold text-white tracking-tight mb-2">Thêm Thương Hiệu Mới</h2>
+            <p class="text-[#9cabba]">Tạo hồ sơ thương hiệu mới cho danh mục thiết bị chơi game.</p>
+        </div>
+    </div>
+    <!-- Main Form Card -->
+    <div class="bg-[#111418] border border-[#283039] rounded-xl overflow-hidden shadow-2xl">
+        <div class="h-1 w-full bg-gradient-to-r from-transparent via-primary to-transparent opacity-50"></div>
+        <form asp-action="AddBrand" asp-controller="Brand" method="post" enctype="multipart/form-data" class="p-8 flex flex-col gap-8" id="addBrandForm" onsubmit="return submitAddBrandForm(event)">
+            <!-- Brand Name Input -->
+            <div class="space-y-3">
+                <label class="block text-sm font-medium text-white uppercase tracking-wider" for="brand-name">Tên Thương Hiệu <span class="text-primary ml-1">*</span></label>
+                <div class="relative group">
+                    <input name="Name" class="w-full bg-[#1b2127] border border-[#3b4754] rounded-lg px-4 py-4 text-white placeholder-[#556575] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary focus:shadow-[0_0_15px_rgba(13,127,242,0.3)] transition-all duration-300 font-body text-base" id="brand-name" placeholder="ví dụ: Razer, Logitech, Corsair" type="text" required />
+                    <div class="absolute right-4 top-1/2 -translate-y-1/2 text-[#556575] group-focus-within:text-primary transition-colors">
+                        <span class="material-symbols-outlined">edit</span>
+                    </div>
                 </div>
-                <div class="card-body p-4">
-                    <form asp-action="AddBrand" method="post" id="form-add-brand">
-                        <div class="mb-3">
-                            <label for="Name" class="form-label">Tên Thương Hiệu</label>
-                            <input asp-for="Name" class="form-control" placeholder="Nhập tên thương hiệu" required />
-                            <span asp-validation-for="Name" class="text-danger small"></span>
+                <p class="text-xs text-[#556575]">Tên hiển thị công khai của thương hiệu trên cửa hàng.</p>
+            </div>
+            <!-- Logo Upload Area -->
+            <div class="space-y-3">
+                <label class="block text-sm font-medium text-white uppercase tracking-wider">Logo Thương Hiệu <span class="text-primary ml-1">*</span></label>
+                <div class="relative w-full">
+                    <input accept="image/*" class="hidden" id="logo-upload" name="LogoFile" type="file" onchange="previewLogo(this)" />
+                    <label class="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-[#3b4754] rounded-xl cursor-pointer bg-[#1b2127]/50 hover:bg-[#1b2127] hover:border-primary/50 transition-all duration-300 group overflow-hidden relative" for="logo-upload">
+                        <!-- Preview Image (Hidden by default) -->
+                        <div id="logo-preview-container" class="absolute inset-0 w-full h-full hidden z-20 bg-[#1b2127]">
+                            <img id="logo-preview" src="#" alt="Brand Logo Preview" class="w-full h-full object-contain p-4" />
+                            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <span class="text-white font-medium text-sm">Nhấn để thay đổi</span>
+                            </div>
                         </div>
 
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <button type="submit" class="btn btn-success">Lưu</button>
-                            <a asp-controller="Dashboard" asp-action="Dashboard" asp-route-tab="brand" class="btn btn-secondary">Quay lại</a>
-
+                        <!-- Default Upload UI -->
+                        <div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6 relative z-10">
+                            <div class="p-4 rounded-full bg-[#283039] text-[#9cabba] group-hover:text-primary group-hover:shadow-[0_0_15px_rgba(13,127,242,0.4)] transition-all duration-300 mb-4">
+                                <span class="material-symbols-outlined text-3xl">cloud_upload</span>
+                            </div>
+                            <p class="mb-2 text-sm text-white font-medium">
+                                <span class="text-primary hover:underline">Nhấn để tải lên</span> hoặc kéo và thả
+                            </p>
+                            <p class="text-xs text-[#9cabba]">SVG, PNG, JPG hoặc GIF (Tối đa 800x400px)</p>
                         </div>
-                    </form>
-                    @if (!string.IsNullOrEmpty(ViewBag.Message))
-                    {
-                        <div class="alert alert-success mt-3">
-                            @ViewBag.Message
-                        </div>
-                    }
+                    </label>
                 </div>
+            </div>
+           
+            <!-- Action Buttons -->
+            <div class="pt-6 border-t border-[#283039] flex items-center justify-end gap-4 mt-2">
+                <button type="button" onclick="closeAddBrandModal()" class="px-6 py-3 rounded-lg text-[#9cabba] hover:text-white font-bold text-sm tracking-wide transition-colors hover:bg-[#283039]">
+                    Hủy
+                </button>
+                <button class="group relative px-8 py-3 bg-primary text-white rounded-lg font-bold text-sm tracking-wide overflow-hidden shadow-[0_0_10px_rgba(13,127,242,0.5)] hover:shadow-[0_0_20px_rgba(13,127,242,0.7)] transition-all duration-300" type="submit">
+                    <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
+                    <span class="relative flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">save</span>
+                        Lưu Thương Hiệu
+                    </span>
+                </button>
+            </div>
+        </form>
+    </div>
+    <!-- Contextual Help / Tips -->
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 gsap-fade-up">
+        <div class="bg-[#111418] border border-[#283039] p-4 rounded-lg flex items-start gap-3">
+            <span class="material-symbols-outlined text-primary mt-1">lightbulb</span>
+            <div>
+                <h4 class="text-white text-sm font-bold mb-1">Mẹo hay</h4>
+                <p class="text-[#9cabba] text-xs">Sử dụng ảnh PNG trong suốt cho logo để hiển thị tốt trên cả nền sáng và tối.</p>
+            </div>
+        </div>
+        <div class="bg-[#111418] border border-[#283039] p-4 rounded-lg flex items-start gap-3">
+            <span class="material-symbols-outlined text-primary mt-1">visibility</span>
+            <div>
+                <h4 class="text-white text-sm font-bold mb-1">Hiển thị</h4>
+                <p class="text-[#9cabba] text-xs">Thương hiệu mới sẽ được đặt là 'Hoạt động' mặc định và xuất hiện ngay trong bộ lọc.</p>
+            </div>
+        </div>
+        <div class="bg-[#111418] border border-[#283039] p-4 rounded-lg flex items-start gap-3">
+            <span class="material-symbols-outlined text-primary mt-1">folder_zip</span>
+            <div>
+                <h4 class="text-white text-sm font-bold mb-1">Tài nguyên</h4>
+                <p class="text-[#9cabba] text-xs">Bạn có thể tải lên hàng loạt ảnh sản phẩm cho thương hiệu này sau trong tab Sản phẩm.</p>
             </div>
         </div>
     </div>

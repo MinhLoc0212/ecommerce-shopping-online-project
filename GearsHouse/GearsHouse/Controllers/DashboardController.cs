@@ -25,7 +25,7 @@ public class DashboardController : Controller
         _userManager = userManager;
         _roleManager = roleManager;
     }
-    public IActionResult Dashboard(string tab = "")
+    public async Task<IActionResult> Dashboard(string tab = "")
     {
         // Nếu không có tab được chỉ định, chuyển hướng sang tab=revenue
         if (string.IsNullOrEmpty(tab))
@@ -33,35 +33,91 @@ public class DashboardController : Controller
             return RedirectToAction("Dashboard", new { tab = "revenue" });
         }
 
+        var user = await _userManager.GetUserAsync(User);
+        ViewBag.UserName = user?.FullName ?? user?.UserName ?? "Admin";
+        ViewBag.UserEmail = user?.Email;
+
         ViewBag.ActiveTab = tab.ToLower();
         return View("~/Views/Home/Dashboard.cshtml");
     }
 
 
-    public async Task<IActionResult> ProductIndex()
+    public async Task<IActionResult> ProductIndex(string search, int? categoryId, int? brandId, string status)
     {
         if (Request.Headers["X-Requested-With"] != "XMLHttpRequest")
             return RedirectToAction("Dashboard", new { tab = "product" });
 
-        var products = await _productRepository.GetAllAsync();
+        var query = _context.Products
+            .Include(p => p.Category)
+            .Include(p => p.Brand)
+            .AsNoTracking()
+            .AsQueryable();
+
+        // Filtering
+        if (!string.IsNullOrEmpty(search))
+        {
+            search = search.ToLower();
+            query = query.Where(p => p.Name.ToLower().Contains(search) || (p.ProductInfo != null && p.ProductInfo.ToLower().Contains(search)));
+        }
+
+        if (categoryId.HasValue && categoryId.Value > 0)
+        {
+            query = query.Where(p => p.CategoryId == categoryId.Value);
+        }
+
+        if (brandId.HasValue && brandId.Value > 0)
+        {
+            query = query.Where(p => p.BrandId == brandId.Value);
+        }
+
+        if (!string.IsNullOrEmpty(status))
+        {
+            if (status == "active")
+                query = query.Where(p => p.Quantity > 0);
+            else if (status == "out_of_stock")
+                query = query.Where(p => p.Quantity <= 0);
+        }
+
+        var products = await query.ToListAsync();
+
+        // Populate ViewBags
+        ViewBag.Categories = await _categoryRepository.GetAllAsync();
+        ViewBag.Brands = await _brandRepository.GetAllAsync();
+
         return PartialView("_ProductListDashboard", products);
     }
 
-    public async Task<IActionResult> CategoryIndex()
+    public async Task<IActionResult> CategoryIndex(string search)
     {
         if (Request.Headers["X-Requested-With"] != "XMLHttpRequest")
             return RedirectToAction("Dashboard", new { tab = "category" });
 
-        var categories = await _categoryRepository.GetAllAsync();
+        var query = _context.Categories.Include(c => c.Products).AsNoTracking().AsQueryable();
+
+        if (!string.IsNullOrEmpty(search))
+        {
+            search = search.ToLower();
+            query = query.Where(c => c.Name.ToLower().Contains(search));
+        }
+
+        var categories = await query.ToListAsync();
         return PartialView("_CategoryListDashboard", categories);
     }
 
-    public async Task<IActionResult> BrandIndex()
+    public async Task<IActionResult> BrandIndex(string search)
     {
         if (Request.Headers["X-Requested-With"] != "XMLHttpRequest")
             return RedirectToAction("Dashboard", new { tab = "brand" });
 
-        var brands = await _brandRepository.GetAllAsync();
+        var query = _context.Brands.Include(b => b.Products).AsNoTracking().AsQueryable();
+
+        if (!string.IsNullOrEmpty(search))
+        {
+            search = search.ToLower();
+            query = query.Where(b => b.Name.ToLower().Contains(search));
+        }
+
+        var brands = await query.ToListAsync();
         return PartialView("_BrandListDashboard", brands);
     }
 
@@ -80,8 +136,7 @@ public class DashboardController : Controller
             return RedirectToAction("Dashboard", new { tab = "order" });
 
         var orders = await _context.Orders
-            .Include(o => o.OrderDetails)
-            .Include(o => o.ApplicationUser)
+            .AsNoTracking()
             .OrderByDescending(o => o.OrderDate)
             .ToListAsync();
 
@@ -93,19 +148,24 @@ public class DashboardController : Controller
         if (Request.Headers["X-Requested-With"] != "XMLHttpRequest")
             return RedirectToAction("Dashboard", new { tab = "user" });
 
-        var users = await _userManager.Users.ToListAsync();
-        var model = new List<UserRoleViewModel>();
-        foreach (var user in users)
-        {
-            var roles = await _userManager.GetRolesAsync(user);
-            model.Add(new UserRoleViewModel
-            {
-                UserId = user.Id,
-                FullName = user.FullName,
-                Email = user.Email,
-                CurrentRoles = roles
-            });
-        }
+        var query = from user in _context.Users
+                    join userRole in _context.UserRoles on user.Id equals userRole.UserId into ur
+                    from userRole in ur.DefaultIfEmpty()
+                    join role in _context.Roles on userRole.RoleId equals role.Id into r
+                    from role in r.DefaultIfEmpty()
+                    select new { User = user, RoleName = role.Name };
+
+        var data = await query.AsNoTracking().ToListAsync();
+
+        var model = data.GroupBy(x => x.User.Id)
+                        .Select(g => new UserRoleViewModel
+                        {
+                            UserId = g.Key,
+                            FullName = g.First().User.FullName,
+                            Email = g.First().User.Email,
+                            CurrentRoles = g.Where(x => x.RoleName != null).Select(x => x.RoleName).Distinct().ToList()
+                        }).ToList();
+
         return PartialView("_UserListDashboard", model);
     }
 
@@ -118,20 +178,7 @@ public class DashboardController : Controller
             TempData["ErrorMessage"] = "Thiếu thông tin người dùng hoặc vai trò.";
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
-                var usersAjax = await _userManager.Users.ToListAsync();
-                var modelAjax = new List<UserRoleViewModel>();
-                foreach (var userAjax in usersAjax)
-                {
-                    var rolesAjax = await _userManager.GetRolesAsync(userAjax);
-                    modelAjax.Add(new UserRoleViewModel
-                    {
-                        UserId = userAjax.Id,
-                        FullName = userAjax.FullName,
-                        Email = userAjax.Email,
-                        CurrentRoles = rolesAjax
-                    });
-                }
-                return PartialView("_UserListDashboard", modelAjax);
+                return PartialView("_UserListDashboard", await GetUsersWithRolesAsync());
             }
             return RedirectToAction("Dashboard", new { tab = "user" });
         }
@@ -142,20 +189,7 @@ public class DashboardController : Controller
             TempData["ErrorMessage"] = "Không tìm thấy người dùng.";
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
-                var usersAjax = await _userManager.Users.ToListAsync();
-                var modelAjax = new List<UserRoleViewModel>();
-                foreach (var userAjax in usersAjax)
-                {
-                    var rolesAjax = await _userManager.GetRolesAsync(userAjax);
-                    modelAjax.Add(new UserRoleViewModel
-                    {
-                        UserId = userAjax.Id,
-                        FullName = userAjax.FullName,
-                        Email = userAjax.Email,
-                        CurrentRoles = rolesAjax
-                    });
-                }
-                return PartialView("_UserListDashboard", modelAjax);
+                return PartialView("_UserListDashboard", await GetUsersWithRolesAsync());
             }
             return RedirectToAction("Dashboard", new { tab = "user" });
         }
@@ -181,20 +215,7 @@ public class DashboardController : Controller
 
         if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
         {
-            var users = await _userManager.Users.ToListAsync();
-            var model = new List<UserRoleViewModel>();
-            foreach (var u in users)
-            {
-                var roles = await _userManager.GetRolesAsync(u);
-                model.Add(new UserRoleViewModel
-                {
-                    UserId = u.Id,
-                    FullName = u.FullName,
-                    Email = u.Email,
-                    CurrentRoles = roles
-                });
-            }
-            return PartialView("_UserListDashboard", model);
+            return PartialView("_UserListDashboard", await GetUsersWithRolesAsync());
         }
         return RedirectToAction("Dashboard", new { tab = "user" });
     }
@@ -208,20 +229,7 @@ public class DashboardController : Controller
             TempData["ErrorMessage"] = "Thiếu thông tin người dùng.";
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
-                var usersAjax = await _userManager.Users.ToListAsync();
-                var modelAjax = new List<UserRoleViewModel>();
-                foreach (var userAjax in usersAjax)
-                {
-                    var rolesAjax = await _userManager.GetRolesAsync(userAjax);
-                    modelAjax.Add(new UserRoleViewModel
-                    {
-                        UserId = userAjax.Id,
-                        FullName = userAjax.FullName,
-                        Email = userAjax.Email,
-                        CurrentRoles = rolesAjax
-                    });
-                }
-                return PartialView("_UserListDashboard", modelAjax);
+                return PartialView("_UserListDashboard", await GetUsersWithRolesAsync());
             }
             return RedirectToAction("Dashboard", new { tab = "user" });
         }
@@ -232,20 +240,7 @@ public class DashboardController : Controller
             TempData["ErrorMessage"] = "Bạn không thể tự xóa tài khoản của mình.";
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
-                var usersAjax = await _userManager.Users.ToListAsync();
-                var modelAjax = new List<UserRoleViewModel>();
-                foreach (var userAjax in usersAjax)
-                {
-                    var rolesAjax = await _userManager.GetRolesAsync(userAjax);
-                    modelAjax.Add(new UserRoleViewModel
-                    {
-                        UserId = userAjax.Id,
-                        FullName = userAjax.FullName,
-                        Email = userAjax.Email,
-                        CurrentRoles = rolesAjax
-                    });
-                }
-                return PartialView("_UserListDashboard", modelAjax);
+                return PartialView("_UserListDashboard", await GetUsersWithRolesAsync());
             }
             return RedirectToAction("Dashboard", new { tab = "user" });
         }
@@ -256,20 +251,7 @@ public class DashboardController : Controller
             TempData["ErrorMessage"] = "Không tìm thấy người dùng.";
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
-                var usersAjax = await _userManager.Users.ToListAsync();
-                var modelAjax = new List<UserRoleViewModel>();
-                foreach (var userAjax in usersAjax)
-                {
-                    var rolesAjax = await _userManager.GetRolesAsync(userAjax);
-                    modelAjax.Add(new UserRoleViewModel
-                    {
-                        UserId = userAjax.Id,
-                        FullName = userAjax.FullName,
-                        Email = userAjax.Email,
-                        CurrentRoles = rolesAjax
-                    });
-                }
-                return PartialView("_UserListDashboard", modelAjax);
+                return PartialView("_UserListDashboard", await GetUsersWithRolesAsync());
             }
             return RedirectToAction("Dashboard", new { tab = "user" });
         }
@@ -286,43 +268,78 @@ public class DashboardController : Controller
 
         if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
         {
-            var users = await _userManager.Users.ToListAsync();
-            var model = new List<UserRoleViewModel>();
-            foreach (var u in users)
-            {
-                var roles = await _userManager.GetRolesAsync(u);
-                model.Add(new UserRoleViewModel
-                {
-                    UserId = u.Id,
-                    FullName = u.FullName,
-                    Email = u.Email,
-                    CurrentRoles = roles
-                });
-            }
-            return PartialView("_UserListDashboard", model);
+            return PartialView("_UserListDashboard", await GetUsersWithRolesAsync());
         }
         return RedirectToAction("Dashboard", new { tab = "user" });
     }
 
     public async Task<IActionResult> Revenue()
     {
+        if (Request.Headers["X-Requested-With"] != "XMLHttpRequest")
+            return RedirectToAction("Dashboard", new { tab = "revenue" });
+
+        var completedOrders = _context.Orders.AsNoTracking().Where(o => o.OrderStatus == OrderStatus.HoanThanh);
+
         // Tính tổng doanh thu chỉ tính các đơn hàng có trạng thái Hoàn Thành
-        var totalRevenue = await _context.Orders
-            .Where(o => o.OrderStatus == OrderStatus.HoanThanh) // Lọc các đơn hàng đã hoàn thành
-            .SumAsync(o => o.TotalPrice);
+        var totalRevenue = await completedOrders.SumAsync(o => o.TotalPrice);
 
         // Tính tổng số đơn hàng đã hoàn thành
-        var totalOrders = await _context.Orders
-            .Where(o => o.OrderStatus == OrderStatus.HoanThanh)
-            .CountAsync(); // Lấy số lượng đơn hàng đã hoàn thành
+        var totalOrders = await completedOrders.CountAsync();
 
         // Tính doanh thu trung bình mỗi đơn hàng
         var averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
         // Tính tổng số tiền giảm giá (nếu có)
-        var totalDiscount = await _context.Promotions
+        var totalDiscount = await _context.Promotions.AsNoTracking()
             .Where(p => DateTime.Now >= p.StartDate && DateTime.Now <= p.EndDate)
             .SumAsync(p => p.DiscountPercent);
+
+        // Tính Top 4 danh mục bán chạy nhất
+        var topCategories = await _context.OrderDetails.AsNoTracking()
+            .Where(od => od.Order.OrderStatus == OrderStatus.HoanThanh)
+            .GroupBy(od => od.Product.Category.Name)
+            .Select(g => new
+            {
+                CategoryName = g.Key,
+                TotalSold = g.Sum(od => od.Quantity)
+            })
+            .OrderByDescending(x => x.TotalSold)
+            .Take(4)
+            .ToListAsync();
+
+        var totalItemsSold = topCategories.Sum(c => c.TotalSold);
+        var topSellingCategories = topCategories.Select(c => new TopCategory
+        {
+            CategoryName = c.CategoryName,
+            TotalSold = c.TotalSold,
+            Percentage = totalItemsSold > 0 ? Math.Round((double)c.TotalSold / totalItemsSold * 100, 1) : 0
+        }).ToList();
+
+        // Tính Top 5 sản phẩm bán chạy nhất
+        var topProductsQuery = await _context.OrderDetails.AsNoTracking()
+            .Include(od => od.Product)
+            .ThenInclude(p => p.Category)
+            .Where(od => od.Order.OrderStatus == OrderStatus.HoanThanh)
+            .GroupBy(od => od.ProductId)
+            .Select(g => new
+            {
+                Product = g.First().Product,
+                TotalSold = g.Sum(od => od.Quantity),
+                TotalRevenue = g.Sum(od => od.Quantity * od.Price)
+            })
+            .OrderByDescending(x => x.TotalSold)
+            .Take(5)
+            .ToListAsync();
+
+        var topSellingProducts = topProductsQuery.Select(p => new TopProduct
+        {
+            ProductName = p.Product.Name,
+            ImageUrl = p.Product.ImageUrl,
+            Price = p.Product.Price,
+            CategoryName = p.Product.Category?.Name ?? "Unknown",
+            TotalSold = p.TotalSold,
+            TotalRevenue = p.TotalRevenue
+        }).ToList();
 
         // Tạo ViewModel và trả dữ liệu
         var revenueViewModel = new RevenueViewModel
@@ -331,7 +348,9 @@ public class DashboardController : Controller
             TotalOrders = totalOrders,  // Đây là tổng số đơn hàng
             AverageOrderValue = averageOrderValue,
             TotalDiscount = totalDiscount,
-            DailyRevenueData = await GetDailyRevenue()  // Tính doanh thu theo ngày (nếu có)
+            DailyRevenueData = await GetDailyRevenue(),  // Tính doanh thu theo ngày (nếu có)
+            TopSellingCategories = topSellingCategories,
+            TopSellingProducts = topSellingProducts
         };
 
         return View(revenueViewModel);
@@ -339,19 +358,41 @@ public class DashboardController : Controller
 
     public async Task<List<DailyRevenue>> GetDailyRevenue()
     {
-        // Lấy dữ liệu doanh thu của từng ngày
-        var dailyRevenue = await _context.Orders
-            .Where(o => o.OrderStatus == OrderStatus.HoanThanh)  // Lọc các đơn hàng đã hoàn thành
-            .GroupBy(o => o.OrderDate.Date)  // Nhóm theo ngày
+        var last30Days = DateTime.Now.AddDays(-30);
+        // Lấy dữ liệu doanh thu của từng ngày (30 ngày gần nhất)
+        var dailyRevenue = await _context.Orders.AsNoTracking()
+            .Where(o => o.OrderStatus == OrderStatus.HoanThanh && o.OrderDate >= last30Days)
+            .GroupBy(o => o.OrderDate.Date)
             .Select(g => new DailyRevenue
             {
                 Date = g.Key,
-                TotalRevenue = g.Sum(o => o.TotalPrice)  // Tính tổng doanh thu theo ngày
+                TotalRevenue = g.Sum(o => o.TotalPrice)
             })
-            .OrderBy(dr => dr.Date)  // Sắp xếp theo ngày
+            .OrderBy(dr => dr.Date)
             .ToListAsync();
 
         return dailyRevenue;
+    }
+
+    private async Task<List<UserRoleViewModel>> GetUsersWithRolesAsync()
+    {
+        var query = from user in _context.Users
+                    join userRole in _context.UserRoles on user.Id equals userRole.UserId into ur
+                    from userRole in ur.DefaultIfEmpty()
+                    join role in _context.Roles on userRole.RoleId equals role.Id into r
+                    from role in r.DefaultIfEmpty()
+                    select new { User = user, RoleName = role.Name };
+
+        var data = await query.AsNoTracking().ToListAsync();
+
+        return data.GroupBy(x => x.User.Id)
+            .Select(g => new UserRoleViewModel
+            {
+                UserId = g.Key,
+                FullName = g.First().User.FullName,
+                Email = g.First().User.Email,
+                CurrentRoles = g.Where(x => x.RoleName != null).Select(x => x.RoleName).Distinct().ToList()
+            }).ToList();
     }
 
 }

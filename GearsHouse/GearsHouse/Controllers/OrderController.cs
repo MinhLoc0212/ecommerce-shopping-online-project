@@ -19,12 +19,34 @@ public class OrderController : Controller
         _context = context;
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetRecentOrdersJson()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Json(new List<object>());
+
+        var orders = await _context.Orders
+            .Where(o => o.UserId == userId)
+            .OrderByDescending(o => o.OrderDate)
+            .Select(o => new
+            {
+                id = o.Id,
+                date = o.OrderDate.ToString("dd/MM/yyyy"),
+                total = o.TotalPrice.ToString("C0"),
+                status = o.OrderStatus.ToString(),
+                itemCount = o.OrderDetails.Sum(od => od.Quantity)
+            })
+            .ToListAsync();
+
+        return Json(orders);
+    }
+
     public async Task<IActionResult> Tracking()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         var orders = await _context.Orders
-            .Where(o => o.UserId == userId && o.OrderStatus != OrderStatus.ChoXacNhan)
+            .Where(o => o.UserId == userId)
             .Include(o => o.OrderDetails)
             .ThenInclude(od => od.Product)
             .OrderByDescending(o => o.OrderDate)
@@ -187,6 +209,11 @@ public class OrderController : Controller
         if (order == null)
         {
             return NotFound();
+        }
+
+        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+        {
+            return PartialView(order);
         }
 
         return View(order);

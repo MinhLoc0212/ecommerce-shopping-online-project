@@ -27,9 +27,15 @@ namespace GearsHouse.Controllers
         }
 
 
-        public async Task<IActionResult> Index(int? categoryId, int? brandId)
+        public async Task<IActionResult> Index(int? categoryId, int? brandId, string keyword)
         {
             var products = await _productRepository.GetAllAsync();
+
+            if (!string.IsNullOrEmpty(keyword))
+            {
+                keyword = keyword.ToLower();
+                products = products.Where(p => p.Name.ToLower().Contains(keyword) || (p.ProductInfo != null && p.ProductInfo.ToLower().Contains(keyword)));
+            }
 
             if (categoryId.HasValue)
             {
@@ -70,6 +76,20 @@ namespace GearsHouse.Controllers
 
             // Gửi dictionary xuống view để xử lý hiển thị
             ViewBag.ProductDiscounts = productDiscounts;
+
+            // Lấy thống kê đánh giá (Review Stats)
+            var productIds = products.Select(p => p.Id).ToList();
+            var reviewStats = await _context.Reviews
+                .Where(r => productIds.Contains(r.ProductId))
+                .GroupBy(r => r.ProductId)
+                .Select(g => new { 
+                    ProductId = g.Key, 
+                    Count = g.Count(), 
+                    Average = g.Average(r => (double)r.Rating) 
+                })
+                .ToDictionaryAsync(k => k.ProductId, v => (v.Average, v.Count));
+            
+            ViewBag.ReviewStats = reviewStats;
 
             return View(products);
         }
@@ -121,8 +141,7 @@ namespace GearsHouse.Controllers
 
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 {
-                    var products = await _productRepository.GetAllAsync();
-                    return PartialView("~/Views/Dashboard/_ProductListDashboard.cshtml", products);
+                    return Json(new { success = true, message = "Sản phẩm đã được thêm thành công!" });
                 }
                 return RedirectToAction("Dashboard", "Dashboard", new { tab = "product" });
             }
@@ -201,15 +220,15 @@ namespace GearsHouse.Controllers
                 // Đưa sản phẩm hiện tại lên đầu, loại bỏ trùng
                 viewedIds.RemoveAll(pid => pid == product.Id);
                 viewedIds.Insert(0, product.Id);
-                // Giới hạn 12 sản phẩm đã xem gần đây
-                if (viewedIds.Count > 12)
+                // Giới hạn 50 sản phẩm đã xem gần đây
+                if (viewedIds.Count > 50)
                 {
-                    viewedIds = viewedIds.Take(12).ToList();
+                    viewedIds = viewedIds.Take(50).ToList();
                 }
                 HttpContext.Session.SetObjectAsJson(sessionKey, viewedIds);
 
                 // Tải danh sách sản phẩm đã xem (không gồm sản phẩm hiện tại) để hiển thị
-                var recentIds = viewedIds.Where(pid => pid != product.Id).Take(8).ToList();
+                var recentIds = viewedIds.Where(pid => pid != product.Id).ToList();
                 if (recentIds.Any())
                 {
                     var recentProducts = await _context.Products
@@ -222,6 +241,13 @@ namespace GearsHouse.Controllers
                         .ToList();
                 }
             }
+
+            // Lấy danh sách sản phẩm tương tự (cùng danh mục)
+            var relatedProducts = await _context.Products
+                .Where(p => p.CategoryId == product.CategoryId && p.Id != product.Id)
+                .Take(10)
+                .ToListAsync();
+            ViewBag.RelatedProducts = relatedProducts;
 
             return View(product);
         }
@@ -373,7 +399,7 @@ namespace GearsHouse.Controllers
             return RedirectToAction("Dashboard", "Dashboard", new { tab = "product" });
         }
 
-        public async Task<IActionResult> Filter(string keyword, int? categoryId, int? brandId, decimal? minPrice, decimal? maxPrice)
+        public async Task<IActionResult> Filter(string keyword, int? categoryId, int? brandId, decimal? minPrice, decimal? maxPrice, string sort)
         {
             var products = _context.Products
                 .Include(p => p.Category)
@@ -381,7 +407,11 @@ namespace GearsHouse.Controllers
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(keyword))
-                products = products.Where(p => p.Name.Contains(keyword));
+            {
+                // Align search logic with Index action
+                keyword = keyword.ToLower();
+                products = products.Where(p => p.Name.ToLower().Contains(keyword) || (p.ProductInfo != null && p.ProductInfo.ToLower().Contains(keyword)));
+            }
 
             if (categoryId.HasValue && categoryId.Value != 0)
                 products = products.Where(p => p.CategoryId == categoryId.Value);
@@ -395,7 +425,46 @@ namespace GearsHouse.Controllers
             if (maxPrice.HasValue)
                 products = products.Where(p => p.Price <= maxPrice.Value);
 
+            // Sorting logic
+            switch (sort)
+            {
+                case "price_asc":
+                    products = products.OrderBy(p => p.Price);
+                    break;
+                case "price_desc":
+                    products = products.OrderByDescending(p => p.Price);
+                    break;
+                case "newest":
+                    products = products.OrderByDescending(p => p.Id); // Assuming higher ID means newer
+                    break;
+                default:
+                    // Default sorting (e.g., by name or relevance)
+                    products = products.OrderBy(p => p.Name);
+                    break;
+            }
+
             var filteredProducts = await products.ToListAsync();
+
+            // Lấy danh sách khuyến mãi đang hoạt động
+            var promotions = _context.Promotions
+                .Where(p => DateTime.Now >= p.StartDate && DateTime.Now <= p.EndDate)
+                .ToList();
+
+            // Tính toán giá sau khi áp dụng khuyến mãi
+            var productDiscounts = new Dictionary<int, (decimal newPrice, int discountPercent)>();
+
+            foreach (var product in filteredProducts)
+            {
+                var promo = promotions.FirstOrDefault(p => p.ProductId == product.Id);
+                if (promo != null)
+                {
+                    decimal discountedPrice = product.Price * (1 - promo.DiscountPercent / 100m);
+                    productDiscounts[product.Id] = (discountedPrice, promo.DiscountPercent);
+                }
+            }
+
+            // Gửi dictionary xuống view để xử lý hiển thị
+            ViewBag.ProductDiscounts = productDiscounts;
 
             return PartialView("_ProductList", filteredProducts);
         }
@@ -430,15 +499,27 @@ namespace GearsHouse.Controllers
         public async Task<IActionResult> DeleteProductImage(int id, int productId)
         {
             var image = await _context.ProductImages.FirstOrDefaultAsync(pi => pi.Id == id && pi.ProductId == productId);
-            if (image == null)
+            if (image != null)
+            {
+                _context.ProductImages.Remove(image);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Ảnh phụ đã được xóa thành công!";
+            }
+            else
             {
                 TempData["ErrorMessage"] = "Không tìm thấy ảnh để xóa!";
-                return RedirectToAction("Update", new { id = productId });
             }
 
-            _context.ProductImages.Remove(image);
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Ảnh phụ đã được xóa thành công!";
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                var product = await _productRepository.GetByIdAsync(productId);
+                var categories = await _categoryRepository.GetAllAsync();
+                ViewBag.Categories = new SelectList(categories, "Id", "Name", product.CategoryId);
+                var brands = await _brandRepository.GetAllAsync();
+                ViewBag.Brands = new SelectList(brands, "BrandId", "Name", product.BrandId);
+                return PartialView("Update", product);
+            }
+
             return RedirectToAction("Update", new { id = productId });
         }
 

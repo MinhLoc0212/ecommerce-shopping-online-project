@@ -1,152 +1,268 @@
 @model IEnumerable<GearsHouse.Models.Brand>
-@{
-    Layout = null;
-}
-<!-- Tiêu đề với hiệu ứng -->
-<h3 class="text-center text-primary mb-4 fw-bold animate__animated animate__fadeInDown animate__faster"
-    style="text-shadow: 1px 1px 2px #666;">
-    Danh sách Thương hiệu (Dashboard)
-</h3>
 
-<!-- Bảng thương hiệu có hiệu ứng xuất hiện -->
-<div class="table-responsive shadow-lg rounded animate__animated animate__fadeIn animate__faster" style="overflow: hidden; border-radius: 15px;">
-    <table class="table table-hover align-middle mb-0" style="background: #fff;">
-        <thead>
-            <tr>
-                <th class="text-center brand-name-header">
-                    <i class="bi bi-award-fill me-2"></i> Tên Thương Hiệu
-                </th>
-                <th class="text-center action-header">
-                    <i class="bi bi-gear-fill me-2"></i> Hành động
-                </th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var brand in Model)
-            {
-                <tr class="table-row-animated animate__animated animate__fadeInUp animate__faster">
-                    <td class="text-center fw-semibold brand-name-cell">@brand.Name</td>
-                    <td class="text-center">
-                        <a href="@Url.Action("UpdateBrand", "Brand", new { id = brand.BrandId })" class="btn btn-warning btn-sm btn-action me-2 js-edit-brand" title="Sửa thương hiệu">
-                            <i class="bi bi-pencil-square"></i> Sửa
-                        </a>
-                        <form action="@Url.Action("DeleteBrand", "Brand", new { id = brand.BrandId })" method="post" style="display:inline;">
-                            <button type="submit" class="btn btn-danger btn-sm btn-action"
-                                    onclick="return confirm('Bạn có chắc chắn muốn xóa thương hiệu này không?');" title="Xóa thương hiệu">
-                                <i class="bi bi-trash"></i> Xóa
-                            </button>
-                        </form>
-                    </td>
-                </tr>
+<!-- Breadcrumbs -->
+<div class="flex flex-wrap gap-2 px-4 pt-4">
+    <a class="text-[#9cabba] text-base font-medium leading-normal hover:text-white transition-colors" href="#">Dashboard</a>
+    <span class="text-[#9cabba] text-base font-medium leading-normal">/</span>
+    <span class="text-white text-base font-medium leading-normal">Brand Management</span>
+</div>
+
+<!-- Page Heading & Stats -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4 px-4 pt-4 pb-2 gsap-fade-up">
+    <div class="flex flex-col gap-2">
+        <h1 class="text-white text-4xl font-bold tracking-tight drop-shadow-lg">Brand Management</h1>
+        <p class="text-[#9cabba] text-base font-normal">Manage partner brands, suppliers, and visibility.</p>
+    </div>
+    <div class="flex gap-4">
+        <div class="bg-surface-dark border border-[#283039] rounded-lg p-3 min-w-[120px] gsap-fade-up">
+            <p class="text-[#9cabba] text-xs uppercase tracking-wider font-bold">Total Brands</p>
+            <p class="text-2xl font-bold text-white mt-1 gsap-counter">@Model.Count()</p>
+        </div>
+        <div class="bg-surface-dark border border-[#283039] rounded-lg p-3 min-w-[120px] gsap-fade-up">
+            <p class="text-[#9cabba] text-xs uppercase tracking-wider font-bold">Active</p>
+            <p class="text-2xl font-bold text-primary mt-1 gsap-counter">@Model.Count()</p>
+        </div>
+    </div>
+</div>
+
+<!-- Actions Toolbar (Add Brand + Search) -->
+<div class="p-4 gsap-fade-up">
+    <div class="bg-surface-dark rounded-xl p-5 border border-[#283039] shadow-lg flex flex-col lg:flex-row gap-5 items-stretch lg:items-end bg-[#151a21]">
+        <!-- Search -->
+        <div class="flex-1 min-w-[280px]">
+            <label class="block text-xs font-bold text-[#9cabba] mb-1.5 uppercase tracking-wide">Find a Brand</label>
+            <div class="relative group">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-[#9cabba] group-focus-within:text-primary transition-colors">
+                    <span class="material-symbols-outlined">search</span>
+                </div>
+                <input id="brandSearch" oninput="onSearchInput()" class="block w-full p-3 pl-10 text-sm text-white bg-[#111418] border border-[#3b4754] rounded-lg focus:ring-primary focus:border-primary placeholder-gray-500 focus:shadow-neon-sm transition-all" placeholder="Search by name, ID..." type="text" />
+            </div>
+        </div>
+        <!-- Add New Brand Button -->
+        <div>
+            <button onclick="openAddBrandModal()" class="inline-flex h-[46px] px-6 bg-primary hover:bg-blue-600 text-white font-bold rounded-lg transition-all transform hover:scale-105 shadow-neon items-center justify-center gap-2 whitespace-nowrap">
+                <span class="material-symbols-outlined text-[20px]">add_circle</span>
+                <span>Add Brand</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Container -->
+<div id="addBrandModal" class="fixed inset-0 z-50 hidden">
+    <!-- Blur Overlay -->
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity opacity-0" id="modalOverlay"></div>
+    <!-- Modal Content -->
+    <div class="absolute inset-0 overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4">
+            <div class="relative w-full max-w-4xl transform transition-all scale-95 opacity-0" id="modalContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Brand Table -->
+<div class="p-4 gsap-fade-up">
+    <div class="bg-surface-dark border border-[#3b4754] rounded-xl overflow-hidden shadow-2xl bg-[#1b2127]">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-[#111418] border-b border-[#283039]">
+                        <th class="px-6 py-4 text-xs font-bold text-[#9cabba] uppercase tracking-wider w-[100px]">Logo</th>
+                        <th class="px-6 py-4 text-xs font-bold text-[#9cabba] uppercase tracking-wider">Brand Name</th>
+                        <th class="px-6 py-4 text-xs font-bold text-[#9cabba] uppercase tracking-wider w-[150px]">Items</th>
+                        <th class="px-6 py-4 text-xs font-bold text-[#9cabba] uppercase tracking-wider w-[150px]">Status</th>
+                        <th class="px-6 py-4 text-xs font-bold text-[#9cabba] uppercase tracking-wider w-[180px] text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-[#2f3944] text-sm">
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr class="hover:bg-[#283039]/50 transition-colors group">
+                                <td class="px-6 py-4">
+                                    <div class="size-10 rounded-lg bg-white/5 flex items-center justify-center overflow-hidden border border-white/10 group-hover:border-primary/50 transition-colors">
+                                        <div class="w-full h-full bg-cover bg-center" data-alt="@item.Name logo placeholder" style="background-image: url('@(string.IsNullOrEmpty(item.LogoUrl) ? "https://lh3.googleusercontent.com/aida-public/AB6AXuB1lxlV1CtC0g3Z7PirGCFl5kBhpGBavM-x7_RqFBAjI4yHDUoZ5TidjzkD0sVnWSh3s_c79RJQOddHBTmN10uEnFXBdv88YDhywLVtrjnqZemnfqyiRXAv15ZKheNJQFuBVimfOkWh7RQSLXU-e2h597r6MzzhBhKhrV7x7Xr2GBlxKBuQaHOJ8FReiTjKBV3nzpdAADSqn16QoOLEt7LbWI3UsG3ZGJbY24HNGm6ON5Toa6-3adHJ9eFEegQEzvd8M4cms0cM9-4" : item.LogoUrl)');"></div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex flex-col">
+                                        <span class="text-white font-bold text-base group-hover:text-primary transition-colors">@item.Name</span>
+                                        <span class="text-[#9cabba] text-xs font-mono">ID: #@item.BrandId</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-white font-bold">@(item.Products?.Count ?? 0)</span>
+                                        <span class="text-[#9cabba] text-xs">products</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-green-500/10 text-green-400 border border-green-500/20">
+                                        <span class="size-1.5 rounded-full bg-green-400 animate-pulse"></span>
+                                        Active
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex items-center justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                                        <a href="@Url.Action("UpdateBrand", "Brand", new { id = item.BrandId })" class="p-2 rounded-lg text-[#9cabba] hover:text-primary hover:bg-primary/10 hover:shadow-neon-sm transition-all" title="Edit Brand">
+                                            <span class="material-symbols-outlined text-[20px]">edit</span>
+                                        </a>
+                                        <form action="@Url.Action("DeleteBrandConfirmed", "Brand", new { id = item.BrandId })" method="post" onsubmit="return confirm('Are you sure you want to delete this brand?');" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="p-2 rounded-lg text-[#9cabba] hover:text-red-400 hover:bg-red-500/10 hover:shadow-[0_0_10px_rgba(248,113,113,0.3)] transition-all" title="Delete Brand">
+                                                <span class="material-symbols-outlined text-[20px]">delete</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-[#9cabba]">No brands found.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    var searchTimeout;
+    function filterBrands() {
+        var search = document.getElementById('brandSearch').value;
+        var url = '@Url.Action("BrandIndex", "Dashboard")' + '?search=' + encodeURIComponent(search);
+
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(response => response.text())
+        .then(html => {
+            var container = document.getElementById('dashboard-content');
+            container.innerHTML = html;
+            
+            // Re-execute scripts
+            container.querySelectorAll('script').forEach(oldScript => {
+                const newScript = document.createElement('script');
+                Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                oldScript.parentNode.replaceChild(newScript, oldScript);
+            });
+            
+             // Restore UI state
+            var newSearchInput = document.getElementById('brandSearch');
+            if(newSearchInput) {
+                newSearchInput.value = search;
+                newSearchInput.focus();
+                var val = newSearchInput.value;
+                newSearchInput.value = '';
+                newSearchInput.value = val;
             }
-        </tbody>
-    </table>
-</div>
 
-<!-- Nút thêm thương hiệu có hiệu ứng -->
-<div class="text-center mt-4 animate__animated animate__fadeInUp animate__faster">
-    <a href="@Url.Action("AddBrand", "Brand")" class="btn btn-success btn-lg btn-add-brand shadow"
-       style="letter-spacing: 1.2px;">
-        <i class="bi bi-plus-circle"></i> Thêm thương hiệu
-    </a>
-</div>
-
-<!-- Bootstrap Icons -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
-
-<!-- Animate.css -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" />
-
-<style>
-    .table {
-        border-collapse: separate !important;
-        border-spacing: 0;
-        width: 100%;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        border: 2px solid #000;
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        background-color: #fff;
+            // Re-init GSAP
+            if (typeof initDashboardAnimations === 'function') {
+                initDashboardAnimations();
+            }
+        });
     }
 
-        .table th,
-        .table td {
-            border-bottom: 1px solid #000;
-            padding: 12px 18px;
-            vertical-align: middle;
+    function onSearchInput() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(filterBrands, 500);
+    }
+
+    function openAddBrandModal() {
+        var modal = document.getElementById('addBrandModal');
+        var overlay = document.getElementById('modalOverlay');
+        var content = document.getElementById('modalContent');
+        
+        // Show modal container
+        modal.classList.remove('hidden');
+        
+        // Load content
+        fetch('@Url.Action("AddBrand", "Brand")', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.text())
+        .then(html => {
+            content.innerHTML = html;
+            
+            // Re-init GSAP for the modal content
+            if (typeof initDashboardAnimations === 'function') {
+                initDashboardAnimations();
+            }
+
+            // Animate in
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        });
+    }
+
+    function closeAddBrandModal() {
+        var modal = document.getElementById('addBrandModal');
+        var overlay = document.getElementById('modalOverlay');
+        var content = document.getElementById('modalContent');
+        
+        // Animate out
+        overlay.classList.add('opacity-0');
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            content.innerHTML = '';
+        }, 300);
+    }
+
+    function submitAddBrandForm(event) {
+        event.preventDefault();
+        var form = event.target;
+        var formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                closeAddBrandModal();
+                // Reload the brand list
+                location.reload(); 
+            } else {
+                // Handle errors (e.g., replace form content with validation errors)
+                // For now, simple alert
+                alert('Lỗi khi thêm thương hiệu.');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+        
+        return false;
+    }
+
+    function previewLogo(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            
+            reader.onload = function(e) {
+                var preview = document.getElementById('logo-preview');
+                var container = document.getElementById('logo-preview-container');
+                
+                if (preview && container) {
+                    preview.src = e.target.result;
+                    container.classList.remove('hidden');
+                }
+            }
+            
+            reader.readAsDataURL(input.files[0]);
         }
-
-        .table tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-    .brand-name-header {
-        background: #ffdd57;
-        color: #222;
-        font-weight: 700;
-        font-size: 1.15rem;
-        letter-spacing: 0.05em;
-        text-shadow: 0 0 2px #aaa;
-        border-bottom: 2px solid #000;
     }
-
-    .action-header {
-        background: #ff6f61;
-        color: #fff;
-        font-weight: 700;
-        font-size: 1.15rem;
-        letter-spacing: 0.05em;
-        text-shadow: 0 0 2px #600;
-        border-bottom: 2px solid #000;
-    }
-
-    .table-row-animated {
-        transition: background-color 0.3s ease, box-shadow 0.3s ease;
-        cursor: default;
-    }
-
-        .table-row-animated:hover {
-            background-color: #e9f5ff;
-            box-shadow: inset 0 0 10px rgba(0,123,255,0.2);
-        }
-
-    .brand-name-cell {
-        color: #2c3e50;
-        font-weight: 700;
-        font-size: 1.05rem;
-        letter-spacing: 0.03em;
-    }
-
-    .btn-action {
-        border-radius: 25px;
-        font-weight: 600;
-        box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-        transition: all 0.25s ease;
-    }
-
-        .btn-action i {
-            margin-right: 6px;
-            font-size: 1.1rem;
-        }
-
-        .btn-action:hover {
-            box-shadow: 0 5px 15px rgba(0,0,0,0.25);
-            transform: scale(1.1);
-            filter: brightness(1.1);
-        }
-
-    .btn-add-brand {
-        background: linear-gradient(45deg, #28a745, #1e7e34);
-        border-color: #1e7e34;
-        font-weight: 700;
-        box-shadow: 0 5px 15px rgba(40,167,69,0.5);
-        transition: all 0.3s ease;
-    }
-
-        .btn-add-brand:hover {
-            background: linear-gradient(45deg, #218838, #19692c);
-            box-shadow: 0 8px 20px rgba(25,104,44,0.7);
-            transform: scale(1.08);
-        }
-</style>
+</script>

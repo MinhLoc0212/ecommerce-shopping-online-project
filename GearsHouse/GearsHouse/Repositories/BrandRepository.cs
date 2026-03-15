@@ -1,4 +1,4 @@
-﻿using GearsHouse.Models;
+using GearsHouse.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace GearsHouse.Repositories
@@ -14,7 +14,7 @@ namespace GearsHouse.Repositories
 
         public async Task<IEnumerable<Brand>> GetAllAsync()
         {
-            return await _context.Brands.ToListAsync();
+            return await _context.Brands.Include(b => b.Products).ToListAsync();
         }
 
         public async Task<Brand?> GetByIdAsync(int id)

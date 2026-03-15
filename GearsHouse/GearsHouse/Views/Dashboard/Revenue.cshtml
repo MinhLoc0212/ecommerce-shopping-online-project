@@ -4,204 +4,349 @@
     Layout = null;
 }
 
-<!-- Bootstrap Icons -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 gsap-fade-up">
+    <div>
+        <h1 class="text-3xl font-bold text-white tracking-tight">Tổng Quan Doanh Thu</h1>
+        <p class="text-gray-400 mt-1 flex items-center gap-2 text-sm">
+            <span class="material-symbols-outlined text-[16px]">calendar_today</span>
+            @DateTime.Now.ToString("dd MMM, yyyy") - Hiện tại
+        </p>
+    </div>
+</div>
 
-<!-- Nội dung chính -->
-<div class="main-content">
-    <div class="card shadow-lg border-0">
-        <div class="card-header bg-primary text-white py-4">
-            <h2 class="mb-0 text-center fw-bold">Thông số tổng quát</h2>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+    <!-- Total Revenue -->
+    <div class="group relative overflow-hidden rounded-xl border border-white/5 bg-surface-dark p-5 hover:border-primary/50 transition-all duration-300 gsap-fade-up">
+        <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+            <span class="material-symbols-outlined text-[64px] text-primary group-hover:animate-bounce">payments</span>
         </div>
-        <div class="card-body p-4">
-
-            <!-- 3 khối chỉ số -->
-            <div class="row text-white text-center mb-4 g-4">
-                <div class="col-lg-4 col-md-6">
-                    <div class="stat-card bg-gradient-success p-4 rounded shadow-sm animate-card">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="text-uppercase fw-bold">Tổng Doanh Thu</h6>
-                                <p class="fs-3 fw-semibold mb-0">
-                                    @Model.TotalRevenue.ToString("C", CultureInfo.GetCultureInfo("vi-VN"))
-                                </p>
-                            </div>
-                            <i class="bi bi-cash-stack fs-1 opacity-75"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="stat-card bg-gradient-info p-4 rounded shadow-sm animate-card">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="text-uppercase fw-bold">Tổng Số Đơn Hàng</h6>
-                                <p class="fs-3 fw-semibold mb-0">@Model.TotalOrders</p>
-                            </div>
-                            <i class="bi bi-bag-check fs-1 opacity-75"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="stat-card bg-gradient-warning text-dark p-4 rounded shadow-sm animate-card">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="text-uppercase fw-bold">Giá Trị Trung Bình</h6>
-                                <p class="fs-3 fw-semibold mb-0">
-                                    @Model.AverageOrderValue.ToString("C", CultureInfo.GetCultureInfo("vi-VN"))
-                                </p>
-                            </div>
-                            <i class="bi bi-bar-chart-line fs-1 opacity-75"></i>
-                        </div>
-                    </div>
-                </div>
+        <div class="relative z-10">
+            <p class="text-sm font-medium text-gray-400">Tổng Doanh Thu</p>
+            <div class="flex items-baseline gap-2 mt-2">
+                <h3 class="text-2xl font-bold text-white group-hover:text-primary transition-colors gsap-counter">@Model.TotalRevenue.ToString("C", CultureInfo.GetCultureInfo("vi-VN"))</h3>
+                <span class="text-xs font-bold text-neon-green flex items-center bg-neon-green/10 px-1.5 py-0.5 rounded animate-pulse">
+                    <span class="material-symbols-outlined text-[12px] mr-0.5">trending_up</span>
+                    15%
+                </span>
             </div>
+            <p class="text-xs text-gray-500 mt-2">+45tr so với tháng trước</p>
+        </div>
+        <div class="absolute bottom-0 left-0 h-[2px] w-full bg-gradient-to-r from-primary to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+    </div>
 
-            <!-- Biểu đồ doanh thu -->
-            <div class="my-5">
-                <div class="bg-white rounded shadow-sm p-3">
-                    <canvas id="revenueChart"></canvas>
-                </div>
+    <!-- Total Orders -->
+    <div class="group relative overflow-hidden rounded-xl border border-white/5 bg-surface-dark p-5 hover:border-purple-500/50 transition-all duration-300 gsap-fade-up">
+        <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+            <span class="material-symbols-outlined text-[64px] text-purple-500 group-hover:animate-bounce">shopping_bag</span>
+        </div>
+        <div class="relative z-10">
+            <p class="text-sm font-medium text-gray-400">Tổng Đơn Hàng</p>
+            <div class="flex items-baseline gap-2 mt-2">
+                <h3 class="text-2xl font-bold text-white group-hover:text-purple-400 transition-colors gsap-counter">@Model.TotalOrders</h3>
+                <span class="text-xs font-bold text-neon-green flex items-center bg-neon-green/10 px-1.5 py-0.5 rounded animate-pulse">
+                    <span class="material-symbols-outlined text-[12px] mr-0.5">trending_up</span>
+                    8%
+                </span>
             </div>
+            <p class="text-xs text-gray-500 mt-2">+120 so với tuần trước</p>
+        </div>
+        <div class="absolute bottom-0 left-0 h-[2px] w-full bg-gradient-to-r from-purple-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+    </div>
 
+    <!-- Average Value -->
+    <div class="group relative overflow-hidden rounded-xl border border-white/5 bg-surface-dark p-5 hover:border-orange-500/50 transition-all duration-300 gsap-fade-up">
+        <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+            <span class="material-symbols-outlined text-[64px] text-orange-500 group-hover:animate-bounce">query_stats</span>
+        </div>
+        <div class="relative z-10">
+            <p class="text-sm font-medium text-gray-400">Giá Trị Trung Bình</p>
+            <div class="flex items-baseline gap-2 mt-2">
+                <h3 class="text-2xl font-bold text-white group-hover:text-orange-400 transition-colors gsap-counter">@Model.AverageOrderValue.ToString("C", CultureInfo.GetCultureInfo("vi-VN"))</h3>
+                <span class="text-xs font-bold text-neon-green flex items-center bg-neon-green/10 px-1.5 py-0.5 rounded animate-pulse">
+                    <span class="material-symbols-outlined text-[12px] mr-0.5">trending_up</span>
+                    12%
+                </span>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">+420k so với tháng trước</p>
+        </div>
+        <div class="absolute bottom-0 left-0 h-[2px] w-full bg-gradient-to-r from-orange-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <div class="lg:col-span-2 rounded-xl border border-white/5 bg-surface-dark p-6 shadow-lg gsap-fade-up">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h3 class="text-lg font-bold text-white">Phân Tích Doanh Thu</h3>
+                <p class="text-xs text-gray-400">Hiệu suất doanh thu hàng tháng qua các kênh</p>
+            </div>
+            <select class="bg-surface-light border border-white/10 text-xs text-white rounded px-2 py-1 outline-none focus:border-primary">
+                <option>30 Ngày Qua</option>
+                <option>Quý Trước</option>
+                <option>Năm Ngoái</option>
+            </select>
+        </div>
+        <div class="h-[280px] w-full relative group">
+            <canvas id="revenueChart"></canvas>
+        </div>
+    </div>
+    <div class="lg:col-span-1 rounded-xl border border-white/5 bg-surface-dark p-6 flex flex-col gsap-fade-up">
+        <h3 class="text-lg font-bold text-white mb-6">Danh mục bán Chạy</h3>
+        <div class="flex flex-col gap-5 flex-1 justify-center">
+            @if (Model.TopSellingCategories != null && Model.TopSellingCategories.Any())
+            {
+                var index = 0;
+                var opacities = new[] { "1", "0.8", "0.6", "0.4" };
+                foreach (var item in Model.TopSellingCategories)
+                {
+                    var opacity = index < opacities.Length ? opacities[index] : "0.2";
+                    <div class="flex items-center gap-4">
+                        <div class="flex-none size-12 rounded bg-surface-light border border-white/5 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-primary">category</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-center mb-1">
+                                <p class="text-sm font-bold text-white truncate">@item.CategoryName</p>
+                                <p class="text-xs font-bold text-primary">@item.Percentage%</p>
+                            </div>
+                            <div class="h-1.5 w-full bg-surface-light rounded-full">
+                                <div class="h-full bg-primary rounded-full shadow-neon-sm gsap-bar" style="width: @item.Percentage%; opacity: @opacity"></div>
+                            </div>
+                        </div>
+                    </div>
+                    index++;
+                }
+            }
+            else
+            {
+                <p class="text-gray-400 text-sm text-center">Chưa có dữ liệu bán hàng.</p>
+            }
         </div>
     </div>
 </div>
 
-<!-- Chart.js -->
+<div class="rounded-xl border border-white/5 bg-surface-dark overflow-hidden gsap-fade-up">
+    <div class="flex items-center justify-between p-6 border-b border-white/5">
+        <div class="flex items-center gap-3">
+            <div class="p-2 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                <span class="material-symbols-outlined text-yellow-500">trophy</span>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-white">Top 5 Sản Phẩm Bán Chạy Nhất</h3>
+                <p class="text-xs text-gray-400">Các sản phẩm có doanh số cao nhất</p>
+            </div>
+        </div>
+        <a href="@Url.Action("Dashboard", "Dashboard", new { tab = "product" })" class="text-xs text-primary font-bold hover:underline flex items-center gap-1">
+            XEM TẤT CẢ
+            <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+        </a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-surface-light/50 text-xs text-gray-400 uppercase tracking-wider">
+                    <th class="p-4 font-medium pl-6">Sản Phẩm</th>
+                    <th class="p-4 font-medium">Danh Mục</th>
+                    <th class="p-4 font-medium text-right">Giá Bán</th>
+                    <th class="p-4 font-medium text-center">Đã Bán</th>
+                    <th class="p-4 font-medium text-right">Tổng Doanh Thu</th>
+                    <th class="p-4 font-medium text-center">Mức Độ Phổ Biến</th>
+                </tr>
+            </thead>
+            <tbody class="text-sm divide-y divide-white/5">
+                @if (Model.TopSellingProducts != null && Model.TopSellingProducts.Any())
+                {
+                    var maxSold = Model.TopSellingProducts.Max(p => p.TotalSold);
+                    var rank = 1;
+                    foreach (var product in Model.TopSellingProducts)
+                    {
+                        <tr class="group hover:bg-white/5 transition-colors">
+                            <td class="p-4 pl-6">
+                                <div class="flex items-center gap-4">
+                                    <div class="relative flex-shrink-0 size-12 rounded-lg bg-surface-light border border-white/10 overflow-hidden group-hover:border-primary/50 transition-colors">
+                                        <img src="@product.ImageUrl" alt="@product.ProductName" class="h-full w-full object-cover" onerror="this.src='/images/no-image.png'" />
+                                        @if (rank == 1)
+                                        {
+                                            <div class="absolute top-0 left-0 bg-yellow-500 text-black text-[10px] font-bold px-1.5 py-0.5 rounded-br">#1</div>
+                                        }
+                                        else if (rank == 2)
+                                        {
+                                            <div class="absolute top-0 left-0 bg-gray-300 text-black text-[10px] font-bold px-1.5 py-0.5 rounded-br">#2</div>
+                                        }
+                                        else if (rank == 3)
+                                        {
+                                            <div class="absolute top-0 left-0 bg-orange-700 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-br">#3</div>
+                                        }
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-white group-hover:text-primary transition-colors line-clamp-1">@product.ProductName</p>
+                                        <p class="text-xs text-gray-500">Rank #@rank</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="p-4">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-surface-light border border-white/10 text-gray-300">
+                                    @product.CategoryName
+                                </span>
+                            </td>
+                            <td class="p-4 text-right font-medium text-white">
+                                @product.Price.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))₫
+                            </td>
+                            <td class="p-4 text-center">
+                                <span class="text-white font-bold text-lg">@product.TotalSold</span>
+                                <span class="text-xs text-gray-500 ml-1">đơn vị</span>
+                            </td>
+                            <td class="p-4 text-right font-bold text-neon-green">
+                                @product.TotalRevenue.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"))₫
+                            </td>
+                            <td class="p-4">
+                                <div class="flex items-center justify-center gap-2 w-32 mx-auto">
+                                    <div class="flex-1 h-1.5 bg-surface-light rounded-full overflow-hidden">
+                                        <div class="h-full bg-gradient-to-r from-primary to-purple-500 rounded-full gsap-bar" style="width: @(maxSold > 0 ? (double)product.TotalSold / maxSold * 100 : 0)%"></div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        rank++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="p-8 text-center text-gray-500">
+                            <div class="flex flex-col items-center justify-center gap-2">
+                                <span class="material-symbols-outlined text-[48px] text-gray-600">inventory_2</span>
+                                <p>Chưa có dữ liệu bán hàng</p>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    $(document).ready(function () {
-        setTimeout(function () {
-            var ctx = document.getElementById('revenueChart').getContext('2d');
-            var revenueChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: @Html.Raw(Json.Serialize(Model.DailyRevenueData.Select(d => d.Date.ToString("dd/MM/yyyy")))),
-                    datasets: [{
-                        label: 'Doanh Thu',
-                        data: @Html.Raw(Json.Serialize(Model.DailyRevenueData.Select(d => d.TotalRevenue))),
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 2,
-                        tension: 0.4
-                    }]
+    setTimeout(function () {
+        var ctx = document.getElementById('revenueChart').getContext('2d');
+        
+        // Tạo gradient màu cho background
+        var gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(13, 127, 242, 0.5)');   // Màu chính đậm hơn ở trên
+        gradient.addColorStop(1, 'rgba(13, 127, 242, 0.0)');   // Trong suốt ở dưới
+
+        var revenueChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.DailyRevenueData.Select(d => d.Date.ToString("dd/MM/yyyy")))),
+                datasets: [{
+                    label: 'Doanh Thu',
+                    data: @Html.Raw(Json.Serialize(Model.DailyRevenueData.Select(d => d.TotalRevenue))),
+                    backgroundColor: gradient, // Sử dụng gradient thay vì màu đơn
+                    borderColor: '#0d7ff2',
+                    borderWidth: 3,            // Tăng độ dày đường viền
+                    tension: 0.4,              // Đường cong mềm mại
+                    pointBackgroundColor: '#111418',
+                    pointBorderColor: '#0d7ff2',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,            // Điểm dữ liệu lớn hơn
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: '#0d7ff2',
+                    pointHoverBorderColor: '#fff',
+                    fill: true                 // Bật tô màu vùng dưới đường biểu đồ
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
                 },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                font: {
-                                    size: 14
-                                }
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function (tooltipItem) {
-                                    return tooltipItem.raw.toLocaleString() + ' VND';
-                                }
-                            }
-                        }
+                animation: {
+                    y: {
+                        duration: 2000,
+                        easing: 'easeOutQuart'
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
                     },
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Ngày',
-                                font: { size: 14 }
-                            }
+                    tooltip: {
+                        backgroundColor: 'rgba(17, 20, 24, 0.9)', // Nền tooltip tối và trong suốt
+                        titleColor: '#fff',
+                        titleFont: {
+                            family: "'Space Grotesk', sans-serif",
+                            size: 13
                         },
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Doanh Thu (VND)',
-                                font: { size: 14 }
-                            },
-                            ticks: {
-                                callback: function (value) {
-                                    return value.toLocaleString();
+                        bodyColor: '#fff',
+                        bodyFont: {
+                            family: "'Space Grotesk', sans-serif",
+                            size: 13,
+                            weight: 'bold'
+                        },
+                        borderColor: 'rgba(13, 127, 242, 0.3)', // Viền tooltip màu primary
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: false,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function(context) {
+                                var label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
                                 }
+                                if (context.parsed.y !== null) {
+                                    label += new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(context.parsed.y);
+                                }
+                                return label;
                             }
                         }
                     }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false, // Ẩn lưới trục X để sạch hơn
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#9ca3af',
+                            font: {
+                                family: "'Space Grotesk', sans-serif",
+                                size: 11
+                            },
+                            maxRotation: 0,
+                            autoSkip: true,
+                            maxTicksLimit: 7
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)',
+                            borderDash: [5, 5], // Lưới nét đứt
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#9ca3af',
+                            font: {
+                                family: "'Space Grotesk', sans-serif",
+                                size: 11
+                            },
+                            padding: 10,
+                            callback: function(value) {
+                                if (value >= 1000000) {
+                                    return (value / 1000000).toFixed(1) + ' Tr';
+                                }
+                                return (value / 1000).toFixed(0) + ' k';
+                            }
+                        },
+                        beginAtZero: true
+                    }
                 }
-            });
-        }, 200);
-    });
+            }
+        });
+    }, 100);
 </script>
-
-<style>
-    .main-content {
-        margin-left: 0; /* gần sát sidebar */
-        padding: 2rem 2rem 2rem 1rem;
-    }
-
-    @@media (max-width: 768px) {
-        .main-content
-
-    {
-        margin-left: 0;
-        padding: 1rem;
-    }
-
-    }
-
-    .card {
-        border-radius: 10px;
-        background: #f8f9fa;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-
-    .card-header {
-        border-radius: 10px 10px 0 0;
-    }
-
-    canvas {
-        max-height: 400px !important;
-        width: 100% !important;
-    }
-
-    .stat-card {
-        min-height: 120px;
-        transition: transform 0.4s ease, opacity 0.4s ease;
-        opacity: 0;
-        transform: scale(0.95);
-    }
-
-    .animate-card {
-        animation: fadeScaleIn 0.6s forwards;
-    }
-
-    @@keyframes fadeScaleIn {
-        to
-
-    {
-        opacity: 1;
-        transform: scale(1);
-    }
-
-    }
-
-    .bg-gradient-success {
-        background: linear-gradient(135deg, #38d39f 0%, #0e8f5f 100%) !important;
-    }
-
-    .bg-gradient-info {
-        background: linear-gradient(135deg, #3ec6f1 0%, #0d7cae 100%) !important;
-    }
-
-    .bg-gradient-warning {
-        background: linear-gradient(135deg, #ffd454 0%, #d4a107 100%) !important;
-    }
-
-    .fw-semibold {
-        font-weight: 600;
-    }
-
-    .fw-bold {
-        font-weight: 700;
-    }
-</style>

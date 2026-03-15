@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using GearsHouse.Models;
 using GearsHouse.Repositories;
 using Microsoft.AspNetCore.Authorization;
@@ -31,10 +31,30 @@ namespace GearsHouse.Controllers
         // Thêm thương hiệu
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> AddBrand(Brand brand)
+        public async Task<IActionResult> AddBrand(Brand brand, IFormFile? LogoFile)
         {
             if (ModelState.IsValid)
             {
+                if (LogoFile != null && LogoFile.Length > 0)
+                {
+                    // Handle file upload
+                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "brands");
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+                    
+                    var uniqueFileName = Guid.NewGuid().ToString() + "_" + LogoFile.FileName;
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                    
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await LogoFile.CopyToAsync(fileStream);
+                    }
+                    
+                    brand.LogoUrl = "/images/brands/" + uniqueFileName;
+                }
+
                 await _brandRepository.AddAsync(brand);
                 TempData["SuccessMessage"] = "Thương hiệu đã được thêm thành công!";
 
@@ -43,9 +63,10 @@ namespace GearsHouse.Controllers
 
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 {
-                    var brands = await _context.Brands.ToListAsync();
-                    return PartialView("~/Views/Dashboard/_BrandListDashboard.cshtml", brands);
+                    // Trả về JSON để client biết đã thành công và reload lại danh sách
+                    return Json(new { success = true, message = "Thương hiệu đã được thêm thành công!" });
                 }
+
                 return RedirectToAction("Dashboard", "Dashboard", new { tab = "brand" }); // Quay lại Dashboard
             }
 
@@ -107,7 +128,7 @@ namespace GearsHouse.Controllers
 
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 {
-                    var brands = await _context.Brands.ToListAsync();
+                    var brands = await _brandRepository.GetAllAsync();
                     return PartialView("~/Views/Dashboard/_BrandListDashboard.cshtml", brands);
                 }
                 return RedirectToAction("Dashboard", "Dashboard", new { tab = "brand" });

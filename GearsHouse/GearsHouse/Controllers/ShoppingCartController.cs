@@ -209,6 +209,44 @@ namespace GearsHouse.Controllers
             return product;
         }
 
+        public async Task<IActionResult> UpdateQuantity(int productId, int change)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var cartItem = await _context.CartItems
+                .FirstOrDefaultAsync(i => i.UserId == user.Id && i.ProductId == productId);
+
+            if (cartItem != null)
+            {
+                var product = await _context.Products.FindAsync(productId);
+                // Nếu sản phẩm không còn tồn tại, bỏ qua hoặc xóa (ở đây giữ nguyên logic an toàn)
+                if (product == null) return RedirectToAction("Index");
+
+                int newQuantity = cartItem.Quantity + change;
+
+                // Kiểm tra tồn kho nếu tăng số lượng
+                if (change > 0)
+                {
+                    if (newQuantity > product.Quantity)
+                    {
+                         TempData["ErrorMessage"] = $"Số lượng yêu cầu vượt quá tồn kho (chỉ còn {product.Quantity}).";
+                         return RedirectToAction("Index");
+                    }
+                }
+
+                // Giới hạn số lượng tối thiểu là 1
+                if (newQuantity < 1)
+                {
+                    newQuantity = 1;
+                }
+
+                cartItem.Quantity = newQuantity;
+                _context.CartItems.Update(cartItem);
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction("Index");
+        }
+
         public async Task<IActionResult> RemoveFromCartAsync(int productId)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -226,14 +264,8 @@ namespace GearsHouse.Controllers
 
         public async Task<IActionResult> CheckoutFromCart()
         {
-            var cart = HttpContext.Session.GetObjectFromJson<ShoppingCart>("Cart");
-            if (cart == null || !cart.Items.Any())
-            {
-                return RedirectToAction("Index");
-            }
-
-            // Không tạo đơn trước khi người dùng xác nhận Checkout.
             // Chuyển người dùng sang trang Checkout (GET) để nhập thông tin và xác nhận.
+            // Trang Checkout sẽ tự kiểm tra giỏ hàng trong DB.
             return RedirectToAction("Checkout");
         }
 
@@ -447,31 +479,41 @@ namespace GearsHouse.Controllers
                 return Redirect(paymentUrl);
             }
 
-            if (string.Equals(existingOrder.PaymentMethod, "MoMo", StringComparison.OrdinalIgnoreCase))
-            {
-                try
+                if (string.Equals(existingOrder.PaymentMethod, "MoMo", StringComparison.OrdinalIgnoreCase))
                 {
-                    var host = Request.Host.HasValue ? Request.Host.Value : string.Empty;
-                    var scheme = string.IsNullOrEmpty(Request.Scheme) ? "https" : Request.Scheme;
-                    var returnUrl = (!string.IsNullOrEmpty(host)) ? $"{scheme}://{host}/ShoppingCart/MomoReturn" : _momoSettings.ReturnUrl;
-                    var notifyUrl = (!string.IsNullOrEmpty(host)) ? $"{scheme}://{host}/ShoppingCart/MomoNotify" : _momoSettings.NotifyUrl;
-                    _logger.LogInformation("Checkout PaymentMethod={Method} returnUrl={ReturnUrl} notifyUrl={NotifyUrl}", existingOrder.PaymentMethod, returnUrl, notifyUrl);
-                    var paymentUrl = await _momoService.CreatePaymentUrlAsync(existingOrder, returnUrl, notifyUrl);
-                    _logger.LogInformation("MoMo payUrl={PayUrl}", paymentUrl);
-                    if (string.IsNullOrWhiteSpace(paymentUrl))
+                    // MoMo requires amount >= 1000 VND
+                    if (existingOrder.TotalPrice < 1000)
                     {
-                        TempData["ErrorMessage"] = "Không tạo được liên kết thanh toán MoMo.";
+                        TempData["ErrorMessage"] = "Thanh toán MoMo yêu cầu đơn hàng tối thiểu 1,000đ.";
                         return RedirectToAction("CheckoutExisting", new { id = existingOrder.Id });
                     }
-                    return Redirect(paymentUrl);
+
+                    try
+                    {
+                        var host = Request.Host.HasValue ? Request.Host.Value : string.Empty;
+                        var scheme = string.IsNullOrEmpty(Request.Scheme) ? "https" : Request.Scheme;
+                        var returnUrl = (!string.IsNullOrEmpty(host)) ? $"{scheme}://{host}/ShoppingCart/MomoReturn" : _momoSettings.ReturnUrl;
+                        var notifyUrl = (!string.IsNullOrEmpty(host)) ? $"{scheme}://{host}/ShoppingCart/MomoNotify" : _momoSettings.NotifyUrl;
+                        
+                        _logger.LogInformation("Checkout PaymentMethod={Method} returnUrl={ReturnUrl} notifyUrl={NotifyUrl}", existingOrder.PaymentMethod, returnUrl, notifyUrl);
+                        
+                        var paymentUrl = await _momoService.CreatePaymentUrlAsync(existingOrder, returnUrl, notifyUrl);
+                        _logger.LogInformation("MoMo payUrl={PayUrl}", paymentUrl);
+                        
+                        if (string.IsNullOrWhiteSpace(paymentUrl))
+                        {
+                            TempData["ErrorMessage"] = "Không tạo được liên kết thanh toán MoMo (URL rỗng).";
+                            return RedirectToAction("CheckoutExisting", new { id = existingOrder.Id });
+                        }
+                        return Redirect(paymentUrl);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "MoMo create payment failed: {Message}", ex.Message);
+                        TempData["ErrorMessage"] = $"Lỗi thanh toán MoMo: {ex.Message}";
+                        return RedirectToAction("CheckoutExisting", new { id = existingOrder.Id });
+                    }
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "MoMo create payment failed");
-                    TempData["ErrorMessage"] = "Thanh toán MoMo hiện không khả dụng. Vui lòng thử lại hoặc chọn phương thức khác.";
-                    return RedirectToAction("CheckoutExisting", new { id = existingOrder.Id });
-                }
-            }
 
             // Thanh toán không dùng VNPay: coi đơn hàng là đã xác nhận và bắt đầu xử lý
             existingOrder.OrderStatus = OrderStatus.DangXuLy;
@@ -699,6 +741,7 @@ namespace GearsHouse.Controllers
         
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetCartItemCount()
         {
             var user = await _userManager.GetUserAsync(User);

@@ -105,6 +105,9 @@ namespace GearsHouse.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BrandId"));
 
+                    b.Property<string>("LogoUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -183,6 +186,9 @@ namespace GearsHouse.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsStaff")
                         .HasColumnType("bit");

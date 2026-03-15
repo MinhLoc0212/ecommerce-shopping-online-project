@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using GearsHouse.Models;
 using GearsHouse.Repositories;
 using Microsoft.AspNetCore.Authorization;
@@ -62,7 +62,7 @@ namespace GearsHouse.Controllers
 
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
-                var categories = await _context.Categories.ToListAsync();
+                var categories = await _categoryRepository.GetAllAsync();
                 return PartialView("~/Views/Dashboard/_CategoryListDashboard.cshtml", categories);
             }
             return RedirectToAction("Dashboard", "Dashboard", new { tab = "category" }); // Quay lại Dashboard
@@ -119,7 +119,7 @@ namespace GearsHouse.Controllers
 
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 {
-                    var categories = await _context.Categories.ToListAsync();
+                    var categories = await _categoryRepository.GetAllAsync();
                     return PartialView("~/Views/Dashboard/_CategoryListDashboard.cshtml", categories);
                 }
                 return RedirectToAction("Dashboard", "Dashboard", new { tab = "category" });

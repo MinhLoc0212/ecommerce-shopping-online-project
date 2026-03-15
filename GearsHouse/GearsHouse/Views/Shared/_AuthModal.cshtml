@@ -1,0 +1,493 @@
+
+<!-- Modal Overlay -->
+<div id="auth-modal-overlay" class="auth-modal-overlay" style="display: none;">
+    <div class="auth-container" id="auth-container">
+        <!-- Close Button -->
+        <button class="close-btn" onclick="closeAuthModal()">&times;</button>
+
+        <!-- Sign Up Form -->
+        <div class="form-container sign-up">
+            <form id="auth-register-form" method="post" action="/Identity/Account/Register">
+                <h1>Tạo tài khoản</h1>
+                
+                <span>hoặc sử dụng email để đăng ký</span>
+                
+                <div id="register-error-msg" class="text-danger" style="display:none; margin-bottom: 10px; font-size: 12px;"></div>
+
+                <input name="Input.FullName" type="text" placeholder="Họ và tên" required />
+                <input name="Input.Email" type="email" placeholder="Email" required />
+                <input name="Input.Password" type="password" placeholder="Mật khẩu" required />
+                <input name="Input.ConfirmPassword" type="password" placeholder="Nhập lại mật khẩu" required />
+                @Html.AntiForgeryToken()
+                <button type="submit">Đăng ký</button>
+            </form>
+        </div>
+
+        <!-- Sign In Form -->
+        <div class="form-container sign-in">
+            <form id="auth-login-form" method="post" action="/Identity/Account/Login">
+                <h1>Đăng nhập</h1>
+                
+                <span>hoặc sử dụng tài khoản của bạn</span>
+                
+                <div id="login-error-msg" class="text-danger" style="display:none; margin-bottom: 10px; font-size: 12px;"></div>
+
+                <input name="Input.Email" type="email" placeholder="Email" required />
+                <input name="Input.Password" type="password" placeholder="Mật khẩu" required />
+                <a href="/Identity/Account/ForgotPassword">Quên mật khẩu?</a>
+                @Html.AntiForgeryToken()
+                <button type="submit">Đăng nhập</button>
+            </form>
+        </div>
+
+        <!-- Toggle Overlay -->
+        <div class="toggle-container">
+            <div class="toggle">
+                <div class="toggle-panel toggle-left">
+                    <h1>Chào mừng trở lại!</h1>
+                    <p>Nhập thông tin cá nhân của bạn để sử dụng tất cả các tính năng của trang web</p>
+                    <button class="btn-transparent" id="login-btn">Đăng nhập</button>
+                </div>
+                <div class="toggle-panel toggle-right">
+                    <h1>Chào bạn!</h1>
+                    <p>Đăng ký với thông tin cá nhân của bạn để sử dụng tất cả các tính năng của trang web</p>
+                    <button class="btn-transparent" id="register-btn">Đăng ký</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+
+    .auth-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(8px);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .auth-modal-overlay.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .auth-container {
+        background-color: #1a222f;
+        border-radius: 30px;
+        box-shadow: 0 0 20px rgba(13, 127, 242, 0.3);
+        position: relative;
+        overflow: hidden;
+        width: 768px;
+        max-width: 90%;
+        min-height: 480px;
+        transform: scale(0.8);
+        transition: transform 0.3s ease;
+        font-family: 'Montserrat', sans-serif;
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .auth-modal-overlay.show .auth-container {
+        transform: scale(1);
+    }
+
+    .auth-container h1 {
+        color: #fff;
+    }
+
+    .auth-container p {
+        font-size: 14px;
+        line-height: 20px;
+        letter-spacing: 0.3px;
+        margin: 20px 0;
+        color: #cbd5e1;
+    }
+
+    .auth-container span {
+        font-size: 12px;
+        color: #94a3b8;
+    }
+
+    .auth-container a {
+        color: #0d7ff2;
+        font-size: 13px;
+        text-decoration: none;
+        margin: 15px 0 10px;
+        transition: color 0.3s;
+    }
+    
+    .auth-container a:hover {
+        color: #a855f7;
+        text-shadow: 0 0 5px rgba(168, 85, 247, 0.5);
+    }
+
+    .auth-container button {
+        background: linear-gradient(135deg, #0d7ff2 0%, #a855f7 100%);
+        color: #fff;
+        font-size: 12px;
+        padding: 10px 45px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        margin-top: 10px;
+        cursor: pointer;
+        box-shadow: 0 0 10px rgba(13, 127, 242, 0.5);
+        transition: all 0.3s;
+    }
+
+    .auth-container button:hover {
+        box-shadow: 0 0 20px rgba(168, 85, 247, 0.6);
+        transform: translateY(-1px);
+    }
+
+    .auth-container button.btn-transparent {
+        background: transparent;
+        border-color: #fff;
+        box-shadow: none;
+    }
+    
+    .auth-container button.btn-transparent:hover {
+        background: rgba(255,255,255,0.1);
+        box-shadow: 0 0 10px rgba(255,255,255,0.2);
+    }
+    
+    .auth-container button.close-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: transparent;
+        color: #94a3b8;
+        font-size: 24px;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        border: none;
+        box-shadow: none;
+        z-index: 1001; 
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .auth-container button.close-btn:hover {
+        color: #fff;
+        transform: rotate(90deg);
+        box-shadow: none;
+    }
+
+    .auth-container form {
+        background-color: #1a222f;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        padding: 0 40px;
+        height: 100%;
+    }
+
+    .auth-container input {
+        background-color: #0a0f16;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #fff;
+        margin: 8px 0;
+        padding: 10px 15px;
+        font-size: 13px;
+        border-radius: 8px;
+        width: 100%;
+        outline: none;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    
+    .auth-container input:focus {
+        border-color: #06b6d4;
+        box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
+    }
+    
+    .auth-container input::placeholder {
+        color: #64748b;
+    }
+
+    .form-container {
+        position: absolute;
+        top: 0;
+        height: 100%;
+        transition: all 0.6s ease-in-out;
+    }
+
+    .sign-in {
+        left: 0;
+        width: 50%;
+        z-index: 2;
+    }
+
+    .auth-container.active .sign-in {
+        transform: translateX(100%);
+    }
+
+    .sign-up {
+        left: 0;
+        width: 50%;
+        opacity: 0;
+        z-index: 1;
+    }
+
+    .auth-container.active .sign-up {
+        transform: translateX(100%);
+        opacity: 1;
+        z-index: 5;
+        animation: move 0.6s;
+    }
+
+    @@keyframes move {
+        0%, 49.99% {
+            opacity: 0;
+            z-index: 1;
+        }
+        50%, 100% {
+            opacity: 1;
+            z-index: 5;
+        }
+    }
+
+    .toggle-container {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: 50%;
+        height: 100%;
+        overflow: hidden;
+        transition: all 0.6s ease-in-out;
+        border-radius: 150px 0 0 100px;
+        z-index: 1000;
+    }
+
+    .auth-container.active .toggle-container {
+        transform: translateX(-100%);
+        border-radius: 0 150px 100px 0;
+    }
+
+    .toggle {
+        background-color: #0d7ff2;
+        height: 100%;
+        background: linear-gradient(to right, #0d7ff2, #a855f7, #06b6d4);
+        color: #fff;
+        position: relative;
+        left: -100%;
+        height: 100%;
+        width: 200%;
+        transform: translateX(0);
+        transition: all 0.6s ease-in-out;
+    }
+
+    .auth-container.active .toggle {
+        transform: translateX(50%);
+    }
+
+    .toggle-panel {
+        position: absolute;
+        width: 50%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        padding: 0 30px;
+        text-align: center;
+        top: 0;
+        transform: translateX(0);
+        transition: all 0.6s ease-in-out;
+    }
+
+    .toggle-left {
+        transform: translateX(-200%);
+    }
+
+    .auth-container.active .toggle-left {
+        transform: translateX(0);
+    }
+
+    .toggle-right {
+        right: 0;
+        transform: translateX(0);
+    }
+
+    .auth-container.active .toggle-right {
+        transform: translateX(200%);
+    }
+</style>
+
+<script>
+    const authModalOverlay = document.getElementById('auth-modal-overlay');
+    const authContainer = document.getElementById('auth-container');
+    const registerBtn = document.getElementById('register-btn');
+    const loginBtn = document.getElementById('login-btn');
+
+    registerBtn.addEventListener('click', () => {
+        authContainer.classList.add("active");
+    });
+
+    loginBtn.addEventListener('click', () => {
+        authContainer.classList.remove("active");
+    });
+
+    function openAuthModal(mode) {
+        authModalOverlay.style.display = 'flex';
+        // Trigger reflow for transition
+        setTimeout(() => {
+            authModalOverlay.classList.add('show');
+        }, 10);
+
+        if (mode === 'register') {
+            authContainer.classList.add("active");
+        } else {
+            authContainer.classList.remove("active");
+        }
+    }
+
+    function closeAuthModal() {
+        authModalOverlay.classList.remove('show');
+        setTimeout(() => {
+            authModalOverlay.style.display = 'none';
+        }, 300);
+    }
+
+    // Close when clicking outside
+        authModalOverlay.addEventListener('click', (e) => {
+            if (e.target === authModalOverlay) {
+                closeAuthModal();
+            }
+        });
+
+        // AJAX handling for forms
+        function handleAuthSubmit(formId, errorMsgId) {
+            const form = document.getElementById(formId);
+            const errorDiv = document.getElementById(errorMsgId);
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const action = form.getAttribute('action');
+
+                // Clear previous errors
+                errorDiv.style.display = 'none';
+                errorDiv.innerHTML = '';
+                
+                // Show loading state if desired (optional)
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerText;
+                submitBtn.innerText = 'Đang xử lý...';
+                submitBtn.disabled = true;
+
+                fetch(action, {
+                    method: 'POST',
+                    body: formData,
+                    redirect: 'follow'
+                })
+                .then(response => {
+                    // Check if we were redirected to a new URL (success)
+                    // Identity usually redirects to ReturnUrl or Home
+                    const destUrl = new URL(response.url);
+                    const currentUrl = new URL(window.location.href);
+                    
+                    // If the URL changed and it's not the Login/Register page itself (with errors)
+                    // Note: If validation fails, Identity returns the SAME URL (POST) but with errors HTML.
+                    // However, fetch with redirect: 'follow' will follow it. 
+                    // Actually, if validation fails, the server responds with 200 OK and the View.
+                    // The URL remains the POST url (or redirected to GET if PRG pattern not used properly, but Identity uses PRG usually? No, validation error is returned directly).
+                    
+                    // Key: If successful, we get a redirect to Home or ReturnUrl.
+                    // If failed, we get the HTML of the Login page.
+                    
+                    if (response.redirected && !response.url.includes('/Identity/Account/Login') && !response.url.includes('/Identity/Account/Register')) {
+                        // Success redirect
+                        window.location.href = response.url;
+                        return;
+                    }
+                    
+                    // If we are here, it's either a failure or a redirect to the login page itself (rare)
+                    return response.text().then(html => {
+                        // Restore button
+                        submitBtn.innerText = originalText;
+                        submitBtn.disabled = false;
+
+                        // Parse HTML to find errors
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        
+                        // Look for validation summary or specific field errors
+                        const summary = doc.querySelector('.validation-summary-errors');
+                        const fieldErrors = doc.querySelectorAll('.text-danger');
+                        
+                        let errorMessage = '';
+                        
+                        if (summary) {
+                            const items = summary.querySelectorAll('li');
+                            items.forEach(li => errorMessage += `<div>${li.innerText}</div>`);
+                        } 
+                        
+                        if (!errorMessage && fieldErrors.length > 0) {
+                            fieldErrors.forEach(span => {
+                                if (span.innerText.trim()) {
+                                    errorMessage += `<div>${span.innerText}</div>`;
+                                }
+                            });
+                        }
+                        
+                        if (!errorMessage) {
+                            // If we can't find specific errors, maybe the login failed generally
+                            if (html.includes('Invalid login attempt')) {
+                                errorMessage = 'Đăng nhập không thành công. Vui lòng kiểm tra lại.';
+                            } else if (response.url.includes('Register') && html.includes('error')) {
+                                errorMessage = 'Đăng ký không thành công.';
+                            } else {
+                                // Maybe it WAS a success but we didn't detect the redirect correctly?
+                                // If the HTML looks like the homepage, we should reload.
+                                // But usually Identity returns the Login view on error.
+                                if (doc.title.includes('Home') || doc.title.includes('Trang chủ')) {
+                                    window.location.reload();
+                                    return;
+                                }
+                                errorMessage = 'Có lỗi xảy ra. Vui lòng thử lại.';
+                            }
+                        }
+
+                        errorDiv.innerHTML = errorMessage;
+                        errorDiv.style.display = 'block';
+                    });
+                });
+            });
+        }
+
+        handleAuthSubmit('auth-login-form', 'login-error-msg');
+        handleAuthSubmit('auth-register-form', 'register-error-msg');
+        
+        // Check for URL query params to open modal automatically
+        // e.g. /?auth=login or /?auth=register
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const authMode = urlParams.get('auth');
+            if (authMode === 'login') {
+                openAuthModal('login');
+                // Clean URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } else if (authMode === 'register') {
+                openAuthModal('register');
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+</script>

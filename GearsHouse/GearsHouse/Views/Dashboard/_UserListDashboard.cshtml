@@ -1,78 +1,302 @@
 @model IEnumerable<GearsHouse.Models.UserRoleViewModel>
-@{
-    Layout = null;
-}
 
-<h3 class="text-center text-primary mb-4 fw-bold">Quản lý Nhân viên / Vai trò</h3>
-
-<div class="table-responsive user-table-wrapper">
-    <table class="table table-hover align-middle mb-0">
-        <thead class="table-dark">
-            <tr>
-                <th class="text-center">Họ tên</th>
-                <th class="text-center">Email</th>
-                <th class="text-center">Vai trò hiện tại</th>
-                <th class="text-center">Chỉnh vai trò</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var u in Model)
-            {
-                <tr>
-                    <td class="text-center">@u.FullName</td>
-                    <td class="text-center">@u.Email</td>
-                    <td class="text-center">@(string.Join(", ", u.CurrentRoles))</td>
-                    <td class="text-center">
-                        <form asp-action="UpdateUserRole" asp-controller="Dashboard" method="post" class="d-inline-flex gap-2 align-items-center js-user-role-form">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="userId" value="@u.UserId" />
-                            <select name="role" class="form-select form-select-sm" style="min-width: 160px;">
-                                <option value="Admin">Admin</option>
-                                <option value="Employee">Employee</option>
-                                <option value="Customer">Customer</option>
-                            </select>
-                            <button type="submit" class="btn btn-primary btn-sm">
-                                <i class="bi bi-shield-lock"></i> Cập nhật
-                            </button>
-                        </form>
-                        <form asp-action="DeleteUser" asp-controller="Dashboard" method="post" class="d-inline ms-2 js-user-delete-form" onsubmit="return confirm('Bạn có chắc muốn xóa người dùng này? Thao tác không thể hoàn tác.');">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="userId" value="@u.UserId" />
-                            <button type="submit" class="btn btn-danger btn-sm">
-                                <i class="bi bi-trash"></i> Xóa
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+<div class="flex flex-wrap gap-2 px-4 pt-4">
+    <a class="text-[#9cabba] text-base font-medium leading-normal hover:text-white transition-colors" href="#">Bảng Điều Khiển</a>
+    <span class="text-[#9cabba] text-base font-medium leading-normal">/</span>
+    <span class="text-white text-base font-medium leading-normal">Quản Lý Vai Trò Người Dùng</span>
 </div>
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
-<style>
-    .user-table-wrapper {
-        border: 2px solid #000;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-        background: #fff;
-        border-radius: 10px;
-        overflow: hidden;
-        animation: fadeIn 0.6s ease forwards;
+<div class="flex flex-wrap justify-between gap-3 px-4 pt-4 pb-2">
+    <div class="flex min-w-72 flex-col gap-3">
+        <p class="text-white text-4xl font-black leading-tight tracking-[-0.033em] drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]">Quản Lý Người Dùng</p>
+        <p class="text-[#9cabba] text-base font-normal leading-normal">Quản lý tài khoản người dùng, phân quyền và kiểm soát quyền truy cập.</p>
+    </div>
+</div>
+
+<div class="px-4 py-4">
+    <div class="flex flex-col gap-4 rounded-xl border border-[#283039] bg-surface-dark p-4 shadow-lg gsap-fade-up">
+        <div class="flex flex-col lg:flex-row gap-4 items-end lg:items-center">
+            <!-- Search -->
+            <div class="w-full lg:flex-1">
+                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 block ml-1">Tìm Kiếm</label>
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 group-focus-within:text-primary transition-colors">
+                        <span class="material-symbols-outlined">search</span>
+                    </div>
+                    <input id="userSearch" onkeyup="searchUsers()" class="block w-full rounded-lg border-border-dark bg-[#111418] pl-10 pr-4 py-2.5 text-white placeholder-slate-500 focus:border-primary focus:ring-1 focus:ring-primary focus:shadow-neon-blue transition-all duration-300 sm:text-sm font-display" placeholder="Tìm kiếm theo Tên hoặc Email..." type="text" />
+                </div>
+            </div>
+            <!-- Filter: Role -->
+            <div class="w-full sm:w-1/2 lg:w-48">
+                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 block ml-1">Vai Trò</label>
+                <div class="relative">
+                    <select id="roleFilter" onchange="filterRole()" class="block w-full rounded-lg border-border-dark bg-[#111418] py-2.5 pl-3 pr-10 text-white focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm appearance-none font-display cursor-pointer hover:bg-[#1c232b] transition-colors">
+                        <option value="all">Tất Cả Vai Trò</option>
+                        <option value="Admin">Quản Trị Viên</option>
+                        <option value="Staff">Nhân Viên</option>
+                        <option value="Customer">Khách Hàng</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                        <span class="material-symbols-outlined text-sm">expand_more</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="px-4 pb-4">
+    <div class="rounded-xl border border-[#283039] bg-surface-dark shadow-xl overflow-hidden gsap-fade-up">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-slate-400" id="userTable">
+                <thead class="border-b border-[#283039] bg-[#111418] text-xs uppercase font-bold text-slate-300">
+                    <tr>
+                        <th class="px-6 py-4 tracking-wider">Họ Tên</th>
+                        <th class="px-6 py-4 tracking-wider">Email</th>
+                        <th class="px-6 py-4 tracking-wider">Vai Trò</th>
+                        <th class="px-6 py-4 tracking-wider text-right">Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-[#283039]">
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            var currentRole = item.CurrentRoles.FirstOrDefault() ?? "Customer";
+                            <tr class="group hover:bg-[#1c2633] transition-colors user-row" data-role="@currentRole">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="size-9 rounded-full bg-slate-700 flex items-center justify-center text-white font-bold ring-1 ring-slate-600">
+                                            @item.FullName?.Substring(0, 1).ToUpper()
+                                        </div>
+                                        <div class="font-medium text-white group-hover:text-primary transition-colors user-name">@item.FullName</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 font-mono text-xs user-email">@item.Email</td>
+                                <td class="px-6 py-4">
+                                    @{
+                                        var badgeClass = "border-slate-500/30 bg-slate-500/10 text-slate-400";
+                                        var dotClass = "bg-slate-500";
+                                        
+                                        if (currentRole.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            badgeClass = "border-primary/30 bg-primary/10 text-primary shadow-neon-blue";
+                                            dotClass = "bg-primary";
+                                        }
+                                        else if (currentRole.Equals("Staff", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            badgeClass = "border-purple-500/30 bg-purple-500/10 text-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.3)]";
+                                            dotClass = "bg-purple-400";
+                                        }
+                                        else
+                                        {
+                                            badgeClass = "border-green-500/30 bg-green-500/10 text-green-400 shadow-[0_0_10px_rgba(34,197,94,0.3)]";
+                                            dotClass = "bg-green-400";
+                                        }
+                                    }
+                                    <span class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold @badgeClass">
+                                        <span class="h-1.5 w-1.5 rounded-full @dotClass animate-pulse"></span>
+                                        @currentRole
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <button onclick="openRoleModal('@item.UserId', '@currentRole', '@item.FullName')" class="text-sm font-medium text-primary hover:text-white hover:underline decoration-primary underline-offset-4 transition-all">
+                                        Cập Nhật Vai Trò
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="px-6 py-8 text-center text-slate-500">
+                                <span class="material-symbols-outlined text-4xl mb-2">group_off</span>
+                                <p>Không tìm thấy người dùng nào.</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Update Role Modal -->
+<div id="updateRoleModal" class="fixed inset-0 z-50 hidden">
+    <!-- Blur Overlay -->
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity opacity-0" id="roleModalOverlay" onclick="closeRoleModal()"></div>
+    
+    <!-- Modal Content -->
+    <div class="absolute inset-0 overflow-y-auto flex items-center justify-center p-4">
+        <div class="relative w-full max-w-md transform transition-all scale-95 opacity-0" id="roleModalContent">
+            <div class="bg-[#1a2027] border border-[#283039] rounded-2xl shadow-2xl overflow-hidden">
+                <!-- Header -->
+                <div class="p-6 border-b border-[#283039] flex justify-between items-center bg-[#1c232b]">
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">manage_accounts</span>
+                        Cập Nhật Vai Trò Người Dùng
+                    </h3>
+                    <button onclick="closeRoleModal()" class="text-slate-400 hover:text-white transition-colors">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                
+                <!-- Form -->
+                <form id="updateRoleForm" action="@Url.Action("UpdateUserRole", "Dashboard")" method="post" onsubmit="return submitRoleUpdate(event)">
+                    @Html.AntiForgeryToken()
+                    <div class="p-6 space-y-4">
+                        <input type="hidden" id="modalUserId" name="userId" />
+                        
+                        <div>
+                            <p class="text-sm text-slate-400 mb-4">Cập nhật vai trò cho người dùng: <span id="modalUserName" class="text-white font-bold"></span></p>
+                            
+                            <label class="block text-sm font-medium text-slate-400 mb-2">Chọn Vai Trò</label>
+                            <div class="relative">
+                                <select id="modalRole" name="role" class="w-full bg-[#111418] border border-[#3b4754] text-white rounded-lg px-4 py-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                                    <option value="Admin">Quản Trị Viên</option>
+                                    <option value="Staff">Nhân Viên</option>
+                                    <option value="Customer">Khách Hàng</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500">
+                                    <span class="material-symbols-outlined">expand_more</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Footer -->
+                    <div class="p-6 border-t border-[#283039] bg-[#1c232b] flex justify-end gap-3">
+                        <button type="button" onclick="closeRoleModal()" class="px-4 py-2 rounded-lg border border-[#3b4754] text-slate-400 hover:text-white hover:bg-[#283039] transition-all font-medium">
+                            Hủy
+                        </button>
+                        <button type="submit" class="px-6 py-2 rounded-lg bg-primary text-white font-bold hover:shadow-neon-blue transition-all">
+                            Lưu Thay Đổi
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function searchUsers() {
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("userSearch");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("userTable");
+        tr = table.getElementsByTagName("tr");
+        
+        for (i = 1; i < tr.length; i++) { // Skip header
+            var nameCol = tr[i].querySelector(".user-name");
+            var emailCol = tr[i].querySelector(".user-email");
+            
+            if (nameCol && emailCol) {
+                var nameText = nameCol.textContent || nameCol.innerText;
+                var emailText = emailCol.textContent || emailCol.innerText;
+                
+                if (nameText.toUpperCase().indexOf(filter) > -1 || emailText.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
     }
 
-    .table th, .table td {
-        vertical-align: middle;
-        padding: 12px 16px;
+    function filterRole() {
+        var role = document.getElementById("roleFilter").value;
+        var table = document.getElementById("userTable");
+        var tr = table.getElementsByTagName("tr");
+        
+        for (var i = 1; i < tr.length; i++) {
+            var row = tr[i];
+            var rowRole = row.getAttribute('data-role');
+            
+            if (role === 'all') {
+                row.style.display = "";
+            } else {
+                if (rowRole === role) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            }
+        }
     }
 
-    .table-dark th {
-        background-color: #343a40;
-        color: #fff;
-        font-weight: 600;
+    function openRoleModal(userId, currentRole, userName) {
+        var modal = document.getElementById('updateRoleModal');
+        var overlay = document.getElementById('roleModalOverlay');
+        var content = document.getElementById('roleModalContent');
+        var inputId = document.getElementById('modalUserId');
+        var inputName = document.getElementById('modalUserName');
+        var selectRole = document.getElementById('modalRole');
+        
+        inputId.value = userId;
+        inputName.textContent = userName;
+        selectRole.value = currentRole;
+
+        modal.classList.remove('hidden');
+        
+        // Animate in
+        setTimeout(() => {
+            overlay.classList.remove('opacity-0');
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+        }, 10);
     }
 
-    @@keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
+    function closeRoleModal() {
+        var modal = document.getElementById('updateRoleModal');
+        var overlay = document.getElementById('roleModalOverlay');
+        var content = document.getElementById('roleModalContent');
+        
+        // Animate out
+        overlay.classList.add('opacity-0');
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
     }
-</style>
+
+    function submitRoleUpdate(event) {
+        event.preventDefault();
+        var form = event.target;
+        var formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.text())
+        .then(html => {
+             // Reload the dashboard content
+             closeRoleModal();
+             var container = document.getElementById('dashboard-content');
+             if (container) {
+                 container.innerHTML = html;
+                 
+                  // Re-execute scripts
+                 container.querySelectorAll('script').forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+
+                 // Re-init GSAP
+                 if (typeof initDashboardAnimations === 'function') {
+                     initDashboardAnimations();
+                 }
+             }
+        })
+        .catch(error => console.error('Error:', error));
+        
+        return false;
+    }
+</script>

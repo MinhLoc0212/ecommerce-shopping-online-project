@@ -1,243 +1,378 @@
 @model IEnumerable<GearsHouse.Models.Product>
-@{
-    Layout = null;
-}
-<h3 class="text-center text-primary mb-4 fw-bold">Danh sách Sản phẩm (Dashboard)</h3>
 
-<div class="table-responsive product-table-wrapper">
-    <table class="product-table">
-        <thead class="product-header">
-            <tr>
-                <th class="text-center"><i class="bi bi-box-seam me-1"></i> Tên Sản phẩm</th>
-                <th class="text-center"><i class="bi bi-currency-dollar me-1"></i> Giá</th>
-                <th class="text-center"><i class="bi bi-tags me-1"></i> Danh mục</th>
-                <th class="text-center"><i class="bi bi-gear me-1"></i> Hành động</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var product in Model)
+<!-- Page Heading & Actions -->
+<div class="mb-8 flex flex-col gap-6 md:flex-row md:items-end md:justify-between gsap-fade-up">
+    <div>
+        <h1 class="text-4xl font-black tracking-tight text-white mb-2">Quản Lý Sản Phẩm</h1>
+        <p class="text-gray-400 text-lg max-w-2xl">Quản lý kho hàng, theo dõi tồn kho và cập nhật thông số kỹ thuật sản phẩm.</p>
+    </div>
+    <button onclick="openAddProductModal(event)" class="group relative flex items-center justify-center gap-2 overflow-hidden rounded-lg bg-primary px-6 py-3 text-sm font-bold text-white shadow-neon transition-all hover:bg-blue-600 hover:shadow-[0_0_20px_rgba(13,127,242,0.6)] hover:-translate-y-0.5 active:translate-y-0 cursor-pointer">
+        <span class="material-symbols-outlined text-[20px]">add_circle</span>
+        <span>Thêm Sản Phẩm Mới</span>
+        <div class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full"></div>
+    </button>
+</div>
+
+<!-- Filters & Search Toolbar -->
+<div class="mb-6 grid gap-4 rounded-xl border border-border-dark bg-surface-dark p-4 md:grid-cols-[2fr_1fr_1fr_1fr] gsap-fade-up">
+    <!-- Search -->
+    <div class="relative group neon-border-focus rounded-lg transition-all duration-300">
+        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <span class="material-symbols-outlined text-gray-500 group-focus-within:text-primary transition-colors">search</span>
+        </div>
+        <input id="productSearch" oninput="onSearchInput()" class="block w-full rounded-lg border-border-dark bg-[#111418] py-2.5 pl-10 pr-3 text-sm text-white placeholder-gray-500 focus:border-primary focus:ring-0 transition-colors" placeholder="Tìm kiếm theo tên sản phẩm..." type="text" />
+    </div>
+    <!-- Category Filter -->
+    <div class="relative group neon-border-focus rounded-lg">
+        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <span class="material-symbols-outlined text-gray-500 text-[20px]">category</span>
+        </div>
+        <select id="categoryFilter" onchange="filterProducts()" class="block w-full rounded-lg border-border-dark bg-[#111418] py-2.5 pl-10 pr-8 text-sm text-white focus:border-primary focus:ring-0 appearance-none cursor-pointer">
+            <option value="">Tất Cả Danh Mục</option>
+            @if (ViewBag.Categories != null)
             {
+                foreach (var item in ViewBag.Categories)
+                {
+                    <option value="@item.Id">@item.Name</option>
+                }
+            }
+        </select>
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+            <span class="material-symbols-outlined text-gray-500 text-[20px]">expand_more</span>
+        </div>
+    </div>
+    <!-- Brand Filter -->
+    <div class="relative group neon-border-focus rounded-lg">
+        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <span class="material-symbols-outlined text-gray-500 text-[20px]">branding_watermark</span>
+        </div>
+        <select id="brandFilter" onchange="filterProducts()" class="block w-full rounded-lg border-border-dark bg-[#111418] py-2.5 pl-10 pr-8 text-sm text-white focus:border-primary focus:ring-0 appearance-none cursor-pointer">
+            <option value="">Tất Cả Thương Hiệu</option>
+            @if (ViewBag.Brands != null)
+            {
+                foreach (var item in ViewBag.Brands)
+                {
+                    <option value="@item.BrandId">@item.Name</option>
+                }
+            }
+        </select>
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+            <span class="material-symbols-outlined text-gray-500 text-[20px]">expand_more</span>
+        </div>
+    </div>
+    <!-- Status Filter -->
+    <div class="relative group neon-border-focus rounded-lg">
+        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <span class="material-symbols-outlined text-gray-500 text-[20px]">tune</span>
+        </div>
+        <select id="statusFilter" onchange="filterProducts()" class="block w-full rounded-lg border-border-dark bg-[#111418] py-2.5 pl-10 pr-8 text-sm text-white focus:border-primary focus:ring-0 appearance-none cursor-pointer">
+            <option value="">Tất Cả Trạng Thái</option>
+            <option value="active">Hoạt Động</option>
+            <option value="out_of_stock">Hết Hàng</option>
+        </select>
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+            <span class="material-symbols-outlined text-gray-500 text-[20px]">expand_more</span>
+        </div>
+    </div>
+</div>
+
+<!-- Products Table -->
+<div class="overflow-hidden rounded-xl border border-border-dark bg-surface-dark shadow-xl gsap-fade-up">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-gray-400">
+            <thead class="bg-[#151a20] text-xs uppercase text-gray-300 font-display tracking-wider">
                 <tr>
-                    <td class="text-center">@product.Name</td>
-                    <td class="text-center">@product.Price.ToString("#,##0 VND")</td>
-                    <td class="text-center">@product.Category?.Name</td>
-                    <td class="text-center">
-                        <a href="@Url.Action("Update", "Product", new { id = product.Id })" class="btn btn-warning btn-sm btn-action js-edit-product">
-                            <i class="bi bi-pencil-square"></i> Sửa
-                        </a>
-                        <form action="@Url.Action("Delete", "Product", new { id = product.Id })" method="post" style="display:inline;">
-                            <button type="submit" class="btn btn-danger btn-sm btn-action" onclick="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này không?');">
-                                <i class="bi bi-trash"></i> Xóa
-                            </button>
-                        </form>
-                    </td>
+                    <th class="px-6 py-4 font-bold border-b border-border-dark w-[80px]" scope="col">Hình Ảnh</th>
+                    <th class="px-6 py-4 font-bold border-b border-border-dark" scope="col">Tên Sản Phẩm</th>
+                    <th class="px-6 py-4 font-bold border-b border-border-dark" scope="col">Danh Mục</th>
+                    <th class="px-6 py-4 font-bold border-b border-border-dark" scope="col">Thương Hiệu</th>
+                    <th class="px-6 py-4 font-bold border-b border-border-dark" scope="col">Giá</th>
+                    <th class="px-6 py-4 font-bold border-b border-border-dark" scope="col">Kho</th>
+                    <th class="px-6 py-4 font-bold border-b border-border-dark" scope="col">Trạng Thái</th>
+                    <th class="px-6 py-4 font-bold border-b border-border-dark text-right" scope="col">Thao Tác</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody class="divide-y divide-border-dark font-body">
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr class="group hover:bg-[#202830] transition-colors duration-200">
+                            <td class="px-6 py-4">
+                                <div class="h-12 w-12 overflow-hidden rounded-lg border border-border-dark bg-[#111418] p-1 group-hover:border-primary/50 transition-colors">
+                                    <img alt="@item.Name" class="h-full w-full object-cover rounded" src="@item.ImageUrl" onerror="this.src='/image/logo.png'" />
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="font-medium text-white text-base">@item.Name</div>
+                                <div class="text-xs text-gray-500">ID: @item.Id</div>
+                            </td>
+                            <td class="px-6 py-4">@(item.Category?.Name ?? "N/A")</td>
+                            <td class="px-6 py-4">@(item.Brand?.Name ?? "N/A")</td>
+                            <td class="px-6 py-4 text-white font-medium">@item.Price.ToString("C0")</td>
+                            <td class="px-6 py-4 text-white">
+                                <div class="flex items-center gap-2">
+                                    <div class="h-1.5 w-1.5 rounded-full @(item.Quantity > 0 ? "bg-green-500 shadow-[0_0_5px_#22c55e]" : "bg-red-500 shadow-[0_0_5px_#ef4444]")"></div>
+                                    @item.Quantity cái
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                @if (item.Quantity > 0)
+                                {
+                                    <span class="inline-flex items-center rounded-full bg-green-500/10 px-2.5 py-1 text-xs font-medium text-green-400 ring-1 ring-inset ring-green-500/20 shadow-[0_0_8px_rgba(74,222,128,0.1)]">Hoạt Động</span>
+                                }
+                                else
+                                {
+                                    <span class="inline-flex items-center rounded-full bg-red-500/10 px-2.5 py-1 text-xs font-medium text-red-400 ring-1 ring-inset ring-red-500/20 shadow-[0_0_8px_rgba(248,113,113,0.1)]">Hết Hàng</span>
+                                }
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex justify-end gap-2">
+                                    <a href="@Url.Action("Update", "Product", new { id = item.Id })" onclick="openUpdateProductModal(event, this.href)" class="flex h-8 w-8 items-center justify-center rounded-md text-gray-400 hover:bg-primary/20 hover:text-primary hover:shadow-neon-sm transition-all">
+                                        <span class="material-symbols-outlined text-[18px]">edit</span>
+                                    </a>
+                                    <form action="@Url.Action("DeleteConfirmed", "Product", new { id = item.Id })" method="post" style="display:inline;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này không?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="flex h-8 w-8 items-center justify-center rounded-md text-gray-400 hover:bg-red-500/20 hover:text-red-500 hover:shadow-[0_0_8px_rgba(239,68,68,0.4)] transition-all">
+                                            <span class="material-symbols-outlined text-[18px]">delete</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8" class="px-6 py-4 text-center text-gray-500">Không tìm thấy sản phẩm nào.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <!-- Pagination (Placeholder for UI consistency) -->
+    <div class="flex flex-col items-center justify-between gap-4 border-t border-border-dark bg-[#151a20] px-6 py-4 sm:flex-row">
+        <div class="text-sm text-gray-500">
+            Hiển thị <span class="font-medium text-white">@Model?.Count()</span> kết quả
+        </div>
+
+        <div class="flex items-center gap-2">
+            <!-- Pagination controls hidden or disabled as backend doesn't support paging yet -->
+        </div>
+    </div>
 </div>
 
-<div class="text-center mt-4">
-    <a href="@Url.Action("Add", "Product")" class="btn btn-success btn-lg btn-add-product">
-        <i class="bi bi-plus-circle me-2"></i> Thêm sản phẩm mới
-    </a>
+<script>
+    var searchTimeout;
+    function filterProducts() {
+        var search = document.getElementById('productSearch').value;
+        var categoryId = document.getElementById('categoryFilter').value;
+        var brandId = document.getElementById('brandFilter').value;
+        var status = document.getElementById('statusFilter').value;
+
+        var url = '@Url.Action("ProductIndex", "Dashboard")' + 
+                  '?search=' + encodeURIComponent(search) + 
+                  '&categoryId=' + categoryId + 
+                  '&brandId=' + brandId + 
+                  '&status=' + status;
+
+        fetch(url, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.text())
+        .then(html => {
+            var container = document.getElementById('dashboard-content');
+            container.innerHTML = html;
+            
+            // Re-execute scripts
+            container.querySelectorAll('script').forEach(oldScript => {
+                const newScript = document.createElement('script');
+                Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                oldScript.parentNode.replaceChild(newScript, oldScript);
+            });
+            
+            // Restore UI state
+            var newSearchInput = document.getElementById('productSearch');
+            if(newSearchInput) {
+                newSearchInput.value = search;
+                newSearchInput.focus();
+                // move cursor to end
+                var val = newSearchInput.value;
+                newSearchInput.value = '';
+                newSearchInput.value = val;
+            }
+            
+            if(document.getElementById('categoryFilter')) document.getElementById('categoryFilter').value = categoryId;
+            if(document.getElementById('brandFilter')) document.getElementById('brandFilter').value = brandId;
+            if(document.getElementById('statusFilter')) document.getElementById('statusFilter').value = status;
+
+            // Re-init GSAP
+            if (typeof initDashboardAnimations === 'function') {
+                initDashboardAnimations();
+            }
+        })
+        .catch(error => console.error('Error filtering products:', error));
+    }
+
+    function onSearchInput() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(filterProducts, 500);
+    }
+</script>
+
+<!-- Add Product Modal -->
+<div id="addProductModal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity opacity-0 duration-300" id="modalBackdrop" onclick="closeProductModal()"></div>
+    <!-- Panel -->
+    <div class="absolute inset-0 overflow-y-auto custom-scrollbar">
+        <div class="flex min-h-full items-center justify-center p-4 text-center">
+            <div class="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-[#1c232b] border border-white/10 p-6 text-left align-middle shadow-2xl transition-all opacity-0 scale-95 duration-300 relative" id="modalPanel">
+                <!-- Content injected via AJAX -->
+                <div id="modalContent" class="min-h-[200px]"></div>
+                <!-- Loading State -->
+                <div id="modalLoading" class="absolute inset-0 flex items-center justify-center bg-[#1c232b] z-10 hidden">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- Bootstrap Icons -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
-
-<style>
-    /* Wrapper bảng với viền đen vuông */
-    .product-table-wrapper {
-        border: 2px solid #000;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-        background: #fff;
-        border-radius: 0; /* Vuông */
-        overflow: visible;
-        /* Animation fade-in toàn bảng */
-        animation: fadeIn 1s ease forwards;
+<script>
+    function openAddProductModal(event) {
+        event.preventDefault();
+        openProductModal(event, '@Url.Action("Add", "Product")');
     }
 
-    /* Bảng */
-    .product-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        border-radius: 0;
+    function openUpdateProductModal(event, url) {
+        openProductModal(event, url);
     }
 
-    /* Header */
-    .product-header {
-        background-color: #212529; /* màu tối */
-        color: #fff;
-        font-weight: 700;
-        border-bottom: 3px solid #000;
-        border-radius: 0 !important;
+    function openProductModal(event, url) {
+        event.preventDefault();
+        const modal = document.getElementById('addProductModal');
+        const backdrop = document.getElementById('modalBackdrop');
+        const panel = document.getElementById('modalPanel');
+        const content = document.getElementById('modalContent');
+        const loading = document.getElementById('modalLoading');
+
+        // Show Modal
+        modal.classList.remove('hidden');
+        // Animate In
+        requestAnimationFrame(() => {
+            backdrop.classList.remove('opacity-0');
+            panel.classList.remove('opacity-0', 'scale-95');
+            panel.classList.add('opacity-100', 'scale-100');
+        });
+
+        // Show Loading
+        loading.classList.remove('hidden');
+
+        // Fetch Content
+        fetch(url, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.text())
+        .then(html => {
+            content.innerHTML = html;
+            loading.classList.add('hidden');
+            
+            // Execute scripts in the loaded content (e.g. TinyMCE, Image Preview)
+            content.querySelectorAll('script').forEach(oldScript => {
+                const newScript = document.createElement('script');
+                Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                oldScript.parentNode.replaceChild(newScript, oldScript);
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            loading.classList.add('hidden');
+            content.innerHTML = '<div class="text-red-500 text-center p-4">Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại.</div>';
+        });
     }
 
-        .product-header th {
-            padding: 12px 15px;
-            border: 1px solid #000;
-            vertical-align: middle;
-            user-select: none;
-            transition: background-color 0.3s ease;
+    function closeProductModal() {
+        const modal = document.getElementById('addProductModal');
+        const backdrop = document.getElementById('modalBackdrop');
+        const panel = document.getElementById('modalPanel');
+
+        // Animate Out
+        backdrop.classList.add('opacity-0');
+        panel.classList.remove('opacity-100', 'scale-100');
+        panel.classList.add('opacity-0', 'scale-95');
+
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            document.getElementById('modalContent').innerHTML = ''; // Clear content
+        }, 300);
+    }
+
+    function submitAddProductForm(event) {
+        event.preventDefault();
+        
+        if (window.tinymce) {
+            tinymce.triggerSave();
         }
 
-            .product-header th:hover {
-                background-color: #343a40;
-                cursor: default;
+        const form = event.target;
+        const formData = new FormData(form);
+        const loading = document.getElementById('modalLoading');
+        
+        // Show loading
+        loading.classList.remove('hidden');
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => {
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                return response.json().then(data => {
+                    return { type: 'json', data: data };
+                });
+            } else {
+                return response.text().then(html => {
+                    return { type: 'html', content: html };
+                });
             }
-
-    /* Các ô trong tbody */
-    tbody tr:nth-child(odd) {
-        background-color: #f8f9fa;
-        transition: background-color 0.3s ease;
+        })
+        .then(res => {
+            loading.classList.add('hidden');
+            
+            if (res.type === 'json' && res.data.success) {
+                // Success: Close modal and reload product list
+                closeProductModal();
+                
+                // Reload the product tab using the global loadTabContent function
+                if (typeof loadTabContent === 'function') {
+                    loadTabContent('product');
+                } else {
+                    window.location.reload();
+                }
+            } else {
+                // Validation Error: Update modal content with the returned HTML
+                const content = document.getElementById('modalContent');
+                content.innerHTML = res.content;
+                
+                // Re-execute scripts in the new form (e.g. TinyMCE, validation scripts)
+                content.querySelectorAll('script').forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            loading.classList.add('hidden');
+            alert("Có lỗi xảy ra. Vui lòng thử lại.");
+        });
     }
-
-    tbody tr:nth-child(even) {
-        background-color: #e9ecef;
-        transition: background-color 0.3s ease;
-    }
-
-    tbody tr:hover {
-        background-color: #d1e7dd !important;
-        box-shadow: inset 0 0 10px #93c6a1;
-        cursor: pointer;
-    }
-
-    tbody td {
-        padding: 12px 15px;
-        border: 1px solid #000;
-        vertical-align: middle;
-        transition: color 0.3s ease;
-    }
-
-    /* Nút hành động */
-    .btn-action {
-        border-radius: 6px;
-        font-weight: 600;
-        transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
-    }
-
-        .btn-action:hover {
-            transform: scale(1.12) rotate(-2deg);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-            background-color: #ffc107 !important; /* Màu vàng nổi bật khi hover cho btn-warning */
-            color: #000 !important;
-        }
-
-    .btn-danger.btn-action:hover {
-        background-color: #dc3545 !important;
-        transform: scale(1.1) rotate(2deg);
-        box-shadow: 0 6px 12px rgba(220, 53, 69, 0.5);
-        color: #fff !important;
-    }
-
-    /* Nút Thêm sản phẩm */
-    .btn-add-product {
-        border-radius: 8px;
-        font-weight: 700;
-        background: linear-gradient(45deg, #28a745, #218838);
-        border-color: #218838;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-        .btn-add-product:hover {
-            transform: scale(1.15) rotate(-1deg);
-            box-shadow: 0 8px 16px rgba(33, 136, 56, 0.7);
-        }
-
-    /* Icon nhỏ bên cạnh text */
-    .bi {
-        vertical-align: -.125em;
-        margin-right: 6px;
-        transition: transform 0.3s ease;
-    }
-    /* Icon hơi nhảy khi hover nút */
-    .btn:hover .bi {
-        transform: translateX(3px) rotate(15deg);
-    }
-
-    /* Canh giữa */
-    .text-center {
-        text-align: center !important;
-    }
-
-    /* === Animation keyframes === */
-
-    @@keyframes fadeIn {
-        from
-
-    {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-
-    }
-
-    @@keyframes fadeInUp {
-        from
-
-    {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    }
-
-    /* Ẩn các dòng ban đầu, cho animation chạy */
-    tbody tr {
-        opacity: 0;
-        animation: fadeInUp 0.5s ease forwards;
-    }
-
-        /* Delay animation cho từng dòng, tạo hiệu ứng lần lượt */
-        tbody tr:nth-child(1) {
-            animation-delay: 0.1s;
-        }
-
-        tbody tr:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        tbody tr:nth-child(3) {
-            animation-delay: 0.3s;
-        }
-
-        tbody tr:nth-child(4) {
-            animation-delay: 0.4s;
-        }
-
-        tbody tr:nth-child(5) {
-            animation-delay: 0.5s;
-        }
-
-        tbody tr:nth-child(6) {
-            animation-delay: 0.6s;
-        }
-
-        tbody tr:nth-child(7) {
-            animation-delay: 0.7s;
-        }
-
-        tbody tr:nth-child(8) {
-            animation-delay: 0.8s;
-        }
-
-        tbody tr:nth-child(9) {
-            animation-delay: 0.9s;
-        }
-
-        tbody tr:nth-child(10) {
-            animation-delay: 1s;
-        }
-
-</style>
+</script>

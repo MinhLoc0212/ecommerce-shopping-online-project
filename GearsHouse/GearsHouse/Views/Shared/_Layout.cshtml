@@ -8,397 +8,336 @@
 }
 
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="vi">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>@ViewData["Title"] - GEARSHOUSE</title>
+    
+    <!-- Original CSS (Keep for compatibility) -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/WebBanHang.styles.css" asp-append-version="true" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
 
+    <!-- New Design Dependencies -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0d7ff2",
+                        "accent-purple": "#a855f7",
+                        "accent-cyan": "#06b6d4",
+                        "accent-red": "#ef4444",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0a0f16",
+                        "surface-dark": "#111822",
+                        "surface-light": "#1a222f",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"]
+                    },
+                    boxShadow: {
+                        'neon': '0 0 10px rgba(13, 127, 242, 0.5), 0 0 20px rgba(13, 127, 242, 0.3)',
+                        'neon-hover': '0 0 15px rgba(13, 127, 242, 0.8), 0 0 30px rgba(13, 127, 242, 0.4)',
+                        'neon-purple': '0 0 10px rgba(168, 85, 247, 0.5), 0 0 20px rgba(168, 85, 247, 0.3)',
+                        'neon-cyan': '0 0 10px rgba(6, 182, 212, 0.5), 0 0 20px rgba(6, 182, 212, 0.3)',
+                        'neon-red': '0 0 10px rgba(239, 68, 68, 0.5), 0 0 20px rgba(239, 68, 68, 0.3)',
+                    },
+                    backgroundImage: {
+                        'cyber-gradient': 'linear-gradient(135deg, #0d7ff2 0%, #a855f7 50%, #ef4444 100%)',
+                        'accent-gradient': 'linear-gradient(45deg, #a855f7 0%, #06b6d4 100%)',
+                    }
+                },
+            },
+        }
+    </script>
     <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }
-
-        .navbar-custom {
-            background: linear-gradient(90deg, #ff5722, #ff9800);
-            height: 96px; /* Giữ nguyên chiều cao navbar, chỉ phóng to logo */
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-        /* Giảm padding brand để ảnh tối đa chiều cao navbar */
-        .navbar-custom .navbar-brand {
-            padding-top: 0;
-            padding-bottom: 0;
-        }
-
-        /* Khóa font navbar để không bị CSS trang con ghi đè */
-        .navbar,
-        .navbar .nav-link,
-        .navbar .dropdown-item {
-            font-family: 'Arial', sans-serif !important;
-        }
-
-        .navbar-brand img {
-            height: 92px; /* Phóng to tối đa trong navbar 96px */
-            width: auto;
-        }
-
-        .nav-link {
-            color: #fff !important;
-            font-weight: 600;
-            font-size: 16px !important; /* Ép cố định cỡ chữ */
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-            .nav-link:hover {
-                color: #ffc107 !important;
-            }
-
-        .btn-cart-custom {
-            color: #fff !important;
-            border: 2px solid #fff;
-            transition: 0.3s;
-        }
-
-            .btn-cart-custom:hover {
-                background-color: #ffc107;
-                color: #000 !important;
-                border-color: #ffc107;
-            }
-
-        body {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            padding-top: 96px; /* Bù đúng chiều cao navbar 96px */
-        }
-
-        /* Responsive: thu nhỏ trên thiết bị nhỏ để không chiếm quá nhiều không gian */
-        @@media (max-width: 992px) {
-            .navbar-custom { height: 96px; }
-            body { padding-top: 96px; }
-            .navbar-brand img { height: 80px; }
-        }
-
-        main {
-            flex: 1 0 auto;
-        }
-
-        footer {
-            flex-shrink: 0;
-        }
-
-        /* Dropdown Animation */
-        .navbar-nav .nav-item.dropdown > .dropdown-menu {
-            display: block;
-            opacity: 0;
-            visibility: hidden;
-            transform-origin: top center;
-            transform: scaleY(0);
-            transition: transform 0.4s ease-in-out, opacity 0.6s ease-in-out;
-            pointer-events: none;
-        }
-
-        .navbar-nav .nav-item.dropdown:hover > .dropdown-menu {
-            opacity: 1;
-            visibility: visible;
-            transform: scaleY(1);
-            pointer-events: auto;
-        }
-
-        /* Enhanced Marquee Styling */
-        .marquee-container {
-            max-width: 420px;
-            overflow: hidden;
-            background: rgba(255, 255, 255, 0.15);
-            border: 2px solid #ffc107;
-            border-radius: 25px;
-            padding: 8px 15px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.25);
-            transition: transform 0.3s ease;
-            position: relative;
-        }
-
-            .marquee-container::before,
-            .marquee-container::after {
-                content: "";
-                position: absolute;
-                top: 0;
-                bottom: 0;
-                width: 40px;
-                pointer-events: none;
-                z-index: 2;
-            }
-
-            .marquee-container::before {
-                left: 0;
-                background: linear-gradient(to right, rgba(34,34,34,0.9) 0%, transparent 100%);
-            }
-
-            .marquee-container::after {
-                right: 0;
-                background: linear-gradient(to left, rgba(34,34,34,0.9) 0%, transparent 100%);
-            }
-
-            .marquee-container:hover {
-                transform: scale(1.07);
-                animation-play-state: paused;
-            }
-
-        .marquee {
-            display: inline-block;
-            white-space: nowrap;
-            animation: marquee 12s linear infinite;
-            will-change: transform;
-            /* Use GPU acceleration for smoother animation */
-            transform: translate3d(0,0,0);
-        }
-
-            .marquee span {
-                display: inline-flex;
-                align-items: center;
-                gap: 10px;
-                font-weight: 700;
-                color: #fff;
-                font-size: 1.15rem;
-            }
-
-            .marquee i {
-                color: #ffc107;
-                font-size: 1.3rem;
-            }
-
-        /* Animation keyframes */
-        @@keyframes marquee
+        .text-glow { text-shadow: 0 0 10px rgba(13, 127, 242, 0.5); }
+        .text-glow-purple { text-shadow: 0 0 10px rgba(168, 85, 247, 0.5); }
+        .text-glow-red { text-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+        .text-glow-cyan { text-shadow: 0 0 10px rgba(6, 182, 212, 0.5); }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .navbar-reset a { text-decoration: none; }
+    </style>
+    @RenderSection("Styles", required: false)
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-x-hidden selection:bg-accent-purple selection:text-white">
+    <div class="relative flex min-h-screen w-full flex-col group/design-root">
+        @if (!hideLayout)
         {
-                0% {
-                    transform: translateX(100%);
-                }
+        <header class="sticky top-0 z-50 w-full backdrop-blur-md bg-background-dark/90 border-b border-white/5">
+            <div class="layout-container mx-auto max-w-[1280px] px-4 md:px-6">
+                <div class="flex items-center justify-between h-20 gap-4">
+                    <a class="flex items-center gap-3 text-white shrink-0 group cursor-pointer" asp-controller="Home" asp-action="Index">
+                        <div class="size-10 flex items-center justify-center rounded bg-gradient-to-br from-primary/20 to-accent-purple/20 text-white border border-white/10 shadow-neon group-hover:shadow-neon-purple transition-all duration-300">
+                            <span class="material-symbols-outlined text-3xl text-transparent bg-clip-text bg-gradient-to-br from-primary to-accent-purple">sports_esports</span>
+                        </div>
+                        <h2 class="text-white text-xl font-bold tracking-wider uppercase hidden md:block group-hover:text-glow-purple transition-all">Gear<span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent-purple">House</span></h2>
+                    </a>
+                    
+                    <div class="flex-1 max-w-xl mx-4 hidden sm:block">
+                         <form asp-controller="Product" asp-action="Index" method="get" class="w-full relative group">
+                            <span class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 group-focus-within:text-accent-cyan transition-colors">search</span>
+                            <input id="navbarSearch" name="keyword" class="w-full bg-surface-dark border border-white/10 rounded-full py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-accent-cyan focus:border-accent-cyan transition-all shadow-inner" placeholder="Tìm kiếm sản phẩm..." type="text" autocomplete="off" />
+                            <div id="navbarSuggestions" class="dropdown-menu w-full shadow absolute top-full left-0 mt-1 bg-surface-dark border border-white/10 rounded-lg z-50" style="display: none; max-height: 320px; overflow-y: auto;"></div>
+                        </form>
+                    </div>
 
-                100% {
-                    transform: translateX(-100%);
-                }
-            }
+                    <div class="flex items-center gap-6">
+                        <nav class="hidden lg:flex items-center gap-6 navbar-reset">
+                            <a class="text-sm font-medium hover:text-accent-cyan transition-colors hover:text-glow-cyan hover:scale-105 transform duration-200" asp-controller="Home" asp-action="Index">Trang chủ</a>
+                            
+                            <a class="text-sm font-medium hover:text-accent-purple transition-colors hover:text-glow-purple cursor-pointer" asp-controller="Product" asp-action="Index">Sản phẩm</a>
 
-            /* Responsive adjustments for marquee */
-            @@media (max-width: 991px) {
-                    .marquee-container {
-                        max-width: 100%;
-                        margin-top: 10px;
-                        text-align: center;
-                    }
-
-                    .marquee {
-                        animation: none;
-                        transform: none;
-                    }
-
-                        .marquee span {
-                            padding-left: 0;
-                            display: block;
-                            justify-content: center;
-                        }
-
-                    .marquee-container::before,
-                    .marquee-container::after {
-                        display: none;
-                    }
-                }
-
-                .cart-count-badge {
-                    position: absolute;
-                    top: -8px;
-                    right: -8px;    
-                    background-color: #FF0000;
-                    color: black;
-                    font-weight: bold;
-                    border-radius: 50%;
-                    padding: 4px 8px;
-                    font-size: 0.8rem;
-                    animation: none;
-                    transition: transform 0.3s ease;
-                    box-shadow: 0 0 5px rgba(0,0,0,0.2);
-                }
-
-                    .cart-count-badge.animate-bounce {
-                        animation: bounce 0.4s ease;
-                    }
-
-                @@keyframes bounce {
-                    0%
-
-                {
-                    transform: scale(1);
-                }
-
-                50% {
-                    transform: scale(1.3);
-                }
-
-                100% {
-                    transform: scale(1);
-                }
-
-                }
-            </style>
-            @RenderSection("Styles", required: false)
-        </head>
-        <body>
-            @if (!hideLayout)
-            {
-                <header>
-                    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top">
-                        <div class="container-fluid">
-                            <a class="navbar-brand d-flex align-items-center gap-2" asp-area="" asp-controller="Home" asp-action="Index">
-                                <img src="~/image/logoo.png" alt="Logo" />
-                                @* Đã bỏ chữ GEARSHOUSE ở đây *@
-                            </a>
-                            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
-                                <span class="navbar-toggler-icon"></span>
-                            </button>
-                            <div class="collapse navbar-collapse" id="mainNavbar">
-                                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                                    <li class="nav-item">
-                                        <a class="nav-link" asp-controller="Product" asp-action="Index"><i class="bi bi-box-seam"></i> Sản phẩm</a>
-                                    </li>
-                                    <li class="nav-item dropdown">
-                                        <a class="nav-link dropdown-toggle" href="#" id="categoryDropdown" role="button" data-bs-toggle="dropdown">
-                                            <i class="bi bi-list-ul"></i> Danh mục
-                                        </a>
-                                        <ul class="dropdown-menu" aria-labelledby="categoryDropdown">
-                                            @foreach (var category in categories ?? new List<GearsHouse.Models.Category>())
-                                            {
-                                                <li><a class="dropdown-item" asp-controller="Product" asp-action="Index" asp-route-categoryId="@category.Id">@category.Name</a></li>
-                                            }
-                                        </ul>
-                                    </li>
-                                    <li class="nav-item dropdown">
-                                        <a class="nav-link dropdown-toggle" href="#" id="brandDropdown" role="button" data-bs-toggle="dropdown">
-                                            <i class="bi bi-tags"></i> Thương hiệu
-                                        </a>
-                                        <ul class="dropdown-menu" aria-labelledby="brandDropdown">
-                                            @foreach (var brand in brands ?? new List<GearsHouse.Models.Brand>())
-                                            {
-                                                <li><a class="dropdown-item" asp-controller="Product" asp-action="Index" asp-route-brandId="@brand.BrandId">@brand.Name</a></li>
-                                            }
-                                        </ul>
-                                    </li>
-                                </ul>
-                                <!-- Marquee removed as requested -->
-                                <!-- Search form on navbar with suggestions -->
-                                <form asp-controller="Product" asp-action="Index" method="get" class="d-flex mx-3 my-2 my-lg-0 position-relative flex-grow-1" role="search">
-                                    <div class="input-group w-100">
-                                        <input id="navbarSearch" class="form-control" type="search" placeholder="Tìm kiếm sản phẩm" name="keyword" aria-label="Tìm kiếm sản phẩm" autocomplete="off">
-                                        <button class="btn btn-outline-light" type="submit" aria-label="Tìm kiếm">
-                                            <i class="bi bi-search"></i>
-                                        </button>
+                            <div class="relative group h-full flex items-center">
+                                <div class="absolute top-10 left-0 w-48 bg-surface-dark border border-white/10 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                                    <ul class="py-2 bg-surface-dark rounded-lg">
+                                        @foreach (var category in categories ?? new List<GearsHouse.Models.Category>())
+                                        {
+                                            <li><a class="block px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5" asp-controller="Product" asp-action="Index" asp-route-categoryId="@category.Id">@category.Name</a></li>
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                        </nav>
+                        <div class="flex gap-3">
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                <div class="relative group h-full flex items-center">
+                                    <a href="/Order/Tracking" class="relative p-2 text-white hover:text-primary hover:bg-primary/10 rounded-full transition-colors">
+                                        <span class="material-symbols-outlined">receipt_long</span>
+                                    </a>
+                                    <div class="absolute top-full right-0 mt-2 w-72 bg-surface-dark border border-white/10 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                                        <div class="px-3 py-2 border-b border-white/10 flex justify-between items-center bg-surface-light rounded-t-lg">
+                                            <span class="text-xs font-bold text-white uppercase tracking-wider">Đơn hàng của bạn</span>
+                                            <a href="/Order/Tracking" class="text-[10px] text-primary hover:text-white transition-colors uppercase font-bold">Xem tất cả</a>
+                                        </div>
+                                        <div id="header-orders-list" class="max-h-64 overflow-y-auto">
+                                            <div class="p-3 text-center text-slate-500 text-xs">Đang tải...</div>
+                                        </div>
                                     </div>
-                                    <div id="navbarSuggestions" class="dropdown-menu w-100 shadow position-absolute top-100 start-0 mt-1" style="display: none; max-height: 320px; overflow-y: auto;"></div>
-                                </form>
-                                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                                    @if (User.Identity.IsAuthenticated)
-                                    {
-                                        <li class="nav-item dropdown">
-                                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                                                <i class="bi bi-person-circle"></i> @User.Identity.Name
-                                            </a>
-                                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                                <li><a class="dropdown-item" href="/Identity/Account/Manage">Tài khoản</a></li>
-                                                <li><a class="dropdown-item" href="/Identity/Account/Logout">Đăng xuất</a></li>
-                                            </ul>
-                                        </li>
-                                    }
-                                    else
-                                    {
-                                        <li class="nav-item">
-                                            <a class="nav-link" href="/Identity/Account/Login"><i class="bi bi-box-arrow-in-right"></i> Đăng nhập</a>
-                                        </li>
-                                    }
-                                    <li class="nav-item">
-                                        <a class="nav-link" asp-controller="Order" asp-action="Tracking">Đơn hàng của bạn</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="/ShoppingCart" class="position-relative btn btn-cart-custom ms-2 d-flex align-items-center">
-                                            <i class="bi bi-cart-fill fs-5 me-1"></i> Cart
-                                            <span id="cart-count" class="cart-count-badge">0</span>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </nav>
-                </header>
-            }
-            <main role="main" class="flex-grow-1 pb-3">
-                <div class="col py-3 px-0">
-                    @RenderBody()
-                </div>
-            </main>
-            @await Html.PartialAsync("_ChatWidget")
-            @if (!hideLayout)
-            {
-                <footer class="bg-dark text-white pt-5 pb-4 mt-auto">
-                    <div class="container text-md-left">
-                        <div class="row text-md-left">
-                            <div class="col-md-4 col-lg-4 col-xl-4 mx-auto mt-3">
-                                <h5 class="text-uppercase mb-4 font-weight-bold text-warning">SPORTSHOUSE</h5>
-                                <p>Đồng hành cùng bạn trên hành trình thể thao đỉnh cao.</p>
-                            </div>
-                            <div class="col-md-3 col-lg-3 col-xl-3 mx-auto mt-3">
-                                <h5 class="text-uppercase mb-4 font-weight-bold text-warning">Liên hệ</h5>
-                                <p><i class="fas fa-home me-3"></i> 123 Đường Thể Thao, TP.HCM</p>
-                                <p><i class="fas fa-envelope me-3"></i> support@sportshouse.com</p>
-                                <p><i class="fas fa-phone me-3"></i> +84 123 456 789</p>
-                                <p><i class="fas fa-print me-3"></i> +84 987 654 321</p>
-                            </div>
-                            <div class="col-md-4 col-lg-4 col-xl-4 mx-auto mt-3">
-                                <h5 class="text-uppercase mb-4 font-weight-bold text-warning">Mạng xã hội</h5>
-                                <p>
-                                    <a href="#" class="text-white me-4"><i class="fab fa-facebook-f"></i></a>
-                                    <a href="#" class="text-white me-4"><i class="fab fa-twitter"></i></a>
-                                    <a href="#" class="text-white me-4"><i class="fab fa-instagram"></i></a>
-                                    <a href="#" class="text-white me-4"><i class="fab fa-linkedin-in"></i></a>
-                                </p>
-                            </div>
-                        </div>
-                        <hr class="mb-4" />
-                        <div class="row align-items-center">
-                            <div class="col-md-7 col-lg-8">
-                                <p>© 2025 GEARSHOUSE. All rights reserved.</p>
-                            </div>
+                                </div>
+                            }
+
+                            <a href="/ShoppingCart" class="relative p-2 text-white hover:text-accent-cyan hover:bg-accent-cyan/10 rounded-full transition-colors group">
+                                <span class="material-symbols-outlined">shopping_cart</span>
+                                <span id="cart-count" class="absolute top-0 right-0 h-4 w-4 rounded-full bg-accent-cyan shadow-neon-cyan animate-pulse text-[10px] flex items-center justify-center text-black font-bold">0</span>
+                            </a>
+                            
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                <div class="relative" id="userMenuContainer">
+                                    <button onclick="toggleUserMenu(event)" class="flex items-center gap-2 p-2 text-white hover:text-accent-purple hover:bg-accent-purple/10 rounded-full transition-colors">
+                                        <span class="material-symbols-outlined">person</span>
+                                        <span class="text-sm font-bold max-w-[100px] truncate hidden md:block">@User.Identity.Name</span>
+                                    </button>
+                                     <div id="userMenuDropdown" class="absolute top-full right-0 w-48 bg-surface-dark border border-white/10 rounded-lg shadow-xl opacity-0 invisible transition-all duration-300 z-50 mt-2">
+                                        <div class="px-4 py-2 border-b border-white/10 text-sm text-white font-bold truncate md:hidden">@User.Identity.Name</div>
+                                        <a href="#" onclick="openAuthModal('login'); return false;" class="block px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5">Đổi tài khoản</a>
+                                        <form class="block w-full" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
+                                            <button type="submit" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 bg-transparent border-0">Đăng xuất</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <button onclick="openAuthModal('login'); return false;" class="p-2 text-white hover:text-accent-purple hover:bg-accent-purple/10 rounded-full transition-colors">
+                                    <span class="material-symbols-outlined">person</span>
+                                </button>
+                            }
+
+                            <button class="lg:hidden p-2 text-white hover:text-primary hover:bg-white/5 rounded-full transition-colors" data-bs-toggle="collapse" data-bs-target="#mobileMenu">
+                                <span class="material-symbols-outlined">menu</span>
+                            </button>
                         </div>
                     </div>
-                </footer>
-            }
-            <script src="~/lib/jquery/dist/jquery.min.js"></script>
-            <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-            @RenderSection("Scripts", required: false)
+                </div>
+                <div class="collapse lg:hidden" id="mobileMenu">
+                    <div class="bg-surface-dark p-4 rounded-b-lg border-t border-white/10">
+                        <a class="block py-2 text-white" asp-controller="Home" asp-action="Index">Trang chủ</a>
+                        <a class="block py-2 text-white" asp-controller="Product" asp-action="Index">Sản phẩm</a>
+                        <div class="py-2 text-white font-bold">Danh mục</div>
+                        <div class="pl-4 border-l border-white/10 ml-2">
+                             @foreach (var category in categories ?? new List<GearsHouse.Models.Category>())
+                            {
+                                <a class="block py-1 text-slate-400 hover:text-white text-sm" asp-controller="Product" asp-action="Index" asp-route-categoryId="@category.Id">@category.Name</a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        }
+
+        <main role="main" class="flex-grow-1">
+             @RenderBody()
+        </main>
+
+        @if (!hideLayout)
+        {
+        <footer class="bg-surface-dark border-t border-white/10 pt-16 pb-8 relative overflow-hidden">
+             <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent-purple to-transparent opacity-50"></div>
+            <div class="layout-container mx-auto max-w-[1280px] px-4 md:px-6 relative z-10">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+                    <div class="flex flex-col gap-4">
+                        <div class="flex items-center gap-2 text-white">
+                            <div class="size-8 flex items-center justify-center rounded bg-primary/20 text-primary border border-primary/50">
+                                <span class="material-symbols-outlined text-xl">sports_esports</span>
+                            </div>
+                            <h2 class="text-white text-lg font-bold uppercase">Gear<span class="text-primary">House</span></h2>
+                        </div>
+                        <p class="text-slate-400 text-sm font-body leading-relaxed">
+                            The ultimate destination for premium gaming gear. We equip players with the technology to win.
+                        </p>
+                        <div class="flex gap-4 mt-2">
+                            <a class="h-10 w-10 rounded bg-white/5 flex items-center justify-center text-slate-400 hover:text-accent-purple hover:bg-white/10 hover:shadow-neon-purple transition-all duration-300" href="#">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            <a class="h-10 w-10 rounded bg-white/5 flex items-center justify-center text-slate-400 hover:text-accent-cyan hover:bg-white/10 hover:shadow-neon-cyan transition-all duration-300" href="#">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                            <a class="h-10 w-10 rounded bg-white/5 flex items-center justify-center text-slate-400 hover:text-accent-red hover:bg-white/10 hover:shadow-neon-red transition-all duration-300" href="#">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-bold mb-4">Shop</h3>
+                        <ul class="flex flex-col gap-3 text-sm text-slate-400 font-body">
+                            <li><a class="hover:text-accent-cyan transition-colors" asp-controller="Product" asp-action="Index">Gaming Mice</a></li>
+                            <li><a class="hover:text-accent-purple transition-colors" asp-controller="Product" asp-action="Index">Keyboards</a></li>
+                            <li><a class="hover:text-accent-red transition-colors" asp-controller="Product" asp-action="Index">Headsets</a></li>
+                            <li><a class="hover:text-primary transition-colors" asp-controller="Product" asp-action="Index">Monitors</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-bold mb-4">Support</h3>
+                        <ul class="flex flex-col gap-3 text-sm text-slate-400 font-body">
+                            <li><a class="hover:text-primary transition-colors" href="#">Help Center</a></li>
+                            <li><a class="hover:text-primary transition-colors" href="#">Returns &amp; Warranty</a></li>
+                            <li><a class="hover:text-primary transition-colors" href="#">Contact Us</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-bold mb-4">Company</h3>
+                        <ul class="flex flex-col gap-3 text-sm text-slate-400 font-body">
+                            <li><a class="hover:text-accent-purple transition-colors" href="#">About Us</a></li>
+                            <li><a class="hover:text-accent-purple transition-colors" href="#">Careers</a></li>
+                            <li><a class="hover:text-accent-purple transition-colors" href="#">Press</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500 font-body">
+                    <p>© 2025 GEARSHOUSE. All rights reserved.</p>
+                    <div class="flex gap-6">
+                        <a class="hover:text-white transition-colors" href="#">Privacy Policy</a>
+                        <a class="hover:text-white transition-colors" href="#">Terms of Service</a>
+                        <a class="hover:text-white transition-colors" href="#">Cookie Settings</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        }
+    </div>
+
+    @await Html.PartialAsync("_ChatWidget")
+    <partial name="_AuthModal" />
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- GSAP Animation Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    @RenderSection("Scripts", required: false)
+    
     <script>
+        // Global GSAP Animations
+        function initGlobalAnimations() {
+            if (typeof gsap !== 'undefined') {
+                gsap.registerPlugin(ScrollTrigger);
+                
+                // Fade Up Animation
+                const fadeElements = document.querySelectorAll('.gsap-fade-up');
+                if (fadeElements.length > 0) {
+                    gsap.fromTo(fadeElements, 
+                        { y: 30, opacity: 0 },
+                        { 
+                            y: 0, 
+                            opacity: 1, 
+                            duration: 0.6, 
+                            stagger: 0.1, 
+                            ease: "back.out(1.2)",
+                            clearProps: "transform",
+                            scrollTrigger: {
+                                trigger: fadeElements[0],
+                                start: "top 85%"
+                            }
+                        }
+                    );
+                }
+            }
+        }
+
         $(document).ready(function () {
+            // Init GSAP
+            initGlobalAnimations();
+
             $.ajax({
                 url: '/ShoppingCart/GetCartItemCount',
                 type: 'GET',
                 success: function (data) {
                     $('#cart-count').text(data.count);
                 },
-                error: function () {
-                    console.error('Không thể lấy số lượng giỏ hàng.');
-                }
+                error: function () { console.error('Error fetching cart count.'); }
             });
+
+            // Fetch recent orders if logged in
+            if ($('#header-orders-list').length) {
+                $.get('/Order/GetRecentOrdersJson', function(data) {
+                    var $list = $('#header-orders-list');
+                    $list.empty();
+                    if (!data || data.length === 0) {
+                        $list.append('<div class="p-3 text-center text-slate-500 text-xs">Chưa có đơn hàng nào.</div>');
+                        return;
+                    }
+                    data.forEach(function(o) {
+                        var statusColor = 'text-blue-400';
+                        if (o.status === 'HoanThanh') statusColor = 'text-green-400';
+                        else if (o.status === 'HuyDon') statusColor = 'text-red-400';
+                        else if (o.status === 'DangXuLy') statusColor = 'text-yellow-400';
+                        else if (o.status === 'ChoXacNhan') statusColor = 'text-orange-400';
+                        
+                        var html = `
+                            <a href="/Order/Tracking" class="flex items-center justify-between p-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 group/item">
+                                <div class="flex flex-col gap-0.5">
+                                    <span class="text-xs font-bold text-white group-hover/item:text-primary transition-colors">#${o.id}</span>
+                                    <span class="text-[10px] text-slate-400">${o.date} • ${o.itemCount} sản phẩm</span>
+                                </div>
+                                <div class="flex flex-col items-end gap-0.5">
+                                    <span class="text-xs font-bold text-white">${o.total}</span>
+                                    <span class="text-[10px] ${statusColor} font-medium">${o.status}</span>
+                                </div>
+                            </a>
+                        `;
+                        $list.append(html);
+                    });
+                }).fail(function() {
+                    $('#header-orders-list').html('<div class="p-3 text-center text-red-400 text-xs">Lỗi tải dữ liệu.</div>');
+                });
+            }
         });
-    </script>
-    <script>
-        $(function(){
+
+         $(function(){
             var $input = $('#navbarSearch');
             var $suggest = $('#navbarSuggestions');
             var debounceTimer;
@@ -411,10 +350,10 @@
                 }
                 items.forEach(function(item){
                     var $a = $('<a/>', {
-                        class: 'dropdown-item d-flex align-items-center gap-2',
+                        class: 'block px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2',
                         href: '/Product/Display/' + item.id
                     });
-                    var $img = $('<img/>', {
+                     var $img = $('<img/>', {
                         src: item.imageUrl || '/image/logo.png',
                         alt: item.name,
                         width: 32,
@@ -439,7 +378,7 @@
                 }, 250);
             });
 
-            $input.on('focus', function(){
+             $input.on('focus', function(){
                 if ($suggest.children().length) { $suggest.show(); }
             });
             $(document).on('click', function(e){
@@ -449,6 +388,29 @@
             });
         });
     </script>
+    <script>
+        function toggleUserMenu(e) {
+            if(e) e.stopPropagation();
+            var menu = document.getElementById('userMenuDropdown');
+            if (!menu) return;
+            
+            if (menu.classList.contains('invisible')) {
+                menu.classList.remove('invisible', 'opacity-0');
+                menu.classList.add('visible', 'opacity-100');
+            } else {
+                menu.classList.add('invisible', 'opacity-0');
+                menu.classList.remove('visible', 'opacity-100');
+            }
+        }
 
-        </body>
-        </html>
+        document.addEventListener('click', function(e) {
+            var menu = document.getElementById('userMenuDropdown');
+            var container = document.getElementById('userMenuContainer');
+            if (menu && !menu.classList.contains('invisible') && container && !container.contains(e.target)) {
+                menu.classList.add('invisible', 'opacity-0');
+                menu.classList.remove('visible', 'opacity-100');
+            }
+        });
+    </script>
+</body>
+</html>

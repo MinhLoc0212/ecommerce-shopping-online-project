@@ -1,4 +1,4 @@
-﻿using GearsHouse.Models;
+using GearsHouse.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -37,12 +37,37 @@ namespace GearsHouse.Controllers
             var userId = _userManager.GetUserId(User);
             var thread = await _context.ChatThreads.FirstOrDefaultAsync(t => t.Id == threadId);
             if (thread == null) return NotFound();
-            if (thread.CustomerId != userId && !User.IsInRole(Roles.Role_Admin) && !User.IsInRole(Roles.Role_Employee)) return Forbid();
+            var isStaff = User.IsInRole(Roles.Role_Admin) || User.IsInRole(Roles.Role_Employee);
+            if (thread.CustomerId != userId && !isStaff) return Forbid();
+
+            if (isStaff)
+            {
+                var unreadMessages = await _context.ChatMessages
+                    .Where(m => m.ThreadId == threadId && !m.IsStaff && !m.IsRead)
+                    .ToListAsync();
+                if (unreadMessages.Any())
+                {
+                    foreach (var msg in unreadMessages) msg.IsRead = true;
+                    await _context.SaveChangesAsync();
+                }
+            }
+
             var query = _context.ChatMessages.Where(m => m.ThreadId == threadId).OrderBy(m => m.Id);
             if (afterId.HasValue) query = query.Where(m => m.Id > afterId.Value).OrderBy(m => m.Id);
             var list = await query.Take(200).ToListAsync();
             var res = list.Select(m => new { id = m.Id, content = m.Content, isStaff = m.IsStaff, at = m.CreatedAt.ToString("HH:mm dd/MM/yyyy") });
             return Json(res);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetUnreadCount()
+        {
+            if (User.IsInRole(Roles.Role_Admin) || User.IsInRole(Roles.Role_Employee))
+            {
+                var count = await _context.ChatMessages.CountAsync(m => !m.IsStaff && !m.IsRead);
+                return Json(new { count });
+            }
+            return Json(new { count = 0 });
         }
 
         [HttpPost]
@@ -74,7 +99,20 @@ namespace GearsHouse.Controllers
                 .OrderByDescending(t => t.Id)
                 .Include(t => t.Messages)
                 .ToListAsync();
-            return View(threads);
+
+            var customerIds = threads.Select(t => t.CustomerId).Distinct().ToList();
+            var customers = await _userManager.Users
+                .Where(u => customerIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id);
+
+            var model = threads.Select(t => new ChatDashboardViewModel
+            {
+                Thread = t,
+                Customer = customers.ContainsKey(t.CustomerId) ? customers[t.CustomerId] : null,
+                UnreadCount = t.Messages.Count(m => !m.IsStaff && !m.IsRead)
+            }).ToList();
+
+            return View(model);
         }
     }
 }

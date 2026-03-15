@@ -1,768 +1,417 @@
 @{
-    Layout = "_DashboardLayout";
-    ViewData["Title"] = "Dashboard";
-    var activeTab = (ViewBag.ActiveTab ?? "").ToString().ToLower();
-    if (string.IsNullOrEmpty(activeTab))
-    {
-        activeTab = "revenue";
-    }
+    Layout = null;
 }
-
-@section Styles {
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        .dashboard-wrapper {
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        .sidebar {
-            width: 240px;
-            background: #1e1e2f;
-            color: #fff;
-            padding-top: 20px;
-            font-size: 16px;
-            height: 100vh;
-            overflow-y: auto;
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
-            position: relative;
-            user-select: none;
-            transition: width 0.3s ease;
-            display: flex;
-            flex-direction: column;
-        }
-
-            .sidebar ul {
-                list-style: none;
-                padding: 0;
-                margin: 0;
-                flex: 1 1 auto;
-            }
-
-                .sidebar ul li {
-                    padding: 14px 24px;
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    cursor: pointer;
-                    border-left: 4px solid transparent;
-                    transition: all 0.3s ease;
-                    position: relative;
-                    white-space: nowrap;
-                }
-
-                    .sidebar ul li:hover {
-                        background-color: rgba(255, 255, 255, 0.08);
-                        border-left-color: #ff9800;
-                        transform: translateX(5px);
-                    }
-
-                    .sidebar ul li a {
-                        color: #fff;
-                        text-decoration: none;
-                        flex: 1;
-                        display: flex;
-                        align-items: center;
-                        gap: 12px;
-                        font-weight: 500;
-                        transition: all 0.3s ease;
-                        position: relative;
-                        z-index: 1;
-                    }
-
-                        .sidebar ul li a.active {
-                            color: #ff9800;
-                            font-weight: 600;
-                        }
-
-                            .sidebar ul li a.active::before {
-                                content: "";
-                                position: absolute;
-                                left: 0;
-                                top: 0;
-                                bottom: 0;
-                                width: 4px;
-                                background: #ff9800;
-                                border-radius: 0 4px 4px 0;
-                                transition: background 0.3s ease;
-                                z-index: 0;
-                            }
-
-            .sidebar.collapsed {
-                width: 100px;
-            }
-
-                .sidebar.collapsed ul li {
-                    padding-left: 0;
-                    justify-content: center;
-                    transform: none !important;
-                }
-
-                    .sidebar.collapsed ul li a {
-                        justify-content: center;
-                    }
-
-            .sidebar ul li a .text {
-                opacity: 1;
-                transition: opacity 0.3s ease, width 0.3s ease;
-                display: inline-block;
-            }
-
-            .sidebar.collapsed ul li a .text {
-                opacity: 0;
-                width: 0;
-                overflow: hidden;
-            }
-
-        .content-wrapper {
-            flex: 1;
-            background-color: #f5f5f5;
-            padding: 20px;
-            padding-bottom: 100px;
-            overflow-y: auto;
-            transition: margin-left 0.3s ease;
-        }
-
-        .sidebar + .content-wrapper {
-            margin-left: 240px;
-        }
-
-        .sidebar.collapsed + .content-wrapper {
-            margin-left: 100px;
-        }
-
-        .sidebar-header {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            padding: 10px 16px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            position: relative;
-            gap: 12px;
-            user-select: none;
-            flex-shrink: 0;
-        }
-
-            .sidebar-header .logo {
-                width: 150px;
-                height: auto;
-                transition: width 0.3s ease;
-            }
-
-            .sidebar-header .logo-text {
-                font-size: 1.2rem;
-                font-weight: 700;
-                color: #ff9800;
-                transition: opacity 0.3s ease, width 0.3s ease;
-                white-space: nowrap;
-                overflow: hidden;
-            }
-
-        .sidebar.collapsed .logo-text {
-            opacity: 0;
-            width: 0;
-        }
-
-        .sidebar.collapsed .logo {
-            width: 40px;
-        }
-
-        #toggle-sidebar {
-            position: absolute;
-            top: 50%;
-            right: 10px;
-            transform: translateY(-50%);
-            background: transparent;
-            border: none;
-            color: #ff9800;
-            font-size: 20px;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-            outline: none;
-            z-index: 10;
-        }
-
-            #toggle-sidebar:hover {
-                color: #ffc870;
-            }
-
-
-        .admin-label {
-            margin-top: 40px;
-            color: #ff9800;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding-left: 24px;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-        }
-
-        .sidebar.collapsed .admin-text {
-            opacity: 0;
-            width: 0;
-            overflow: hidden;
-            display: inline-block;
-            transition: opacity 0.3s ease, width 0.3s ease;
-        }
-
-        .sidebar.collapsed .admin-label {
-            padding-left: 0;
-            justify-content: center;
-        }
-
-        .sidebar.collapsed .admin-icon {
-            display: inline-block;
-            width: 24px;
-            text-align: center;
-            font-size: 18px;
-        }
-    </style>
-}
-
-<div class="dashboard-wrapper">
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <img src="~/image/logoo.png" asp-append-version="true" alt="Logo" class="logo" />
-            <button id="toggle-sidebar" title="Thu gọn sidebar" aria-label="Thu gọn sidebar">
-                <i class="fas fa-angle-double-left"></i>
-            </button>
-        </div>
-        <ul>
-            <li>
-                <a href="#" id="revenue-link" class="@(activeTab == "revenue" ? "active" : "")">
-                    <i class="fas fa-chart-line"></i><span class="text">Dữ liệu tổng quát</span>
-                </a>
-            </li>
-            <li>
-                <a href="#" id="product-link" class="@(activeTab == "product" ? "active" : "")">
-                    <i class="fas fa-box"></i><span class="text">Quản lý sản phẩm</span>
-                </a>
-            </li>
-            <li>
-                <a href="#" id="category-link" class="@(activeTab == "category" ? "active" : "")">
-                    <i class="fas fa-list"></i><span class="text">Quản lý danh mục</span>
-                </a>
-            </li>
-            <li>
-                <a href="#" id="brand-link" class="@(activeTab == "brand" ? "active" : "")">
-                    <i class="fas fa-tags"></i><span class="text">Quản lý thương hiệu</span>
-                </a>
-            </li>
-            <li>
-                <a href="#" id="promotion-link" class="@(activeTab == "promotion" ? "active" : "")">
-                    <i class="fas fa-bullhorn"></i><span class="text">Quản lý khuyến mãi</span>
-                </a>
-            </li>
-            <li>
-                <a href="#" id="order-link" class="@(activeTab == "order" ? "active" : "")">
-                    <i class="fas fa-shopping-cart"></i><span class="text">Quản lý đơn hàng</span>
-                </a>
-            </li>
-            <li>
-                <a href="#" id="user-link" class="@(activeTab == "user" ? "active" : "")">
-                    <i class="fas fa-users-cog"></i><span class="text">Quản lý nhân viên</span>
-                </a>
-            </li>
-            <li>
-                <a href="#" id="chat-link" class="@(activeTab == "chat" ? "active" : "")">
-                    <i class="fas fa-comments"></i><span class="text">Chat hỗ trợ</span>
-                </a>
-            </li>
-            
-            <li class="admin-label">
-                <i class="fas fa-user-shield admin-icon"></i>
-                <span class="admin-text">ADMIN</span>
-            </li>
-                <li>
-                    <a href="javascript:void(0);" onclick="document.getElementById('logoutForm').submit();" style="display: flex; align-items: center;">
-                        <i class="fas fa-sign-out-alt" style="margin-right: 12px;"></i> <span class="text">Đăng xuất</span>
-                    </a>
-                <form id="logoutForm" asp-area="Identity" asp-page="/Account/Logout" method="post" asp-route-returnUrl="/Identity/Account/Login" style="display: none;">
-                    @Html.AntiForgeryToken()
-                </form>
-                </li>
-
-            </ul>
-        </div>
-
-        <div class="content-wrapper" id="content-section">
-            <div id="ajax-content">
-                <script>
-                    $(function () {
-                        loadContent('@activeTab', false);
-                    });
-                </script>
-            </div>
-            <div id="notification-container" style="margin-top: 1rem;">
-                @if (TempData["ErrorMessage"] != null)
-                {
-                    <div class="alert alert-danger" role="alert">@TempData["ErrorMessage"]</div>
-                }
-                @if (TempData["SuccessMessage"] != null)
-                {
-                    <div class="alert alert-success" role="alert">@TempData["SuccessMessage"]</div>
-                }
-            </div>
-        </div>
-    </div>
-</div>
-
-@section Scripts {
-    <script>
-        function initChatDashboard() {
-            var currentThread = 0;
-            var lastId = 0;
-            var lastDateShown = '';
-
-            function clearMessages(){
-                var box = document.getElementById('chatMessages');
-                if (box) { box.innerHTML = ''; }
-                lastId = 0;
-                lastDateShown = '';
-            }
-
-            function appendMessage(isStaff, content, at){
-                var box = document.getElementById('chatMessages');
-                if (!box) return;
-                var atStr = String(at||'').trim();
-                var parts = atStr.split(' ');
-                var time = atStr;
-                var date = '';
-                if (parts.length >= 2) { time = parts[0]; date = parts[1]; }
-                if (date && lastDateShown !== date) {
-                    var sep = document.createElement('div');
-                    sep.className = 'date-sep';
-                    var pill = document.createElement('span');
-                    pill.className = 'pill';
-                    pill.textContent = date;
-                    sep.appendChild(pill);
-                    box.appendChild(sep);
-                    lastDateShown = date;
-                }
-                var row = document.createElement('div');
-                row.className = 'msg-row ' + (isStaff ? 'msg-right' : 'msg-left');
-                var bubble = document.createElement('div');
-                bubble.className = 'bubble ' + (isStaff ? 'bubble-staff' : 'bubble-customer');
-                bubble.textContent = content;
-                var meta = document.createElement('div');
-                meta.className = 'msg-meta';
-                meta.textContent = time;
-                row.appendChild(bubble);
-                row.appendChild(meta);
-                box.appendChild(row);
-                box.scrollTop = box.scrollHeight;
-            }
-
-            function loadMessages(){
-                if(!currentThread) return;
-                fetch('/Chat/Messages?threadId=' + currentThread + '&afterId=' + (lastId||''))
-                    .then(function(r){ return r.json(); })
-                    .then(function(list){
-                        if(!Array.isArray(list)) return;
-                        list.forEach(function(m){
-                            appendMessage(!!m.isStaff, String(m.content||''), String(m.at||''));
-                            lastId = Math.max(lastId, m.id||0);
-                        });
-                    });
-            }
-
-            function selectThread(id){
-                currentThread = parseInt(id||0);
-                sessionStorage.setItem('chat:threadId', String(currentThread||''));
-                clearMessages();
-                loadMessages();
-                var info = document.getElementById('chatThreadInfo');
-                if (info) { info.textContent = currentThread ? ('#' + currentThread) : ''; }
-                var input = document.getElementById('chatInput');
-                var send = document.getElementById('chatSend');
-                if (input) { input.disabled = !currentThread; }
-                if (send) { send.disabled = !currentThread; }
-                var list = document.querySelectorAll('#threadList .thread-item');
-                list.forEach(function(el){ el.classList.remove('active'); });
-                var currentEl = document.querySelector('#threadList .thread-item[data-thread="' + currentThread + '"]');
-                if (currentEl) currentEl.classList.add('active');
-            }
-
-            var saved = parseInt(sessionStorage.getItem('chat:threadId')||'0');
-            if (saved) {
-                selectThread(saved);
-            } else {
-                var first = document.querySelector('#threadList a[data-thread]');
-                if (first) selectThread(first.getAttribute('data-thread'));
-            }
-
-            var threadList = document.getElementById('threadList');
-            if (threadList) {
-                threadList.addEventListener('click', function(e){
-                    var a = e.target.closest('a[data-thread]');
-                    if(!a) return;
-                    e.preventDefault();
-                    selectThread(a.getAttribute('data-thread'));
-                });
-            }
-
-            var sendBtn = document.getElementById('chatSend');
-            if (sendBtn) {
-                sendBtn.addEventListener('click', function(){
-                    var input = document.getElementById('chatInput');
-                    var content = ((input && input.value) || '').trim();
-                    if(!content || !currentThread) return;
-                    fetch('/Chat/Send', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: new URLSearchParams({ threadId: currentThread, content: content }) })
-                        .then(function(){ if (input) input.value=''; loadMessages(); });
-                });
-            }
-
-            if (window.chatPollTimer) { clearInterval(window.chatPollTimer); }
-            window.chatPollTimer = setInterval(loadMessages, 2000);
-        }
-
-        function loadContent(tab, pushState = true) {
-            var tabUrls = {
-                product: '@Url.Action("ProductIndex", "Dashboard")',
-                category: '@Url.Action("CategoryIndex", "Dashboard")',
-                brand: '@Url.Action("BrandIndex", "Dashboard")',
-                promotion: '@Url.Action("PromotionIndex", "Dashboard")',
-                order: '@Url.Action("OrderIndex", "Dashboard")',
-                user: '@Url.Action("UserIndex", "Dashboard")',
-                revenue: '@Url.Action("Revenue", "Dashboard")',
-                chat: '@Url.Action("Dashboard", "Chat")'
-            };
-
-            $.ajax({
-                url: tabUrls[tab],
-                method: "GET",
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                success: function (data) {
-                    $("#ajax-content").html(data);
-                    if (window.chatPollTimer) { clearInterval(window.chatPollTimer); window.chatPollTimer = null; }
-                    if (tab === 'chat') { initChatDashboard(); }
-                    if (pushState) {
-                        history.pushState(null, null, '@Url.Action("Dashboard", "Dashboard")?tab=' + tab);
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>GearHouse Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0d7ff2",
+                        "primary-glow": "#0d7ff280",
+                        "background-dark": "#0B0C10",
+                        "surface-dark": "#111418",
+                        "surface-light": "#1f2937",
+                        "neon-green": "#0bda5b",
+                        "neon-red": "#ff2e2e",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "body": ["Space Grotesk", "sans-serif"],
+                    },
+                    boxShadow: {
+                        'neon': '0 0 10px rgba(13, 127, 242, 0.5), 0 0 20px rgba(13, 127, 242, 0.3)',
+                        'neon-sm': '0 0 5px rgba(13, 127, 242, 0.5)',
+                        'glass': '0 4px 30px rgba(0, 0, 0, 0.1)',
+                    },
+                    backgroundImage: {
+                        'cyber-grid': "radial-gradient(circle at 50% 50%, rgba(13, 127, 242, 0.05) 0%, transparent 50%), linear-gradient(0deg, transparent 24%, rgba(255, 255, 255, .02) 25%, rgba(255, 255, 255, .02) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, .02) 75%, rgba(255, 255, 255, .02) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(255, 255, 255, .02) 25%, rgba(255, 255, 255, .02) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, .02) 75%, rgba(255, 255, 255, .02) 76%, transparent 77%, transparent)",
+                    },
+                    backgroundSize: {
+                        'cyber-grid': '100% 100%, 50px 50px, 50px 50px'
                     }
                 },
-                error: function () {
-                }
-            });
+            },
         }
-
-        function setActiveTab(tab) {
-            $(".sidebar ul li a").removeClass("active");
-            $("#" + tab + "-link").addClass("active");
-        }
-
-        $(".sidebar ul li a").click(function (e) {
-            e.preventDefault();
-            var tab = this.id.replace("-link", "");
-            setActiveTab(tab);
-            loadContent(tab);
-        });
-
-        // Toggle sidebar
-        $("#toggle-sidebar").click(function () {
-            $(".sidebar").toggleClass("collapsed");
-            var icon = $(this).find("i");
-            if ($(".sidebar").hasClass("collapsed")) {
-                icon.removeClass("fa-angle-double-left").addClass("fa-angle-double-right");
-            } else {
-                icon.removeClass("fa-angle-double-right").addClass("fa-angle-double-left");
-            }
-        });
-
-        // Handle browser back/forward
-        window.onpopstate = function () {
-            var params = new URLSearchParams(window.location.search);
-            var tab = params.get('tab') || 'revenue';
-            setActiveTab(tab);
-            loadContent(tab, false);
-        };
-
-        // **Chỉnh sửa: gọi loadContent khi trang load**
-        $(document).ready(function () {
-            var activeTab = '@activeTab';  // Lấy giá trị từ server
-            setActiveTab(activeTab);
-            loadContent(activeTab, false);
-
-            setTimeout(function () {
-                $("#notification-container .alert-success").fadeOut("slow");
-            }, 3000);
-
-            // Bắt sự kiện Sửa sản phẩm để tải form Update qua AJAX
-            $(document).on('click', 'a.js-edit-product', function (e) {
-                e.preventDefault();
-                var url = $(this).attr('href');
-                $.ajax({
-                    url: url,
-                    type: 'GET',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    success: function (html) {
-                        $('#ajax-content').html(html);
-                    },
-                    error: function () {
-                        alert('Không thể tải form sửa sản phẩm. Vui lòng thử lại!');
-                    }
-                });
-            });
-
-            // Submit form Update sản phẩm qua AJAX để hiện danh sách ngay trong Dashboard
-            $(document).on('submit', '#product-update-form', function (e) {
-                e.preventDefault();
-                var form = this;
-                var url = $(form).attr('action') || form.action;
-                var formData = new FormData(form);
-                $.ajax({
-                    url: url,
-                    type: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    success: function (html) {
-                        $('#ajax-content').html(html);
-                        $('#content-section').scrollTop(0);
-                    },
-                    error: function () {
-                        alert('Không thể cập nhật sản phẩm. Vui lòng thử lại!');
-                    }
-                });
-            });
-
-            // ==== Category: load edit form and submit update via AJAX ====
-            $(document).on('click', 'a.js-edit-category', function (e) {
-                e.preventDefault();
-                var url = $(this).attr('href');
-                $.ajax({
-                    url: url,
-                    type: 'GET',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    success: function (html) { $('#ajax-content').html(html); },
-                    error: function () { alert('Không thể tải form sửa danh mục. Vui lòng thử lại!'); }
-                });
-            });
-            $(document).on('submit', '#category-update-form', function (e) {
-                e.preventDefault();
-                var form = this;
-                var url = $(form).attr('action') || form.action;
-                $.ajax({
-                    url: url,
-                    type: 'POST',
-                    data: $(form).serialize(),
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    success: function (html) { $('#ajax-content').html(html); $('#content-section').scrollTop(0); },
-                    error: function () { alert('Không thể cập nhật danh mục. Vui lòng thử lại!'); }
-                });
-            });
-
-            // ==== Brand: load edit form and submit update via AJAX ====
-            $(document).on('click', 'a.js-edit-brand', function (e) {
-                e.preventDefault();
-                var url = $(this).attr('href');
-                $.ajax({
-                    url: url,
-                    type: 'GET',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    success: function (html) { $('#ajax-content').html(html); },
-                    error: function () { alert('Không thể tải form sửa thương hiệu. Vui lòng thử lại!'); }
-                });
-            });
-            $(document).on('submit', '#brand-update-form', function (e) {
-                e.preventDefault();
-                var form = this;
-                var url = $(form).attr('action') || form.action;
-                $.ajax({
-                    url: url,
-                    type: 'POST',
-                    data: $(form).serialize(),
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    success: function (html) { $('#ajax-content').html(html); $('#content-section').scrollTop(0); },
-                    error: function () { alert('Không thể cập nhật thương hiệu. Vui lòng thử lại!'); }
-                });
-            });
-
-            // ==== Promotion: load edit form and submit update via AJAX ====
-            $(document).on('click', 'a.js-edit-promotion', function (e) {
-                e.preventDefault();
-                var url = $(this).attr('href');
-                $.ajax({
-                    url: url,
-                    type: 'GET',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    success: function (html) { $('#ajax-content').html(html); },
-                    error: function () { alert('Không thể tải form sửa khuyến mãi. Vui lòng thử lại!'); }
-                });
-            });
-            $(document).on('submit', '#promotion-update-form', function (e) {
-                e.preventDefault();
-                var form = this;
-                var url = $(form).attr('action') || form.action;
-                $.ajax({
-                    url: url,
-                    type: 'POST',
-                    data: $(form).serialize(),
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    success: function (html) { $('#ajax-content').html(html); $('#content-section').scrollTop(0); },
-                    error: function () { alert('Không thể cập nhật khuyến mãi. Vui lòng thử lại!'); }
-                });
-            });
-
-            // ==== Order: submit status update via AJAX ====
-            $(document).on('submit', '.js-order-status-form', function (e) {
-                e.preventDefault();
-                var form = this;
-                $.ajax({
-                    url: form.action,
-                    type: 'POST',
-                    data: $(form).serialize(),
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    success: function (html) { $('#ajax-content').html(html); $('#content-section').scrollTop(0); },
-                    error: function () { alert('Không thể cập nhật trạng thái đơn hàng. Vui lòng thử lại!'); }
-                });
-            });
-
-            // ==== User: submit role update via AJAX ====
-            $(document).on('submit', '.js-user-role-form', function (e) {
-                e.preventDefault();
-                var form = this;
-                $.ajax({
-                    url: form.action,
-                    type: 'POST',
-                    data: $(form).serialize(),
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    success: function (html) { $('#ajax-content').html(html); $('#content-section').scrollTop(0); },
-                    error: function () { alert('Không thể cập nhật vai trò người dùng. Vui lòng thử lại!'); }
-                });
-            });
-
-            // ==== User: submit delete via AJAX ====
-            $(document).on('submit', '.js-user-delete-form', function (e) {
-                e.preventDefault();
-                if (!confirm('Bạn chắc chắn muốn xóa người dùng này?')) { return; }
-                var form = this;
-                $.ajax({
-                    url: form.action,
-                    type: 'POST',
-                    data: $(form).serialize(),
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    success: function (html) { $('#ajax-content').html(html); $('#content-section').scrollTop(0); },
-                    error: function () { alert('Không thể xóa người dùng. Vui lòng thử lại!'); }
-                });
-            });
-
-            // ==== Add Product: load form and submit via AJAX ====
-            $(document).on('click', '#ajax-content a[href*="/Product/Add"]', function (e) {
-                e.preventDefault();
-                var url = $(this).attr('href');
-                $.ajax({
-                    url: url,
-                    type: 'GET',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    success: function (html) { $('#ajax-content').html(html); },
-                    error: function () { alert('Không thể tải form thêm sản phẩm. Vui lòng thử lại!'); }
-                });
-            });
-            $(document).on('submit', '#form-add-product', function (e) {
-                e.preventDefault();
-                var form = this;
-                var url = $(form).attr('action') || form.action;
-                var formData = new FormData(form);
-                $.ajax({
-                    url: url,
-                    type: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    success: function (html) { $('#ajax-content').html(html); $('#content-section').scrollTop(0); },
-                    error: function () { alert('Không thể thêm sản phẩm. Vui lòng thử lại!'); }
-                });
-            });
-
-            // ==== Add Category: load form and submit via AJAX ====
-            $(document).on('click', '#ajax-content a[href*="/Categories/AddCategory"]', function (e) {
-                e.preventDefault();
-                var url = $(this).attr('href');
-                $.ajax({
-                    url: url,
-                    type: 'GET',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    success: function (html) { $('#ajax-content').html(html); },
-                    error: function () { alert('Không thể tải form thêm danh mục. Vui lòng thử lại!'); }
-                });
-            });
-            $(document).on('submit', '#form-add-category', function (e) {
-                e.preventDefault();
-                var form = this;
-                var url = $(form).attr('action') || form.action;
-                $.ajax({
-                    url: url,
-                    type: 'POST',
-                    data: $(form).serialize(),
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    success: function (html) { $('#ajax-content').html(html); $('#content-section').scrollTop(0); },
-                    error: function () { alert('Không thể thêm danh mục. Vui lòng thử lại!'); }
-                });
-            });
-
-            // ==== Add Brand: load form and submit via AJAX ====
-            $(document).on('click', '#ajax-content a[href*="/Brand/AddBrand"]', function (e) {
-                e.preventDefault();
-                var url = $(this).attr('href');
-                $.ajax({
-                    url: url,
-                    type: 'GET',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    success: function (html) { $('#ajax-content').html(html); },
-                    error: function () { alert('Không thể tải form thêm thương hiệu. Vui lòng thử lại!'); }
-                });
-            });
-            $(document).on('submit', '#form-add-brand', function (e) {
-                e.preventDefault();
-                var form = this;
-                var url = $(form).attr('action') || form.action;
-                $.ajax({
-                    url: url,
-                    type: 'POST',
-                    data: $(form).serialize(),
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    success: function (html) { $('#ajax-content').html(html); $('#content-section').scrollTop(0); },
-                    error: function () { alert('Không thể thêm thương hiệu. Vui lòng thử lại!'); }
-                });
-            });
-
-            // ==== Create Promotion: load form and submit via AJAX ====
-            $(document).on('click', '#ajax-content a.btn-add-promo', function (e) {
-                e.preventDefault();
-                var url = $(this).attr('href');
-                $.ajax({
-                    url: url,
-                    type: 'GET',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    success: function (html) { $('#ajax-content').html(html); },
-                    error: function () { alert('Không thể tải form tạo khuyến mãi. Vui lòng thử lại!'); }
-                });
-            });
-            $(document).on('submit', '#form-create-promotion', function (e) {
-                e.preventDefault();
-                var form = this;
-                var url = $(form).attr('action') || form.action;
-                $.ajax({
-                    url: url,
-                    type: 'POST',
-                    data: $(form).serialize(),
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    success: function (html) { $('#ajax-content').html(html); $('#content-section').scrollTop(0); },
-                    error: function () { alert('Không thể tạo khuyến mãi. Vui lòng thử lại!'); }
-                });
-            });
-
-        });
     </script>
-}
+    <style>
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #111418;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #283039;
+            border-radius: 4px;
+        }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: #0d7ff2;
+            }
+
+        .glass-panel {
+            background: rgba(17, 20, 24, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-white font-display overflow-hidden selection:bg-primary selection:text-white">
+    <div class="flex h-screen w-full flex-col">
+        <div class="flex flex-1 overflow-hidden">
+            <aside class="hidden md:flex w-64 flex-col border-r border-white/5 bg-[#0f1216] overflow-y-auto z-40">
+                <div class="flex flex-col gap-1 p-4">
+                    <!-- User Profile Section -->
+                    <div class="mb-6 p-3 rounded-xl bg-surface-light/30 border border-white/5">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="relative group/avatar cursor-pointer">
+                                <div class="size-10 rounded-full bg-surface-light border-2 border-primary/50 shadow-neon-sm group-hover/avatar:border-primary transition-all flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-gray-300 group-hover/avatar:text-white text-[28px]">account_circle</span>
+                                </div>
+                                <div class="absolute bottom-0 right-0 size-2.5 rounded-full bg-green-500 border border-black"></div>
+                            </div>
+                            <div class="overflow-hidden">
+                                <p class="text-sm font-bold leading-none text-white truncate">@ViewBag.UserName</p>
+                                <p class="text-[10px] text-primary font-medium tracking-wide mt-1">QUẢN TRỊ VIÊN</p>
+                            </div>
+                        </div>
+                        <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
+                            <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-lg bg-primary/10 hover:bg-primary/20 border border-primary/30 px-3 py-1.5 text-xs font-bold text-primary transition-all hover:shadow-neon-sm">
+                                <span class="material-symbols-outlined text-[16px]">logout</span>
+                                <span>ĐĂNG XUẤT</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="mb-6">
+                        <p class="px-3 text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Tổng Quan</p>
+                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group @(ViewBag.ActiveTab == "revenue" ? "bg-primary/10 border border-primary/20 text-white shadow-neon-sm" : "text-gray-400 hover:bg-white/5 hover:text-white border border-transparent")" href="@Url.Action("Dashboard", "Dashboard", new { tab = "revenue" })">
+                            <span class="material-symbols-outlined transition-transform duration-300 group-hover:scale-110 @(ViewBag.ActiveTab == "revenue" ? "text-primary animate-pulse" : "text-gray-500 group-hover:text-primary")">dashboard</span>
+                            <span class="text-sm font-medium">Bảng Điều Khiển</span>
+                        </a>
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between px-3 mb-2 cursor-pointer group">
+                            <p class="text-xs font-bold uppercase tracking-wider text-gray-500 group-hover:text-primary transition-colors">Quản Lý</p>
+                            <span class="material-symbols-outlined text-[16px] text-gray-500 group-hover:text-primary transition-transform group-hover:rotate-180">expand_less</span>
+                        </div>
+                        <div class="flex flex-col gap-1 pl-2 border-l border-white/5 ml-3">
+                            <a class="flex items-center gap-3 px-3 py-2 rounded-lg transition-all group @(ViewBag.ActiveTab == "product" ? "bg-white/5 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white")" href="@Url.Action("Dashboard", "Dashboard", new { tab = "product" })">
+                                <span class="material-symbols-outlined text-[20px] transition-transform duration-300 group-hover:scale-110 group-hover:text-blue-400">inventory_2</span>
+                                <span class="text-sm">Sản Phẩm</span>
+                            </a>
+                            <a class="flex items-center gap-3 px-3 py-2 rounded-lg transition-all group @(ViewBag.ActiveTab == "category" ? "bg-white/5 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white")" href="@Url.Action("Dashboard", "Dashboard", new { tab = "category" })">
+                                <span class="material-symbols-outlined text-[20px] transition-transform duration-300 group-hover:scale-110 group-hover:text-purple-400">category</span>
+                                <span class="text-sm">Danh Mục</span>
+                            </a>
+                            <a class="flex items-center gap-3 px-3 py-2 rounded-lg transition-all group @(ViewBag.ActiveTab == "brand" ? "bg-white/5 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white")" href="@Url.Action("Dashboard", "Dashboard", new { tab = "brand" })">
+                                <span class="material-symbols-outlined text-[20px] transition-transform duration-300 group-hover:scale-110 group-hover:text-yellow-400">label</span>
+                                <span class="text-sm">Thương Hiệu</span>
+                            </a>
+                            <a class="flex items-center gap-3 px-3 py-2 rounded-lg transition-all group @(ViewBag.ActiveTab == "promotion" ? "bg-white/5 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white")" href="@Url.Action("Dashboard", "Dashboard", new { tab = "promotion" })">
+                                <span class="material-symbols-outlined text-[20px] transition-transform duration-300 group-hover:scale-110 group-hover:text-pink-400">campaign</span>
+                                <span class="text-sm">Khuyến Mãi</span>
+                            </a>
+                            <a class="flex items-center gap-3 px-3 py-2 rounded-lg transition-all group @(ViewBag.ActiveTab == "order" ? "bg-white/5 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white")" href="@Url.Action("Dashboard", "Dashboard", new { tab = "order" })">
+                                <span class="material-symbols-outlined text-[20px] transition-transform duration-300 group-hover:scale-110 group-hover:text-green-400">shopping_cart</span>
+                                <span class="text-sm">Đơn Hàng</span>
+                            </a>
+                            <a class="flex items-center gap-3 px-3 py-2 rounded-lg transition-all group @(ViewBag.ActiveTab == "user" ? "bg-white/5 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white")" href="@Url.Action("Dashboard", "Dashboard", new { tab = "user" })">
+                                <span class="material-symbols-outlined text-[20px] transition-transform duration-300 group-hover:scale-110 group-hover:text-red-400">badge</span>
+                                <span class="text-sm">Nhân Viên</span>
+                            </a>
+                            <a class="flex items-center gap-3 px-3 py-2 rounded-lg transition-all group @(ViewBag.ActiveTab == "chat" ? "bg-white/5 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white")" href="@Url.Action("Dashboard", "Dashboard", new { tab = "chat" })">
+                                <div class="relative">
+                                    <span class="material-symbols-outlined text-[20px] transition-transform duration-300 group-hover:scale-110 group-hover:text-cyan-400">chat</span>
+                                    <span id="chat-badge" class="absolute -top-2 -right-2 h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-neon-red hidden"></span>
+                                </div>
+                                <span class="text-sm">Hỗ Trợ Trực Tuyến</span>
+                            </a>
+                        </div>
+                    <div class="mt-auto pt-8">
+                        <div class="rounded-xl border border-white/5 bg-gradient-to-br from-surface-light/40 to-surface-light/10 p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold text-gray-400">TẢI MÁY CHỦ</span>
+                                <span class="flex size-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse"></span>
+                            </div>
+                            <div class="text-2xl font-bold text-white mb-1">24%</div>
+                            <div class="h-1 w-full bg-black/50 rounded-full overflow-hidden">
+                                <div class="h-full bg-primary w-[24%] shadow-neon-sm"></div>
+                            </div>
+                            <p class="text-[10px] text-gray-500 mt-2">Hiệu suất tối ưu</p>
+                        </div>
+                    </div>
+                    </div>
+                    </div>
+            </aside>
+            <main class="flex-1 overflow-y-auto bg-background-dark bg-cyber-grid bg-fixed relative">
+                <div class="container mx-auto max-w-7xl p-6 lg:p-8" id="dashboard-content">
+                    <!-- Initial Skeleton Loader -->
+                    <div class="animate-pulse space-y-8">
+                        <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+                            <div class="w-1/3 h-10 bg-surface-light/30 rounded-lg"></div>
+                            <div class="w-40 h-10 bg-surface-light/30 rounded-lg"></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="h-32 bg-surface-light/30 rounded-xl border border-white/5"></div>
+                            <div class="h-32 bg-surface-light/30 rounded-xl border border-white/5"></div>
+                            <div class="h-32 bg-surface-light/30 rounded-xl border border-white/5"></div>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="lg:col-span-2 h-96 bg-surface-light/30 rounded-xl border border-white/5"></div>
+                            <div class="lg:col-span-1 h-96 bg-surface-light/30 rounded-xl border border-white/5"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <input type="hidden" id="activeTab" value="@ViewBag.ActiveTab" />
+
+                <script>
+                    const skeletonHTML = `
+                        <div class="animate-pulse space-y-8">
+                            <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+                                <div class="w-1/3 h-10 bg-surface-light/30 rounded-lg"></div>
+                                <div class="w-40 h-10 bg-surface-light/30 rounded-lg"></div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="h-32 bg-surface-light/30 rounded-xl border border-white/5"></div>
+                                <div class="h-32 bg-surface-light/30 rounded-xl border border-white/5"></div>
+                                <div class="h-32 bg-surface-light/30 rounded-xl border border-white/5"></div>
+                            </div>
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <div class="lg:col-span-2 h-96 bg-surface-light/30 rounded-xl border border-white/5"></div>
+                                <div class="lg:col-span-1 h-96 bg-surface-light/30 rounded-xl border border-white/5"></div>
+                            </div>
+                        </div>
+                    `;
+
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const activeTab = document.getElementById('activeTab').value || 'revenue';
+                        loadTabContent(activeTab);
+
+                        // Poll for unread messages
+                        function pollUnreadCount() {
+                            fetch('@Url.Action("GetUnreadCount", "Chat")')
+                                .then(response => response.json())
+                                .then(data => {
+                                    const badge = document.getElementById('chat-badge');
+                                    if (data.count > 0) {
+                                        badge.textContent = data.count > 99 ? '99+' : data.count;
+                                        badge.classList.remove('hidden');
+                                        badge.classList.add('flex');
+                                    } else {
+                                        badge.classList.add('hidden');
+                                        badge.classList.remove('flex');
+                                    }
+                                })
+                                .catch(err => console.error(err));
+                        }
+                        setInterval(pollUnreadCount, 5000);
+                        pollUnreadCount();
+                    });
+
+                    function loadTabContent(tab) {
+                        const container = document.getElementById('dashboard-content');
+                        
+                        // Update Sidebar Active State
+                        document.querySelectorAll('aside a').forEach(a => {
+                            const onClick = a.getAttribute('onclick');
+                            if(onClick && onClick.includes(`'${tab}'`)) {
+                                a.classList.add('bg-primary/10', 'text-primary', 'border-primary/50');
+                                a.classList.remove('text-slate-400', 'hover:bg-white/5', 'hover:text-white');
+                            } else {
+                                a.classList.remove('bg-primary/10', 'text-primary', 'border-primary/50');
+                                a.classList.add('text-slate-400', 'hover:bg-white/5', 'hover:text-white');
+                            }
+                        });
+
+                        let url = '';
+                        switch(tab) {
+                            case 'revenue': url = '@Url.Action("Revenue", "Dashboard")'; break;
+                            case 'product': url = '@Url.Action("ProductIndex", "Dashboard")'; break;
+                            case 'category': url = '@Url.Action("CategoryIndex", "Dashboard")'; break;
+                            case 'brand': url = '@Url.Action("BrandIndex", "Dashboard")'; break;
+                            case 'promotion': url = '@Url.Action("PromotionIndex", "Dashboard")'; break;
+                            case 'order': url = '@Url.Action("OrderIndex", "Dashboard")'; break;
+                            case 'user': url = '@Url.Action("UserIndex", "Dashboard")'; break;
+                            case 'chat': 
+                                url = '@Url.Action("Dashboard", "Chat")'; 
+                                const badge = document.getElementById('chat-badge');
+                                if(badge) {
+                                    badge.classList.add('hidden');
+                                    badge.classList.remove('flex');
+                                }
+                                break;
+                            default: url = '@Url.Action("Revenue", "Dashboard")';
+                        }
+
+                        const skeletonHTML = `
+                            <div class="animate-pulse space-y-8 p-6">
+                                <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+                                    <div class="w-1/3 h-10 bg-surface-light/30 rounded-lg"></div>
+                                    <div class="w-40 h-10 bg-surface-light/30 rounded-lg"></div>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div class="h-32 bg-surface-light/30 rounded-xl border border-white/5"></div>
+                                    <div class="h-32 bg-surface-light/30 rounded-xl border border-white/5"></div>
+                                    <div class="h-32 bg-surface-light/30 rounded-xl border border-white/5"></div>
+                                </div>
+                                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                    <div class="lg:col-span-2 h-96 bg-surface-light/30 rounded-xl border border-white/5"></div>
+                                    <div class="lg:col-span-1 h-96 bg-surface-light/30 rounded-xl border border-white/5"></div>
+                                </div>
+                            </div>`;
+
+                        // Add fade out effect before loading
+                        if (typeof gsap !== 'undefined') {
+                            gsap.to(container, { opacity: 0, duration: 0.2, onComplete: () => {
+                                // Show Skeleton
+                                container.innerHTML = skeletonHTML;
+                                container.style.opacity = 1;
+
+                                fetch(url, {
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest'
+                                    }
+                                })
+                                .then(response => response.text())
+                                .then(html => {
+                                    // Fade out skeleton
+                                    gsap.to(container, { opacity: 0, duration: 0.1, onComplete: () => {
+                                        container.innerHTML = html;
+                                        
+                                        // Re-execute scripts
+                                        container.querySelectorAll('script').forEach(oldScript => {
+                                            const newScript = document.createElement('script');
+                                            Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                                            newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                                            oldScript.parentNode.replaceChild(newScript, oldScript);
+                                        });
+                                        
+                                        // Animate content in
+                                        gsap.to(container, { opacity: 1, duration: 0.4 });
+                                        
+                                        // Initialize specific element animations
+                                        if (typeof initDashboardAnimations === 'function') {
+                                            initDashboardAnimations();
+                                        }
+                                    }});
+                                })
+                                .catch(error => {
+                                    console.error('Error loading tab:', error);
+                                    container.innerHTML = '<div class="text-red-500 p-4">Lỗi tải nội dung.</div>';
+                                    gsap.to(container, { opacity: 1, duration: 0.2 });
+                                });
+                            }});
+                        } else {
+                            // Fallback if GSAP is not loaded
+                             container.innerHTML = skeletonHTML;
+                             fetch(url, {
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            })
+                            .then(response => response.text())
+                            .then(html => {
+                                container.innerHTML = html;
+                                container.querySelectorAll('script').forEach(oldScript => {
+                                    const newScript = document.createElement('script');
+                                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                                });
+                                if (typeof initDashboardAnimations === 'function') {
+                                    initDashboardAnimations();
+                                }
+                            });
+                        }
+                    }
+
+                    // Global Animation Controller
+                    function initDashboardAnimations() {
+                        // 1. Staggered List/Table Entry
+                        const rows = document.querySelectorAll("tbody tr");
+                        if (rows.length > 0) {
+                            gsap.fromTo(rows, 
+                                { y: 20, opacity: 0 },
+                                { y: 0, opacity: 1, duration: 0.4, stagger: 0.05, ease: "power2.out", clearProps: "transform" }
+                            );
+                        }
+
+                        // 2. Fade Up Elements (Cards, Headers)
+                        // Looks for .gsap-fade-up class
+                        const fadeElements = document.querySelectorAll(".gsap-fade-up, .stat-card, .glass-panel");
+                        if (fadeElements.length > 0) {
+                            gsap.fromTo(fadeElements,
+                                { y: 30, opacity: 0 },
+                                { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "back.out(1.2)", clearProps: "transform" }
+                            );
+                        }
+
+                        // 3. Progress Bars
+                        gsap.utils.toArray(".gsap-bar, .progress-bar-fill").forEach(bar => {
+                            // If it has a style width, animate to it
+                            const targetWidth = bar.style.width || bar.getAttribute("data-width");
+                            if (targetWidth) {
+                                gsap.fromTo(bar, 
+                                    { width: 0 }, 
+                                    { width: targetWidth, duration: 1.2, ease: "power2.out" }
+                                );
+                            }
+                        });
+
+                        // 4. Number Counters
+                        // Elements with .gsap-counter class will animate their inner text
+                        document.querySelectorAll(".gsap-counter").forEach(el => {
+                            const rawText = el.innerText.trim();
+                            // Handle Vietnamese currency format: remove dots, replace comma with dot for parsing
+                            // Example: 319.500.000 -> 319500000
+                            let cleanText = rawText.replace(/\./g, "").replace(/,/g, ".");
+                            // Remove non-numeric characters except dot and minus
+                            cleanText = cleanText.replace(/[^0-9.-]+/g, "");
+                            
+                            const numericValue = parseFloat(cleanText);
+                            
+                            if (!isNaN(numericValue)) {
+                                const isCurrency = rawText.includes("₫") || rawText.includes("$") || rawText.includes("VNĐ");
+                                const obj = { val: 0 };
+                                gsap.to(obj, {
+                                    val: numericValue,
+                                    duration: 1.5,
+                                    ease: "power2.out",
+                                    onUpdate: function() {
+                                        if (isCurrency) {
+                                            // Format as Vietnamese currency (e.g., 319.500.000)
+                                            el.innerText = Math.floor(obj.val).toLocaleString('vi-VN') + "₫";
+                                        } else {
+                                            el.innerText = Math.floor(obj.val).toLocaleString('vi-VN');
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                    }
+                </script>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

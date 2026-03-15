@@ -1,147 +1,426 @@
 @model IEnumerable<GearsHouse.Models.Order>
-@using GearsHouse.Extensions
 @using GearsHouse.Models
-@using GearsHouse.Helpers
-@{
-    Layout = null;
-}
-@{
-    ViewData["Title"] = "Quản lý đơn hàng";
-}
 
-<div class="container-fluid py-5">
-    <div class="card shadow-lg border-0 rounded-4 animate__animated animate__fadeInUp">
-        <div class="card-header bg-primary text-white py-4 d-flex justify-content-center rounded-top-4">
-            <h2 class="mb-0 fw-bold"><i class="bi bi-box-seam me-2"></i>Quản lý Đơn Hàng</h2>
+<div class="layout-content-container flex flex-col max-w-[1400px] mx-auto z-10 relative h-full">
+    <!-- Background decorative elements -->
+    <div class="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-primary/5 to-transparent pointer-events-none z-0"></div>
+
+    <!-- Breadcrumbs -->
+    <div class="flex flex-wrap gap-2 mb-6 z-10">
+        <a class="text-slate-400 hover:text-primary transition-colors text-sm font-medium" href="#">Bảng Điều Khiển</a>
+        <span class="text-slate-600 text-sm font-medium">/</span>
+        <span class="text-primary text-sm font-medium shadow-primary drop-shadow-[0_0_8px_rgba(13,127,242,0.4)]">Quản Lý Đơn Hàng</span>
+    </div>
+
+    <!-- Page Heading & Actions -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 z-10 gsap-fade-up">
+        <div class="flex flex-col gap-1">
+            <h1 class="text-white text-3xl md:text-4xl font-black tracking-tight flex items-center gap-3">
+                Quản Lý Đơn Hàng
+                <span class="hidden sm:inline-flex size-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_#22c55e]"></span>
+            </h1>
+            <p class="text-slate-400 text-base">Theo dõi và quản lý đơn hàng của khách hàng theo thời gian thực.</p>
         </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 text-nowrap">
-                    <thead class="table-dark">
-                        <tr>
-                            <th class="ps-4">Mã đơn</th>
-                            <th>Khách hàng</th>
-                            <th>Ngày đặt</th>
-                            <th>Tổng tiền</th>
-                            <th>Trạng thái</th>
-                            <th class="text-center">Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var order in Model)
+    </div>
+
+    <!-- Filter Toolbar -->
+    <div class="bg-surface-dark border border-border-dark rounded-xl p-4 mb-6 shadow-lg z-10 gsap-fade-up">
+        <div class="flex flex-col lg:flex-row gap-4 items-end lg:items-center">
+            <!-- Search -->
+            <div class="w-full lg:flex-1">
+                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 block ml-1">Tìm Kiếm</label>
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 group-focus-within:text-primary transition-colors">
+                        <span class="material-symbols-outlined">search</span>
+                    </div>
+                    <input id="orderSearch" onkeyup="searchOrders()" class="block w-full rounded-lg border-border-dark bg-[#111418] pl-10 pr-4 py-2.5 text-white placeholder-slate-500 focus:border-primary focus:ring-1 focus:ring-primary focus:shadow-neon-blue transition-all duration-300 sm:text-sm font-display" placeholder="Tìm kiếm theo Mã Đơn hoặc Tên Khách Hàng..." type="text" />
+                </div>
+            </div>
+            <!-- Filter: Status -->
+            <div class="w-full sm:w-1/2 lg:w-48">
+                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 block ml-1">Trạng Thái</label>
+                <div class="relative">
+                    <select id="statusFilter" onchange="filterStatus()" class="block w-full rounded-lg border-border-dark bg-[#111418] py-2.5 pl-3 pr-10 text-white focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm appearance-none font-display cursor-pointer hover:bg-[#1c232b] transition-colors">
+                        <option value="all">Tất Cả Trạng Thái</option>
+                        <option value="ChoXacNhan">Chờ xác nhận</option>
+                        <option value="DangXuLy">Đang xử lý</option>
+                        <option value="DangGiaoHang">Đang giao hàng</option>
+                        <option value="HoanThanh">Hoàn thành</option>
+                        <option value="DaHuy">Đã hủy</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                        <span class="material-symbols-outlined text-sm">expand_more</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Filter: Date -->
+            <div class="w-full sm:w-1/2 lg:w-48">
+                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 block ml-1">Khoảng Thời Gian</label>
+                <div class="relative">
+                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                        <span class="material-symbols-outlined text-[18px]">calendar_today</span>
+                    </div>
+                    <input class="block w-full rounded-lg border-border-dark bg-[#111418] pl-10 pr-3 py-2.5 text-white focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm cursor-pointer hover:bg-[#1c232b] transition-colors font-display" readonly="" type="text" value="@DateTime.Now.ToString("dd/MM - dd/MM")" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Table -->
+    <div class="bg-surface-dark border border-border-dark rounded-xl shadow-xl overflow-hidden flex flex-col flex-1 z-10 gsap-fade-up">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse" id="orderTable">
+                <thead>
+                    <tr class="bg-[#1c232b] border-b border-border-dark">
+                        <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Mã Đơn</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Khách Hàng</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Ngày</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Tổng Tiền</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-center">Trạng Thái</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border-dark">
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
                         {
-                            <tr class="order-row animate__animated animate__fadeIn">
-                                <td class="ps-4 fw-semibold text-primary">@order.Id</td>
-                                <td>@order.FullName</td>
-                                <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
-                                <td class="text-success fw-semibold">@order.TotalPrice.ToString("N0") VNĐ</td>
-                                <td>
-                                    <form asp-controller="Order" asp-action="UpdateStatus" method="post" class="d-flex align-items-center gap-2 js-order-status-form">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="id" value="@order.Id" />
-                                        <select name="orderStatus" class="form-select form-select-sm status-select">
-                                            @foreach (OrderStatus status in Enum.GetValues(typeof(OrderStatus)))
-                                            {
-                                                <option value="@status" selected="@(status == order.OrderStatus)">
-                                                    @status.GetDisplayName()
-                                                </option>
-                                            }
-                                        </select>
-                                        <button type="submit" class="btn btn-primary btn-sm btn-update">
-                                            <i class="bi bi-arrow-repeat"></i> Cập nhật
-                                        </button>
-                                    </form>
+                            <tr class="group hover:bg-[#1c252e] transition-colors duration-150 order-row" data-status="@item.OrderStatus">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="font-mono text-primary group-hover:drop-shadow-[0_0_5px_rgba(13,127,242,0.8)] transition-all">#ORD-@item.Id</span>
                                 </td>
-                                <td class="text-center">
-                                    <a asp-controller="Order" asp-action="OrderDetail" asp-route-id="@order.Id" class="btn btn-info btn-sm text-white">
-                                        <i class="bi bi-file-earmark-text"></i> Chi tiết
-                                    </a>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center gap-3">
+                                        <div class="size-8 rounded-full bg-slate-700 flex items-center justify-center text-white font-bold ring-1 ring-slate-600">
+                                            @item.FullName?.Substring(0, 1).ToUpper()
+                                        </div>
+                                        <div class="font-medium text-white">@item.FullName</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-slate-400 text-sm">
+                                    @item.OrderDate.ToString("MMM dd, yyyy") <span class="text-slate-600 text-xs ml-1">@item.OrderDate.ToString("hh:mm tt")</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right">
+                                    <span class="font-bold text-white group-hover:text-primary transition-colors">@item.TotalPrice.ToString("C0", new System.Globalization.CultureInfo("vi-VN"))</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                    @{
+                                        var statusClass = "bg-slate-500/10 text-slate-400 border-slate-500/20";
+                                        var dotClass = "bg-slate-400";
+                                        var statusText = item.OrderStatus.ToString();
+                                        
+                                        switch (item.OrderStatus)
+                                        {
+                                            case OrderStatus.ChoXacNhan:
+                                                statusClass = "bg-yellow-500/10 text-yellow-400 border-yellow-500/20 shadow-[0_0_10px_rgba(234,179,8,0.2)]";
+                                                dotClass = "bg-yellow-400";
+                                                statusText = "Chờ Xác Nhận";
+                                                break;
+                                            case OrderStatus.DangXuLy:
+                                                statusClass = "bg-blue-500/10 text-blue-400 border-blue-500/20 shadow-[0_0_10px_rgba(59,130,246,0.2)]";
+                                                dotClass = "bg-blue-400";
+                                                statusText = "Đang Xử Lý";
+                                                break;
+                                            case OrderStatus.DangGiaoHang:
+                                                statusClass = "bg-indigo-500/10 text-indigo-400 border-indigo-500/20 shadow-[0_0_10px_rgba(99,102,241,0.2)]";
+                                                dotClass = "bg-indigo-400";
+                                                statusText = "Đang Giao Hàng";
+                                                break;
+                                            case OrderStatus.HoanThanh:
+                                                statusClass = "bg-green-500/10 text-green-400 border-green-500/20 shadow-[0_0_10px_rgba(34,197,94,0.2)]";
+                                                dotClass = "bg-green-400";
+                                                statusText = "Hoàn Thành";
+                                                break;
+                                            case OrderStatus.DaHuy:
+                                                statusClass = "bg-red-500/10 text-red-400 border-red-500/20 shadow-[0_0_10px_rgba(248,113,113,0.2)]";
+                                                dotClass = "bg-red-400";
+                                                statusText = "Đã Hủy";
+                                                break;
+                                        }
+                                    }
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold @statusClass border">
+                                        <span class="size-1.5 rounded-full @dotClass animate-pulse"></span>
+                                        @statusText
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <button onclick="openStatusModal(@item.Id, '@item.OrderStatus')" class="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all" title="Update Status">
+                                            <span class="material-symbols-outlined text-[20px]">edit_square</span>
+                                        </button>
+                                        <button onclick="openOrderDetailModal('@Url.Action("OrderDetail", "Order", new { id = item.Id })')" class="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all inline-flex items-center justify-center" title="View Details">
+                                            <span class="material-symbols-outlined text-[20px]">visibility</span>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         }
-                    </tbody>
-                </table>
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="px-6 py-8 text-center text-slate-500">
+                                <span class="material-symbols-outlined text-4xl mb-2">inbox</span>
+                                <p>Không tìm thấy đơn hàng nào.</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Update Status Modal -->
+<div id="updateStatusModal" class="fixed inset-0 z-50 hidden">
+    <!-- Blur Overlay -->
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity opacity-0" id="statusModalOverlay" onclick="closeStatusModal()"></div>
+    
+    <!-- Modal Content -->
+    <div class="absolute inset-0 overflow-y-auto flex items-center justify-center p-4">
+        <div class="relative w-full max-w-md transform transition-all scale-95 opacity-0" id="statusModalContent">
+            <div class="bg-[#1a2027] border border-[#283039] rounded-2xl shadow-2xl overflow-hidden">
+                <!-- Header -->
+                <div class="p-6 border-b border-[#283039] flex justify-between items-center bg-[#1c232b]">
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">edit_note</span>
+                        Cập Nhật Trạng Thái Đơn Hàng
+                    </h3>
+                    <button onclick="closeStatusModal()" class="text-slate-400 hover:text-white transition-colors">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                
+                <!-- Form -->
+                <form id="updateStatusForm" action="@Url.Action("UpdateStatus", "Order")" method="post" onsubmit="return submitStatusUpdate(event)">
+                    <div class="p-6 space-y-4">
+                        <input type="hidden" id="modalOrderId" name="id" />
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-2">Chọn Trạng Thái Mới</label>
+                            <div class="relative">
+                                <select id="modalOrderStatus" name="orderStatus" class="w-full bg-[#111418] border border-[#3b4754] text-white rounded-lg px-4 py-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                                    <option value="0">Chờ Xác Nhận</option>
+                                    <option value="1">Đang Xử Lý</option>
+                                    <option value="2">Đang Giao Hàng</option>
+                                    <option value="3">Hoàn Thành</option>
+                                    <option value="4">Đã Hủy</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-500">
+                                    <span class="material-symbols-outlined">expand_more</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Footer -->
+                    <div class="p-6 border-t border-[#283039] bg-[#1c232b] flex justify-end gap-3">
+                        <button type="button" onclick="closeStatusModal()" class="px-4 py-2 rounded-lg border border-[#3b4754] text-slate-400 hover:text-white hover:bg-[#283039] transition-all font-medium">
+                            Hủy
+                        </button>
+                        <button type="submit" class="px-6 py-2 rounded-lg bg-primary text-white font-bold hover:shadow-neon-blue transition-all">
+                            Lưu Cập Nhật
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Bootstrap Icons -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
-<!-- Animate.css (hiệu ứng mượt) -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+<!-- Order Detail Modal -->
+<div id="orderDetailModal" class="fixed inset-0 z-50 hidden">
+    <!-- Blur Overlay -->
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity opacity-0" id="detailModalOverlay" onclick="closeOrderDetailModal()"></div>
+    
+    <!-- Modal Content -->
+    <div class="absolute inset-0 overflow-y-auto flex items-center justify-center p-4">
+        <div class="relative w-full max-w-5xl transform transition-all scale-95 opacity-0" id="detailModalContent">
+            <!-- Content loaded via AJAX -->
+        </div>
+    </div>
+</div>
 
-<style>
-    .table th, .table td {
-        vertical-align: middle;
-        padding: 12px 16px;
+<script>
+    function openOrderDetailModal(url) {
+        var modal = document.getElementById('orderDetailModal');
+        var overlay = document.getElementById('detailModalOverlay');
+        var content = document.getElementById('detailModalContent');
+        
+        modal.classList.remove('hidden');
+        
+        // Load content
+        fetch(url, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.text())
+        .then(html => {
+            content.innerHTML = html;
+            
+            // Re-init GSAP
+            if (typeof initDashboardAnimations === 'function') initDashboardAnimations();
+            if (typeof initGlobalAnimations === 'function') initGlobalAnimations();
+
+            // Animate in
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        });
     }
 
-    .table-dark th {
-        background-color: #343a40;
-        color: #fff;
-        font-weight: 600;
+    function closeOrderDetailModal() {
+        var modal = document.getElementById('orderDetailModal');
+        var overlay = document.getElementById('detailModalOverlay');
+        var content = document.getElementById('detailModalContent');
+        
+        // Animate out
+        overlay.classList.add('opacity-0');
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            content.innerHTML = '';
+        }, 300);
     }
 
-    .order-row:hover {
-        background-color: #e9f7ef !important;
-        cursor: pointer;
-        box-shadow: inset 0 0 10px rgba(0, 123, 255, 0.1);
-        transition: all 0.3s ease-in-out;
+    function searchOrders() {
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("orderSearch");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("orderTable");
+        tr = table.getElementsByTagName("tr");
+        
+        for (i = 1; i < tr.length; i++) { // Skip header
+            var idCol = tr[i].getElementsByTagName("td")[0];
+            var nameCol = tr[i].getElementsByTagName("td")[1];
+            
+            if (idCol && nameCol) {
+                var idText = idCol.textContent || idCol.innerText;
+                var nameText = nameCol.textContent || nameCol.innerText;
+                
+                if (idText.toUpperCase().indexOf(filter) > -1 || nameText.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
     }
 
-    .btn {
-        border-radius: 10px;
-        transition: all 0.3s ease;
+    function filterStatus() {
+        var status = document.getElementById("statusFilter").value;
+        var table = document.getElementById("orderTable");
+        var tr = table.getElementsByTagName("tr");
+        
+        for (var i = 1; i < tr.length; i++) {
+            var row = tr[i];
+            var rowStatus = row.getAttribute('data-status');
+            
+            if (status === 'all') {
+                row.style.display = "";
+            } else {
+                if (rowStatus === status) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            }
+        }
     }
 
-        .btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 10px rgba(0,0,0,0.15);
+    function openStatusModal(id, currentStatus) {
+        var modal = document.getElementById('updateStatusModal');
+        var overlay = document.getElementById('statusModalOverlay');
+        var content = document.getElementById('statusModalContent');
+        var inputId = document.getElementById('modalOrderId');
+        var selectStatus = document.getElementById('modalOrderStatus');
+        
+        inputId.value = id;
+        
+        // Map enum string/value to select option
+        // Enum values: ChoXacNhan=0, DangXuLy=1, DangGiaoHang=2, HoanThanh=3, DaHuy=4
+        // The currentStatus passed might be the string name (e.g. "ChoXacNhan")
+        
+        var statusMap = {
+            "ChoXacNhan": "0",
+            "DangXuLy": "1",
+            "DangGiaoHang": "2",
+            "HoanThanh": "3",
+            "DaHuy": "4"
+        };
+        
+        if (statusMap[currentStatus]) {
+             selectStatus.value = statusMap[currentStatus];
+        } else {
+             // Try direct value if passed as int
+             selectStatus.value = currentStatus;
         }
 
-    .btn-primary {
-        background: linear-gradient(45deg, #007bff, #0056b3);
-        border: none;
+        modal.classList.remove('hidden');
+        
+        // Animate in
+        setTimeout(() => {
+            overlay.classList.remove('opacity-0');
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+        }, 10);
     }
 
-    .btn-info {
-        background: linear-gradient(45deg, #17a2b8, #0c6674);
-        border: none;
+    function closeStatusModal() {
+        var modal = document.getElementById('updateStatusModal');
+        var overlay = document.getElementById('statusModalOverlay');
+        var content = document.getElementById('statusModalContent');
+        
+        // Animate out
+        overlay.classList.add('opacity-0');
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
     }
 
-    .status-select {
-        min-width: 130px;
-        transition: box-shadow 0.3s ease;
+    function submitStatusUpdate(event) {
+        event.preventDefault();
+        var form = event.target;
+        var formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.text())
+        .then(html => {
+             // Reload the dashboard content
+             closeStatusModal();
+             var container = document.getElementById('dashboard-content');
+             if (container) {
+                 container.innerHTML = html;
+                 
+                  // Re-execute scripts
+                 container.querySelectorAll('script').forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+
+                // Re-init GSAP
+                if (typeof initDashboardAnimations === 'function') {
+                    initDashboardAnimations();
+                }
+                if (typeof initGlobalAnimations === 'function') {
+                    initGlobalAnimations();
+                }
+             }
+        })
+        .catch(error => console.error('Error:', error));
+        
+        return false;
     }
-
-        .status-select:focus {
-            box-shadow: 0 0 10px rgba(0, 123, 255, 0.4);
-            border-color: #007bff;
-        }
-
-    .btn-update i {
-        transition: transform 0.3s ease;
-    }
-
-    .btn-update:hover i {
-        transform: rotate(360deg);
-    }
-
-    @@media (max-width: 768px) {
-        .status-select
-
-    {
-        width: 100%;
-    }
-
-    .btn-update {
-        width: 100%;
-    }
-
-    .d-flex.gap-2 {
-        flex-direction: column;
-    }
-
-    }
-</style>
+</script>

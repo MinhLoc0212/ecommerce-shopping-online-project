@@ -1,161 +1,211 @@
 @model IEnumerable<GearsHouse.Models.Category>
-@{
-    Layout = null;
-}
-<h3 class="text-center text-primary mb-4 fw-bold">Danh sách Danh Mục (Dashboard)</h3>
 
-<div class="table-responsive category-table-wrapper">
-    <table class="category-table">
-        <thead class="category-header">
-            <tr>
-                <th class="text-center"><i class="bi bi-tags me-1"></i> Tên Danh Mục</th>
-                <th class="text-center"><i class="bi bi-gear me-1"></i> Hành động</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var category in Model)
-            {
-                <tr>
-                    <td class="text-center">@category.Name</td>
-                    <td class="text-center">
-                        <a href="@Url.Action("UpdateCategory", "Categories", new { id = category.Id })" class="btn btn-warning btn-sm btn-action js-edit-category">
-                            <i class="bi bi-pencil-square"></i> Sửa
-                        </a>
-                        <form action="@Url.Action("DeleteCategory", "Categories", new { id = category.Id })" method="post" style="display:inline;">
-                            <button type="submit" class="btn btn-danger btn-sm btn-action" onclick="return confirm('Bạn có chắc chắn muốn xóa danh mục này không?');">
-                                <i class="bi bi-trash"></i> Xóa
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+<!-- Breadcrumbs -->
+<div class="flex flex-wrap gap-2 px-4 pt-4">
+    <a class="text-[#9cabba] text-base font-medium leading-normal hover:text-white transition-colors" href="#">Bảng điều khiển</a>
+    <span class="text-[#9cabba] text-base font-medium leading-normal">/</span>
+    <span class="text-white text-base font-medium leading-normal">Quản lý danh mục</span>
 </div>
 
-<div class="text-center mt-4">
-    <a href="@Url.Action("AddCategory", "Categories")" class="btn btn-success btn-lg btn-add-category">
-        <i class="bi bi-plus-circle me-2"></i> Thêm danh mục
-    </a>
+<!-- PageHeading -->
+<div class="flex flex-wrap justify-between gap-3 px-4 pt-4 pb-2 gsap-fade-up">
+    <div class="flex min-w-72 flex-col gap-3">
+        <p class="text-white text-4xl font-black leading-tight tracking-[-0.033em] drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]">Quản lý danh mục</p>
+        <p class="text-[#9cabba] text-base font-normal leading-normal">Quản lý và sắp xếp danh mục sản phẩm của bạn cho trải nghiệm tốt nhất.</p>
+    </div>
 </div>
 
-<!-- Bootstrap Icons -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+<!-- Stats -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
+    <div class="flex flex-col gap-2 rounded-xl p-6 border border-[#3b4754] bg-[#1b2127] shadow-lg relative overflow-hidden group gsap-fade-up">
+        <div class="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-40 transition-opacity text-primary">
+            <span class="material-symbols-outlined text-5xl">category</span>
+        </div>
+        <p class="text-[#9cabba] text-base font-medium leading-normal">Tổng danh mục</p>
+        <p class="text-white tracking-light text-3xl font-bold leading-tight gsap-counter">@Model.Count()</p>
+    </div>
+    <div class="flex flex-col gap-2 rounded-xl p-6 border border-[#3b4754] bg-[#1b2127] shadow-lg relative overflow-hidden group gsap-fade-up">
+        <div class="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-40 transition-opacity text-primary">
+            <span class="material-symbols-outlined text-5xl">trending_up</span>
+        </div>
+        <p class="text-[#9cabba] text-base font-medium leading-normal">Danh mục hoạt động</p>
+        <p class="text-white tracking-light text-3xl font-bold leading-tight gsap-counter">@Model.Count()</p>
+    </div>
+    <div class="flex flex-col gap-2 rounded-xl p-6 border border-[#3b4754] bg-[#1b2127] shadow-lg relative overflow-hidden group gsap-fade-up">
+        <div class="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-40 transition-opacity text-red-500">
+            <span class="material-symbols-outlined text-5xl">warning</span>
+        </div>
+        <p class="text-[#9cabba] text-base font-medium leading-normal">Danh mục trống</p>
+        <p class="text-white tracking-light text-3xl font-bold leading-tight gsap-counter">@Model.Count(c => c.Products == null || !c.Products.Any())</p>
+    </div>
+</div>
 
-<style>
-    /* Wrapper bảng với viền đen vuông */
-    .category-table-wrapper {
-        border: 2px solid #000;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-        background: #fff;
-        border-radius: 0;
-        overflow: visible;
-    }
+<!-- Action Bar: Search & Add New -->
+<div class="p-4 gsap-fade-up">
+    <div class="flex flex-col lg:flex-row gap-6 p-6 rounded-xl border border-[#3b4754] bg-[#151a21]">
+        <!-- Search Section -->
+        <div class="flex flex-col gap-2 flex-1">
+            <label class="text-white text-sm font-bold uppercase tracking-wider">Tìm kiếm</label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span class="material-symbols-outlined text-[#9cabba]">search</span>
+                </div>
+                <input id="categorySearch" oninput="onSearchInput()" class="w-full h-12 pl-10 pr-4 rounded-lg bg-[#1b2127] border border-[#3b4754] text-white placeholder-[#9cabba] focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all shadow-inner" placeholder="Lọc theo tên danh mục..." type="text" />
+            </div>
+        </div>
+        <!-- Add New Category Section -->
+        <div class="flex flex-col gap-2 flex-[2]">
+            <label class="text-white text-sm font-bold uppercase tracking-wider text-primary drop-shadow-[0_0_5px_rgba(13,127,242,0.5)]">Thêm danh mục mới</label>
+            <div class="flex gap-3">
+                <input id="newCategoryName" class="flex-1 h-12 px-4 rounded-lg bg-[#1b2127] border border-[#3b4754] text-white placeholder-[#9cabba] focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all shadow-inner" placeholder="Nhập tên danh mục mới..." type="text" />
+                <button onclick="addCategory()" class="h-12 px-6 bg-primary hover:bg-blue-600 text-white font-bold rounded-lg flex items-center gap-2 transition-all shadow-[0_0_10px_rgba(13,127,242,0.2)] hover:shadow-[0_0_20px_rgba(13,127,242,0.4)] whitespace-nowrap">
+                    <span class="material-symbols-outlined">add_circle</span>
+                    Thêm danh mục
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
-    /* Bảng */
-    .category-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        border-radius: 0;
-    }
+<!-- Category Table -->
+<div class="p-4 gsap-fade-up">
+    <div class="w-full overflow-hidden rounded-xl border border-[#3b4754] shadow-2xl bg-[#1b2127]">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-[#242b33] border-b border-[#3b4754]">
+                        <th class="p-5 text-xs font-bold uppercase tracking-widest text-[#9cabba]">ID</th>
+                        <th class="p-5 text-xs font-bold uppercase tracking-widest text-[#9cabba]">Tên Danh Mục</th>
+                        <th class="p-5 text-xs font-bold uppercase tracking-widest text-[#9cabba]">Sản Phẩm</th>
+                        <th class="p-5 text-xs font-bold uppercase tracking-widest text-[#9cabba]">Trạng Thái</th>
+                        <th class="p-5 text-xs font-bold uppercase tracking-widest text-[#9cabba] text-right">Hành Động</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-[#2f3944] text-sm">
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr class="group hover:bg-[#2f3944] transition-colors duration-200">
+                                <td class="p-5 text-[#9cabba] font-mono">#@item.Id</td>
+                                <td class="p-5">
+                                    <div class="flex items-center gap-3">
+                                        <div class="size-8 rounded bg-[#2f3944] flex items-center justify-center text-primary border border-[#3b4754]">
+                                            <span class="material-symbols-outlined text-lg">category</span>
+                                        </div>
+                                        <span class="text-white font-medium text-base">@item.Name</span>
+                                    </div>
+                                </td>
+                                <td class="p-5 text-white">@(item.Products?.Count ?? 0) Sản Phẩm</td>
+                                <td class="p-5">
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20">
+                                        <span class="size-1.5 rounded-full bg-green-400 animate-pulse"></span>
+                                        Hoạt Động
+                                    </span>
+                                </td>
+                                <td class="p-5 text-right">
+                                    <div class="flex items-center justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                                        <a href="@Url.Action("UpdateCategory", "Categories", new { id = item.Id })" class="size-8 flex items-center justify-center rounded-lg hover:bg-primary/20 hover:text-primary transition-colors text-[#9cabba]" title="Edit">
+                                            <span class="material-symbols-outlined text-[20px]">edit</span>
+                                        </a>
+                                        <form action="@Url.Action("DeleteCategoryConfirmed", "Categories", new { id = item.Id })" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa danh mục này không?');" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="size-8 flex items-center justify-center rounded-lg hover:bg-red-500/20 hover:text-red-500 transition-colors text-[#9cabba]" title="Delete">
+                                                <span class="material-symbols-outlined text-[20px]">delete</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="p-5 text-center text-[#9cabba]">Không tìm thấy danh mục nào.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
-    /* Header */
-    .category-header {
-        background-color: #212529; /* màu tối */
-        color: #fff;
-        font-weight: 700;
-        border-bottom: 3px solid #000;
-        border-radius: 0 !important;
-    }
+<script>
+    var searchTimeout;
+    function filterCategories() {
+        var search = document.getElementById('categorySearch').value;
+        var url = '@Url.Action("CategoryIndex", "Dashboard")' + '?search=' + encodeURIComponent(search);
 
-        .category-header th {
-            padding: 12px 15px;
-            border: 1px solid #000;
-            vertical-align: middle;
-            user-select: none;
-            transition: background-color 0.3s ease;
-        }
-
-            .category-header th:hover {
-                background-color: #343a40;
-                cursor: default;
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(response => response.text())
+        .then(html => {
+            var container = document.getElementById('dashboard-content');
+            container.innerHTML = html;
+            
+            // Re-execute scripts
+            container.querySelectorAll('script').forEach(oldScript => {
+                const newScript = document.createElement('script');
+                Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                oldScript.parentNode.replaceChild(newScript, oldScript);
+            });
+            
+             // Restore UI state
+            var newSearchInput = document.getElementById('categorySearch');
+            if(newSearchInput) {
+                newSearchInput.value = search;
+                newSearchInput.focus();
+                var val = newSearchInput.value;
+                newSearchInput.value = '';
+                newSearchInput.value = val;
             }
 
-    /* Các dòng tbody xen kẽ màu */
-    tbody tr:nth-child(odd) {
-        background-color: #f8f9fa;
-        transition: background-color 0.3s ease;
+            // Re-init GSAP
+            if (typeof initDashboardAnimations === 'function') {
+                initDashboardAnimations();
+            }
+        });
     }
 
-    tbody tr:nth-child(even) {
-        background-color: #e9ecef;
-        transition: background-color 0.3s ease;
+    function onSearchInput() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(filterCategories, 500);
     }
 
-    tbody tr:hover {
-        background-color: #d1e7dd !important;
-        box-shadow: inset 0 0 10px #93c6a1;
-        cursor: pointer;
-    }
-
-    /* Ô td */
-    tbody td {
-        padding: 12px 15px;
-        border: 1px solid #000;
-        vertical-align: middle;
-        transition: color 0.3s ease;
-    }
-
-    /* Nút hành động */
-    .btn-action {
-        border-radius: 6px;
-        font-weight: 600;
-        transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
-    }
-
-        .btn-action:hover {
-            transform: scale(1.12) rotate(-2deg);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-            background-color: #ffc107 !important; /* vàng nổi bật cho btn-warning */
-            color: #000 !important;
+    function addCategory() {
+        var nameInput = document.getElementById('newCategoryName');
+        var name = nameInput.value;
+        if (!name) {
+            alert('Please enter a category name.');
+            return;
         }
 
-    .btn-danger.btn-action:hover {
-        background-color: #dc3545 !important;
-        transform: scale(1.1) rotate(2deg);
-        box-shadow: 0 6px 12px rgba(220, 53, 69, 0.5);
-        color: #fff !important;
-    }
+        var formData = new FormData();
+        formData.append('Name', name);
 
-    /* Nút thêm danh mục */
-    .btn-add-category {
-        border-radius: 8px;
-        font-weight: 700;
-        background: linear-gradient(45deg, #28a745, #218838);
-        border-color: #218838;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
+        fetch('@Url.Action("AddCategory", "Categories")', {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: formData
+        })
+        .then(response => response.text())
+        .then(html => {
+             var container = document.getElementById('dashboard-content');
+            container.innerHTML = html;
+             // Re-execute scripts
+            container.querySelectorAll('script').forEach(oldScript => {
+                const newScript = document.createElement('script');
+                Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                oldScript.parentNode.replaceChild(newScript, oldScript);
+            });
 
-        .btn-add-category:hover {
-            transform: scale(1.15) rotate(-1deg);
-            box-shadow: 0 8px 16px rgba(33, 136, 56, 0.7);
-        }
-
-    /* Icon nhỏ bên cạnh text */
-    .bi {
-        vertical-align: -.125em;
-        margin-right: 6px;
-        transition: transform 0.3s ease;
+            // Re-init GSAP
+            if (typeof initDashboardAnimations === 'function') {
+                initDashboardAnimations();
+            }
+        })
+        .catch(error => console.error('Error adding category:', error));
     }
-
-    /* Icon nhảy nhẹ khi hover nút */
-    .btn:hover .bi {
-        transform: translateX(3px) rotate(15deg);
-    }
-
-    /* Canh giữa */
-    .text-center {
-        text-align: center !important;
-    }
-</style>
+</script>

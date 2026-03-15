@@ -1,783 +1,543 @@
-﻿@section Styles {
-    <style>
-        
-        body {
-            background-color: #f8f9fa;
-        }
-
-        .hero-section {
-            background: url('/image/background.jpg') no-repeat center center;
-            background-size: cover;
-            color: white;
-            padding: 120px 0;
-            text-align: center;
-        }
-
-            .hero-section h1 {
-                font-size: 3rem;
-                font-weight: bold;
-                margin-bottom: 20px;
-            }
-
-            .hero-section p {
-                font-size: 1.2rem;
-                margin-bottom: 30px;
-            }
-
-            /* Nút khám phá ngay cải tiến */
-            .hero-section .btn-explore {
-                background-color: #000;
-                color: white !important;
-                padding: 12px 30px;
-                font-weight: 700;
-                font-size: 1.1rem;
-                border-radius: 50px;
-                text-transform: uppercase;
-                transition: background-color 0.3s ease, color 0.3s ease;
-                display: inline-block;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            }
-
-                .hero-section .btn-explore:hover {
-                    background-color: #d10000;
-                    color: white !important;
-                    box-shadow: 0 6px 20px rgba(209,0,0,0.7);
-                }
-
-        /* Các phần CSS khác bạn giữ nguyên */
-        .product-highlight {
-            background-color: #fff;
-            padding: 60px 0;
-        }
-
-            .product-highlight h2 {
-                text-align: center;
-                font-weight: 700;
-                font-size: 2rem;
-                margin-bottom: 40px;
-            }
-
-        .card.product-card {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-            .card.product-card:hover {
-                box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-                transform: translateY(-5px);
-            }
-
-        .product-card img {
-            height: 240px;
-            object-fit: cover;
-            transition: transform 0.3s ease;
-        }
-
-        .product-card:hover img {
-            transform: scale(1.05);
-        }
-
-        .product-card .card-body {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            flex-grow: 1;
-            text-align: center;
-        }
-
-        .product-card .card-text {
-            flex-grow: 1;
-        }
-
-        .product-card .btn {
-            background-color: #d10000;
-            color: white;
-            padding: 8px 20px;
-            border: none;
-            border-radius: 4px;
-            text-transform: uppercase;
-            font-weight: 600;
-            transition: background-color 0.3s ease;
-            margin-top: 10px;
-        }
-
-            .product-card .btn:hover {
-                background-color: #a80000;
-            }
-
-        .carousel-inner img {
-            height: 400px;
-            object-fit: cover;
-        }
-
-        .banner-section {
-            margin-top: 60px;
-        }
-
-        .product-price {
-            font-size: 1.1rem;
-            color: #d10000;
-            margin-bottom: 10px;
-        }
-
-            .product-price del {
-                color: #999;
-                margin-right: 8px;
-                font-weight: 400;
-            }
-
-        .product-rating {
-            margin-bottom: 12px;
-            color: #ffc107;
-            font-size: 1rem;
-        }
-
-            .product-rating .checked {
-                color: #ffc107;
-            }
-
-            .product-rating i {
-                margin-right: 2px;
-            }
-
-        /* Animation Fade-In */
-        @@keyframes fadeInUp {
-            0%
-
-        {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-
-        100% {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        }
-
-        .hero-section h1,
-        .hero-section p,
-        .hero-section .btn-explore {
-            animation: fadeInUp 1s ease forwards;
-            opacity: 0;
-        }
-
-        .hero-section h1 {
-            animation-delay: 0.3s;
-        }
-
-        .hero-section p {
-            animation-delay: 0.6s;
-        }
-
-        .hero-section .btn-explore {
-            animation-delay: 0.9s;
-        }
-
-            .category-section {
-                padding: 9px;
-                background-color: #fff0f0;
-                border: 3px solid red; /* Khung viền đỏ */
-                border-radius: 12px;
-                margin-top: 50px;
-            }
-
-            .section-header h2 {
-                font-size: 28px;
-                color: #d10000;
-                margin-bottom: 30px;
-            }
-
-            .category-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 20px;
-            }
-
-            .category-card {
-                background: #fff;
-                border-radius: 10px;
-                padding: 15px;
-                text-align: center;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                transition: transform 0.3s ease;
-            }
-
-                .category-card:hover {
-                    transform: translateY(-5px);
-                }
-
-                .category-card img {
-                    height: 100px;
-                    object-fit: contain;
-                    margin-bottom: 15px;
-                }
-
-                .category-card h3 {
-                    font-size: 18px;
-                    color: #333;
-                    margin-bottom: 10px;
-                }
-
-                .category-card a {
-                    text-decoration: none;
-                    color: #fff;
-                    background-color: #e60000;
-                    padding: 8px 16px;
-                    border-radius: 6px;
-                    font-weight: bold;
-                    display: inline-block;
-                    transition: background-color 0.3s ease;
-                }
-
-                    .category-card a:hover {
-                        background-color: #b30000;
-                    }
-
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-
-            body {
-                font-family: 'Arial', sans-serif;
-                background: #f5f5f5;
-                padding:  0;
-            }
-
-            .category-section {
-                background: linear-gradient(135deg, #ff4757, #ff3742);
-                border-radius: 20px;
-                padding: 30px;
-                margin: 0 auto;
-                max-width: 1200px;
-            }
-
-            .section-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 25px;
-            }
-
-            .section-title {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                color: white;
-                font-size: 24px;
-                font-weight: bold;
-                text-transform: uppercase;
-            }
-
-            .fire-icon {
-                width: 32px;
-                height: 32px;
-                background: white;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 18px;
-            }
-
-            .countdown {
-                display: flex;
-                align-items: center;
-                gap: 15px;
-                color: white;
-            }
-
-            .countdown-label {
-                font-size: 16px;
-                font-weight: 500;
-            }
-
-            .countdown-timer {
-                display: flex;
-                gap: 8px;
-                align-items: center;
-            }
-
-            .time-unit {
-                background: rgba(0, 0, 0, 0.4);
-                padding: 8px 12px;
-                border-radius: 8px;
-                font-size: 18px;
-                font-weight: bold;
-                min-width: 45px;
-                text-align: center;
-            }
-
-            .time-separator {
-                font-size: 20px;
-                font-weight: bold;
-                color: white;
-            }
-
-            .categories-grid {
-                display: grid;
-                grid-template-columns: repeat(4, 1fr);
-                gap: 20px;
-            }
-
-            .category-card {
-                background: white;
-                border-radius: 15px;
-                padding: 25px;
-                text-align: center;
-                position: relative;
-                transition: transform 0.3s ease, box-shadow 0.3s ease;
-                cursor: pointer;
-            }
-
-                .category-card:hover {
-                    transform: translateY(-5px);
-                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-                }
-
-            .installment-badge {
-                position: absolute;
-                top: 15px;
-                right: 15px;
-                background: #3742fa;
-                color: white;
-                padding: 6px 12px;
-                border-radius: 15px;
-                font-size: 12px;
-                font-weight: 500;
-            }
-
-            .category-icon {
-                width: 120px;
-                height: 120px;
-                margin: 0 auto 20px;
-                border-radius: 20px;
-                overflow: hidden;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            }
-
-                .category-icon img {
-                    width: 100%;
-                    height: 100%;
-                    object-fit: cover;
-                    transition: transform 0.3s ease;
-                }
-
-            .category-card:hover .category-icon img {
-                transform: scale(1.1);
-            }
-
-            .category-name {
-                font-size: 20px;
-                font-weight: bold;
-                color: #333;
-                margin-bottom: 10px;
-                text-transform: uppercase;
-            }
-
-            .category-description {
-                font-size: 13px;
-                color: #666;
-                line-height: 1.4;
-                margin-bottom: 20px;
-            }
-
-            .category-price {
-                font-size: 18px;
-                font-weight: bold;
-                color: #ff4757;
-                margin-bottom: 15px;
-            }
-
-            .rating-section {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-
-            .stars {
-                display: flex;
-                gap: 2px;
-            }
-
-            .star {
-                color: #ffd700;
-                font-size: 16px;
-            }
-
-                .star.empty {
-                    color: #ddd;
-                }
-
-            .favorite-btn {
-                background: none;
-                border: none;
-                color: #ddd;
-                font-size: 18px;
-                cursor: pointer;
-                transition: color 0.3s ease;
-            }
-
-                .favorite-btn:hover {
-                    color: #ff4757;
-                }
-
-            @@media (max-width: 768px) {
-                .section-header
-
-            {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-            }
-
-            .categories-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 15px;
-            }
-
-            .countdown {
-                justify-content: center;
-            }
-
-            }
-
-            @@media (max-width: 480px) {
-                .categories-grid
-
-            {
-                grid-template-columns: 1fr;
-            }
-
-            }
-
-    </style>
-}
-    <!-- Hero Section -->
-    <section class="hero-section">
-        <div class="container-fluid">
-            <h1>GEARSHOUSE - MUA SẮM THIẾT BỊ CÔNG NGHỆ</h1>
-            <p>Khám phá những sản phẩm hot nhất với giá cạnh tranh</p>
-            <a asp-controller="Product" asp-action="Index" class="btn btn-explore"><span>Khám phá ngay</span></a>
-        </div>
-    </section>
-    <!-- Product Highlights -->
-    <section class="product-highlight">
-        <div class="container">
-            <h2>Sản Phẩm Nổi Bật</h2>
-            <div class="row g-4">
-                <div class="col-sm-6 col-md-4 col-lg-3">
-                    <div class="card product-card">
-                        <img src="/image/Laptop Asus ROG Strix Scar.jpg" class="card-img-top" alt="Laptop">
-                        <div class="card-body">
-                            <h5 class="card-title">Laptop Gaming</h5>
-                            <p class="product-price"><del>35,000,000₫</del> <strong>32,500,000₫</strong></p>
-                            <div class="product-rating">
-                                <i class="fas fa-star checked"></i>
-                                <i class="fas fa-star checked"></i>
-                                <i class="fas fa-star checked"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star-half-alt checked"></i>
-                                <span>(120 đánh giá)</span>
-                            </div>
-                            <p class="card-text">Hiệu năng mạnh mẽ, chiến mọi tựa game.</p>
-                            <a asp-controller="Product" asp-action="Index" class="btn">Xem ngay</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-sm-6 col-md-4 col-lg-3">
-                    <div class="card product-card">
-                        <img src="/image/Bàn-phím-Razer-Blackwidow-Green-Switch-–-2019-2-1.jpg" class="card-img-top" alt="Bàn phím">
-                        <div class="card-body">
-                            <h5 class="card-title">Bàn Phím Cơ</h5>
-                            <p class="product-price"><strong>1,950,000₫</strong></p>
-                            <div class="product-rating">
-                                <i class="fas fa-star checked"></i>
-                                <i class="fas fa-star checked"></i>
-                                <i class="fas fa-star checked"></i>
-                                <i class="fas fa-star checked"></i>
-                                <i class="fas fa-star checked"></i>
-                                <span>(89 đánh giá)</span>
-                            </div>
-                            <p class="card-text">Thiết kế cao cấp, trải nghiệm gõ đã tay.</p>
-                            <a asp-controller="Product" asp-action="Index" class="btn">Xem ngay</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-sm-6 col-md-4 col-lg-3">
-                    <div class="card product-card">
-                        <img src="/image/Màn hình BenQ ZOWIE XL2546K 240hz.png" class="card-img-top" alt="Màn hình">
-                        <div class="card-body">
-                            <h5 class="card-title">Màn Hình 240Hz</h5>
-                            <p class="product-price"><strong>10,500,000₫</strong></p>
-                            <div class="product-rating">
-                                <i class="fas fa-star checked"></i>
-                                <i class="fas fa-star checked"></i>
-                                <i class="fas fa-star checked"></i>
-                                <i class="fas fa-star checked"></i>
-                                <i class="fas fa-star"></i>
-                                <span>(46 đánh giá)</span>
-                            </div>
-                            <p class="card-text">Hình ảnh mượt mà, tương phản cao.</p>
-                            <a asp-controller="Product" asp-action="Index" class="btn">Xem ngay</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-sm-6 col-md-4 col-lg-3">
-                    <div class="card product-card">
-                        <img src="/image/tainghe.webp" class="card-img-top" alt="Tai nghe">
-                        <div class="card-body">
-                            <h5 class="card-title">Tai Nghe Gaming</h5>
-                            <p class="product-price"><del>2,300,000₫</del> <strong>1,950,000₫</strong></p>
-                            <div class="product-rating">
-                                <i class="fas fa-star checked"></i>
-                                <i class="fas fa-star checked"></i>
-                                <i class="fas fa-star checked"></i>
-                                <i class="fas fa-star checked"></i>
-                                <i class="fas fa-star-half-alt checked"></i>
-                                <span>(75 đánh giá)</span>
-                            </div>
-                            <p class="card-text">Âm thanh sống động, thiết kế thoải mái.</p>
-                            <a asp-controller="Product" asp-action="Index" class="btn">Xem ngay</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="text-center mt-4">
-            <a asp-controller="Product" class="btn btn-outline-danger btn-lg">Xem thêm sản phẩm nổi bật</a>
-            </div>
-        </div>
-    </section>
-            <div class="category-section">
-                <div class="section-header">
-                    <div class="section-title">
-                        <div class="fire-icon">🔥</div>
-                        DANH MỤC ĐƯỢC YÊU THÍCH
-                    </div>
-                    <div class="countdown">
-                        <span class="countdown-label">Bắt đầu sau:</span>
-                        <div class="countdown-timer">
-                            <div class="time-unit" id="hours">00</div>
-                            <div class="time-separator">:</div>
-                            <div class="time-unit" id="minutes">10</div>
-                            <div class="time-separator">:</div>
-                            <div class="time-unit" id="seconds">54</div>
-                            <div class="time-separator">:</div>
-                            <div class="time-unit" id="milliseconds">06</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="categories-grid">
-                    <!-- Laptop Gaming -->
-                    <a href="/Product?categoryId=6" class="category-card-link">
-                        <div class="category-card">
-                            <div class="installment-badge">Trả góp 0%</div>
-                            <div class="category-icon">
-                                <img src="/image/danhmuclaptop.webp" alt="Laptop Gaming">
-                            </div>
-                            <div class="category-name">Laptop Gaming</div>
-                            <div class="category-description">Laptop gaming cao cấp với hiệu năng mạnh mẽ, thẻ đồ họa rời hàng đầu</div>
-                            <div class="category-price">Chỉ từ 15.990.000đ</div>
-                            <div class="rating-section">
-                                <div class="stars">
-                                    <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
-                                </div>
-                                <button class="favorite-btn">♡</button>
-                            </div>
-                        </div>
-                    </a>
-
-                    <!-- Bàn Phím -->
-                    <a href="/Product?categoryId=2" class="category-card-link">
-                        <div class="category-card">
-                            <div class="installment-badge">Trả góp 0%</div>
-                            <div class="category-icon">
-                                <img src="/image/danhmucbanphim.jpg" alt="Bàn Phím">
-                            </div>
-                            <div class="category-name">Bàn Phím</div>
-                            <div class="category-description">Bàn phím thiết kế cao cấp, êm tay, đa dạng mẫu mã</div>
-                            <div class="category-price">Chỉ từ 400.000đ</div>
-                            <div class="rating-section">
-                                <div class="stars">
-                                    <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
-                                </div>
-                                <button class="favorite-btn">♡</button>
-                            </div>
-                        </div>
-                    </a>
-
-                    <!-- Chuột -->
-                    <a href="/Product?categoryId=3" class="category-card-link">
-                        <div class="category-card">
-                            <div class="installment-badge">Trả góp 0%</div>
-                            <div class="category-icon">
-                                <img src="/image/danhmucchuot.jpg" alt="Chuột">
-                            </div>
-                            <div class="category-name">Chuột</div>
-                            <div class="category-description">Chuột được ưa chuộng nhiều hãng nổi tiếng, chất lượng cao</div>
-                            <div class="category-price">Từ 300.000đ</div>
-                            <div class="rating-section">
-                                <div class="stars">
-                                    <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
-                                </div>
-                                <button class="favorite-btn">♡</button>
-                            </div>
-                        </div>
-                    </a>
-
-                    <!-- Màn Hình -->
-                    <a href="/Product?categoryId=1" class="category-card-link">
-                        <div class="category-card">
-                            <div class="installment-badge">Trả góp 0%</div>
-                            <div class="category-icon">
-                                <img src="/image/danhmucmanhinh.jpg" alt="Màn Hình">
-                            </div>
-                            <div class="category-name">Màn Hình</div>
-                            <div class="category-description">Màn hình chất lượng cao, độ nét đa dạng, phù hợp mọi yêu cầu</div>
-                            <div class="category-price">Chỉ từ 1.990.000đ</div>
-                            <div class="rating-section">
-                                <div class="stars">
-                                    <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
-                                </div>
-                                <button class="favorite-btn">♡</button>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <script>
-                // Countdown timer functionality
-                function updateCountdown() {
-                    const hours = document.getElementById('hours');
-                    const minutes = document.getElementById('minutes');
-                    const seconds = document.getElementById('seconds');
-                    const milliseconds = document.getElementById('milliseconds');
-
-                    let h = parseInt(hours.textContent);
-                    let m = parseInt(minutes.textContent);
-                    let s = parseInt(seconds.textContent);
-                    let ms = parseInt(milliseconds.textContent);
-
-                    ms--;
-
-                    if (ms < 0) {
-                        ms = 99;
-                        s--;
-
-                        if (s < 0) {
-                            s = 59;
-                            m--;
-
-                            if (m < 0) {
-                                m = 59;
-                                h--;
-
-                                if (h < 0) {
-                                    h = 23;
-                                }
-                            }
-                        }
-                    }
-
-                    hours.textContent = h.toString().padStart(2, '0');
-                    minutes.textContent = m.toString().padStart(2, '0');
-                    seconds.textContent = s.toString().padStart(2, '0');
-                    milliseconds.textContent = ms.toString().padStart(2, '0');
-                }
-
-                // Update countdown every 10ms for smooth animation
-                setInterval(updateCountdown, 10);
-
-                // Add click event to favorite buttons
-                document.querySelectorAll('.favorite-btn').forEach(btn => {
-                    btn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        if (this.textContent === '♡') {
-                            this.textContent = '♥';
-                            this.style.color = '#ff4757';
-                        } else {
-                            this.textContent = '♡';
-                            this.style.color = '#ddd';
-                        }
-                    });
-                });
-
-                // Add click event to category cards
-                document.querySelectorAll('.category-card').forEach(card => {
-                    card.addEventListener('click', function() {
-                        const categoryName = this.querySelector('.category-name').textContent;
-                        console.log(`Clicked on ${categoryName}`);
-                        // Add navigation logic here
-                    });
-                });
-            </script>
 @{
-    ViewData["Title"] = "Ưu đãi";
+    ViewData["Title"] = "Home Page";
 }
-<div class="container mt-5">
-    <!-- ƯU ĐÃI SINH VIÊN -->
-    <!-- ƯU ĐÃI SINH VIÊN -->
-    <h3 class="fw-bold text-uppercase mb-4">Ưu đãi sinh viên</h3>
-    <div class="d-flex flex-wrap gap-3 justify-content-center">
-        <a href="/UuDaiSinhVien/ChiTiet/1">
-            <img src="/image/sv1.webp" class="promo-img" alt="SV1">
-        </a>
-        <a href="/UuDaiSinhVien/ChiTiet/2">
-            <img src="/image/sv2.webp" class="promo-img" alt="SV2">
-        </a>
-        <a href="/UuDaiSinhVien/ChiTiet/3">
-            <img src="/image/sv3.webp" class="promo-img" alt="SV3">
-        </a>
-        <a href="/UuDaiSinhVien/ChiTiet/4">
-            <img src="/image/sv4.webp" class="promo-img" alt="SV4">
-        </a>
+
+<section class="relative w-full overflow-hidden">
+    <div class="absolute inset-0 z-0">
+        <div class="w-full h-full bg-cover bg-center" data-alt="Immersive gaming setup with RGB lighting, triple s display, and mechanical keyboard in a dark room" style="background-image: linear-gradient(to right, rgba(10, 15, 22, 0.95) 0%, rgba(10, 15, 22, 0.7) 50%, rgba(10, 15, 22, 0.3) 100%), url('https://lh3.googleusercontent.com/aida-public/AB6AXuCMkFrnTL8iVF6LUodxguxCfLCJr-P6RU74edwe9LSL3Kk5eyu-i-lyX93abYOL4fiqm85OckmrGQM4Ps4rMEp2JksDfjPY_CptCUY0fx1BCzCn7dJOlxBM9sn3VKPmc5Yq-oIHp1hdZKudSOBQC8HB6De1GLxKZqRUdUqIUlJBEv4wgUrkiSrQohPVtU5zq9MktxZuoETBVFIGrgrG87WtNTQXfWdPlEqGsEl0H6XsXQonR5X0-368G8CrJBBz4kd6ZNOtQiyQXKc');"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-background-dark via-transparent to-transparent"></div>
+        <div class="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-accent-purple to-transparent opacity-50"></div>
     </div>
-
-    <!-- ƯU ĐÃI THANH TOÁN -->
-    <h3 class="fw-bold text-uppercase mt-5 mb-4">Ưu đãi thanh toán</h3>
-    <div class="d-flex flex-wrap gap-3 justify-content-center">
-        <a asp-controller="UuDai" asp-action="ChiTiet" asp-route-id="1">
-            <img src="/image/tt1.webp" class="promo-img" alt="TT1" />
-        </a>
-        <a asp-controller="UuDai" asp-action="ChiTiet" asp-route-id="2">
-            <img src="/image/tt2.webp" class="promo-img" alt="TT2" />
-        </a>
-        <a asp-controller="UuDai" asp-action="ChiTiet" asp-route-id="3">
-            <img src="/image/tt3.webp" class="promo-img" alt="TT3" />
-        </a>
-        <a asp-controller="UuDai" asp-action="ChiTiet" asp-route-id="4">
-            <img src="/image/tt4.webp" class="promo-img" alt="TT4" />
-        </a>
+    <div class="relative z-10 layout-container mx-auto max-w-[1280px] px-4 md:px-6 pt-24 pb-32 md:pt-32 md:pb-40">
+        <div class="max-w-2xl flex flex-col gap-6">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-accent-red/30 bg-accent-red/10 w-fit backdrop-blur-sm">
+                <span class="h-2 w-2 rounded-full bg-accent-red animate-pulse shadow-neon-red"></span>
+                <span class="text-xs font-bold text-accent-red tracking-widest uppercase">Live: Summer Sale</span>
+            </div>
+            <h1 class="text-5xl md:text-7xl font-bold leading-tight tracking-tight text-white drop-shadow-lg">
+                Dominate <br />
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent-cyan to-accent-purple text-glow">Your Game</span>
+            </h1>
+            <h2 class="text-slate-300 text-lg md:text-xl font-normal max-w-lg leading-relaxed font-body border-l-2 border-accent-purple pl-4">
+                Elevate your performance with pro-grade equipment engineered for victory. Precision, speed, and immersion in every click.
+            </h2>
+            <div class="flex flex-wrap gap-4 mt-4">
+                <button class="group flex items-center justify-center h-12 px-8 rounded bg-gradient-to-r from-primary to-accent-purple text-white text-base font-bold tracking-wide shadow-neon hover:shadow-neon-purple transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
+                    <span class="relative z-10 flex items-center">Shop Gaming Gear <span class="material-symbols-outlined ml-2 group-hover:translate-x-1 transition-transform">arrow_forward</span></span>
+                    <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                </button>
+                <button class="flex items-center justify-center h-12 px-8 rounded border border-accent-cyan/30 bg-accent-cyan/5 text-accent-cyan text-base font-bold tracking-wide backdrop-blur-sm hover:bg-accent-cyan/20 hover:border-accent-cyan hover:shadow-neon-cyan transition-all duration-300">
+                    Explore Deals
+                </button>
+            </div>
+        </div>
     </div>
-    
+</section>
 
-</div>  
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script>
+        // Check if GSAP is loaded
+        if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+            gsap.registerPlugin(ScrollTrigger);
 
-<style>
-    .promo-img {
-        width: 100%;
-        max-width: 270px;
-        height: auto;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        transition: transform 0.3s ease;
+            // Hero Section
+            const heroTl = gsap.timeline();
+            heroTl.from("#hero h1", { autoAlpha: 0, y: 50, duration: 1, ease: "power3.out" })
+                  .from("#hero h2", { autoAlpha: 0, y: 30, duration: 0.8, ease: "power3.out" }, "-=0.6")
+                  .from("#hero button", { autoAlpha: 0, y: 20, duration: 0.8, stagger: 0.2, ease: "power3.out", clearProps: "all" }, "-=0.6")
+                  .from("#hero .inline-flex", { autoAlpha: 0, y: -20, duration: 0.6, ease: "power2.out" }, "-=1.5");
+
+            // Features Section
+            gsap.from("#features .grid > div", {
+                scrollTrigger: {
+                    trigger: "#features",
+                    start: "top 80%",
+                },
+                autoAlpha: 0,
+                y: 30,
+                duration: 0.8,
+                stagger: 0.15,
+                ease: "back.out(1.7)",
+                clearProps: "all"
+            });
+
+            // Categories Section
+            gsap.from("#categories h2, #categories .justify-between > a", {
+                scrollTrigger: {
+                    trigger: "#categories",
+                    start: "top 85%",
+                },
+                autoAlpha: 0,
+                x: -20,
+                duration: 0.6,
+                stagger: 0.1
+            });
+
+            gsap.from("#categories .grid > a", {
+                scrollTrigger: {
+                    trigger: "#categories .grid",
+                    start: "top 80%",
+                },
+                autoAlpha: 0,
+                scale: 0.9,
+                duration: 0.6,
+                stagger: 0.1,
+                ease: "power2.out",
+                clearProps: "all"
+            });
+
+            // Pro-Level Performance Section
+            gsap.from("#pro-products h2, #pro-products p", {
+                 scrollTrigger: {
+                    trigger: "#pro-products",
+                    start: "top 80%",
+                },
+                autoAlpha: 0,
+                y: 20,
+                duration: 0.8,
+                stagger: 0.1
+            });
+
+            gsap.from("#pro-products .flex.gap-2 button", {
+                 scrollTrigger: {
+                    trigger: "#pro-products",
+                    start: "top 80%",
+                },
+                autoAlpha: 0,
+                x: 20,
+                duration: 0.6,
+                stagger: 0.1,
+                clearProps: "all"
+            });
+
+            gsap.from("#pro-products .grid > div", {
+                scrollTrigger: {
+                    trigger: "#pro-products .grid",
+                    start: "top 75%",
+                },
+                autoAlpha: 0,
+                y: 50,
+                duration: 0.8,
+                stagger: 0.2,
+                ease: "power3.out",
+                clearProps: "all"
+            });
+        }
+    </script>
+}
+<section id="features" class="py-10 bg-surface-dark border-y border-white/5 relative overflow-hidden">
+    <div class="absolute top-0 left-1/4 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
+    <div class="layout-container mx-auto max-w-[1280px] px-4 md:px-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div class="flex flex-col items-center text-center gap-3 group">
+                <div class="p-4 rounded-full bg-background-dark border border-white/10 group-hover:border-accent-red/50 group-hover:shadow-neon-red transition-all duration-300">
+                    <span class="material-symbols-outlined text-3xl text-accent-red">bolt</span>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold text-lg group-hover:text-accent-red transition-colors">Ultra-low Latency</h3>
+                    <p class="text-slate-400 text-sm font-body">Instant response time</p>
+                </div>
+            </div>
+            <div class="flex flex-col items-center text-center gap-3 group">
+                <div class="p-4 rounded-full bg-background-dark border border-white/10 group-hover:border-accent-purple/50 group-hover:shadow-neon-purple transition-all duration-300">
+                    <span class="material-symbols-outlined text-3xl text-accent-purple">verified_user</span>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold text-lg group-hover:text-accent-purple transition-colors">Pro Gamer Tested</h3>
+                    <p class="text-slate-400 text-sm font-body">Used by top esports teams</p>
+                </div>
+            </div>
+            <div class="flex flex-col items-center text-center gap-3 group">
+                <div class="p-4 rounded-full bg-background-dark border border-white/10 group-hover:border-accent-cyan/50 group-hover:shadow-neon-cyan transition-all duration-300">
+                    <span class="material-symbols-outlined text-3xl text-accent-cyan">palette</span>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold text-lg group-hover:text-accent-cyan transition-colors">RGB Sync</h3>
+                    <p class="text-slate-400 text-sm font-body">16.8M customizable colors</p>
+                </div>
+            </div>
+            <div class="flex flex-col items-center text-center gap-3 group">
+                <div class="p-4 rounded-full bg-background-dark border border-white/10 group-hover:border-primary/50 group-hover:shadow-neon transition-all duration-300">
+                    <span class="material-symbols-outlined text-3xl text-primary">security</span>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold text-lg group-hover:text-primary transition-colors">Official Warranty</h3>
+                    <p class="text-slate-400 text-sm font-body">2-year extensive coverage</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<section id="categories" class="py-16 bg-background-dark relative">
+    <div class="absolute top-20 left-0 w-64 h-64 bg-accent-purple/5 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-20 right-0 w-64 h-64 bg-accent-cyan/5 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="layout-container mx-auto max-w-[1280px] px-4 md:px-6 relative z-10">
+        <div class="flex items-center justify-between mb-10">
+            <h2 class="text-3xl md:text-4xl font-bold text-white tracking-tight border-l-4 border-accent-purple pl-4">Gear Up By Category</h2>
+            <button onclick="openCategoryModal()" class="text-accent-purple hover:text-white transition-colors text-sm font-medium flex items-center gap-1 group">View All <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span></button>
+        </div>
+        @{
+            var allCategories = ViewBag.Categories as IEnumerable<Category> ?? new List<Category>();
+            int GetCategoryId(string name)
+            {
+                // 1. Try exact match
+                var cat = allCategories.FirstOrDefault(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+                if (cat != null) return cat.Id;
+
+                // 2. Manual mappings (User defined)
+                string targetName = "";
+                if (name.Equals("Monitors", StringComparison.OrdinalIgnoreCase)) targetName = "Màn hình";
+                else if (name.Equals("Mice", StringComparison.OrdinalIgnoreCase)) targetName = "Mouse";
+                else if (name.Equals("Keyboards", StringComparison.OrdinalIgnoreCase)) targetName = "Bàn phím";
+                else if (name.Equals("Headsets", StringComparison.OrdinalIgnoreCase)) targetName = "Tai nghe";
+                else if (name.Equals("Chairs", StringComparison.OrdinalIgnoreCase)) targetName = "Ghế CTH/Gaming";
+                else if (name.Equals("Parts", StringComparison.OrdinalIgnoreCase)) targetName = "Ram";
+
+                if (!string.IsNullOrEmpty(targetName))
+                {
+                    cat = allCategories.FirstOrDefault(c => c.Name.Equals(targetName, StringComparison.OrdinalIgnoreCase));
+                    if (cat != null) return cat.Id;
+                    
+                    // Fallback: Try contains if exact match fails
+                    cat = allCategories.FirstOrDefault(c => c.Name.Contains(targetName, StringComparison.OrdinalIgnoreCase));
+                    if (cat != null) return cat.Id;
+                }
+
+                // 3. Fallback: Try singular
+                 if (name.EndsWith("s"))
+                {
+                    var singular = name.Substring(0, name.Length - 1);
+                    cat = allCategories.FirstOrDefault(c => c.Name.Equals(singular, StringComparison.OrdinalIgnoreCase));
+                    if (cat != null) return cat.Id;
+                }
+
+                return 0;
+            }
+        }
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <a class="group relative flex flex-col gap-3 p-4 rounded-xl bg-surface-light border border-white/5 hover:border-accent-cyan hover:shadow-neon-cyan transition-all duration-300 overflow-hidden" href="/Product/Index?categoryId=@GetCategoryId("Monitors")">
+                <div class="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-accent-cyan/20 to-transparent rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-150"></div>
+                <div class="h-32 w-full bg-center bg-contain bg-no-repeat transition-transform group-hover:scale-110 duration-500" data-alt="High refresh rate gaming monitor" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDCnAaPlcs9JexhW7ot1BoYnku0m-h6nM93jlhmSxZY-KZQGeifdc5NiOBqQShFjiUmK_VSfsfPKE5wItXy5CWcJRGjsFWTzTKxs71oswgOSOHOcfHJSMNY5_SQnVkDBhgQrY9PPaVks2k0Q7QxhuAqebXKuLiqhxCtwOZ1clMUOk9ANGYmpt06xD3G57JIO7auNoqke5BGY3CV7C0ikj7IJYzr8RNJw0co6mcLmXUuyjpbaIIHr1pJx4TtKebgvFYXJvCFmxTCMaY");'></div>
+                <div class="flex items-center justify-between mt-auto">
+                    <p class="text-white text-sm font-bold group-hover:text-accent-cyan transition-colors">Monitors</p>
+                    <span class="material-symbols-outlined text-slate-500 group-hover:text-white text-lg">arrow_outward</span>
+                </div>
+            </a>
+            <a class="group relative flex flex-col gap-3 p-4 rounded-xl bg-surface-light border border-white/5 hover:border-accent-purple hover:shadow-neon-purple transition-all duration-300 overflow-hidden" href="/Product/Index?categoryId=@GetCategoryId("Keyboards")">
+                <div class="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-accent-purple/20 to-transparent rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-150"></div>
+                <div class="h-32 w-full bg-center bg-contain bg-no-repeat transition-transform group-hover:scale-110 duration-500" data-alt="Mechanical gaming keyboard with RGB" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCl9JuQbDunnmfKnnfxrBH6F7_dCl2ikKUwk0yFBSWSIgy2tdMBHSRLjQH8iu7Z_TVTlcx6E4mqESP9RHI2ODTgpiJ64ZAB2bvWKMJQ-GobKj5ox-jzq6u1rl-44B50MWdZwAVJQWs6xDZ4C_sCEjdtGkVLmwu8UDIbpfcgm7EHxEQCWtZHxYlo-YNnikxgxxFwZ_sCMZBXD4_SoPiFjz34vQhQWvLIju8zYhzNysndhzLUvXU_1MPwoBTV6M6rx4abX_xg0yitfqM");'></div>
+                <div class="flex items-center justify-between mt-auto">
+                    <p class="text-white text-sm font-bold group-hover:text-accent-purple transition-colors">Keyboards</p>
+                    <span class="material-symbols-outlined text-slate-500 group-hover:text-white text-lg">arrow_outward</span>
+                </div>
+            </a>
+            <a class="group relative flex flex-col gap-3 p-4 rounded-xl bg-surface-light border border-white/5 hover:border-accent-red hover:shadow-neon-red transition-all duration-300 overflow-hidden" href="/Product/Index?categoryId=@GetCategoryId("Mice")">
+                <div class="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-accent-red/20 to-transparent rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-150"></div>
+                <div class="h-32 w-full bg-center bg-contain bg-no-repeat transition-transform group-hover:scale-110 duration-500" data-alt="Wireless gaming mouse" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBguW5exhkLB6jwDv8KNOs4i-Mv6clTZRxB502Ai0NowgTyv23GK4zx38mNW2CvBeODP5JIUt9CbOW_62knuUoqyEYHQUx5ZI1bSSnu0tTdXbB1gyi39wl4VGlSPRNUPQ4__Q0BS74wU2jlYY_FgMK4S9kjITonEblRwWHyXm8xJ-j1CrwuMxVAWNWV9hcxo5KBnctkGSDBQGCB5zhrNvivsG8njN2IL_4FDdodMOF5O9FfPmVFjP6_Lcty34VqXmIk0HldnHJgEk4");'></div>
+                <div class="flex items-center justify-between mt-auto">
+                    <p class="text-white text-sm font-bold group-hover:text-accent-red transition-colors">Mice</p>
+                    <span class="material-symbols-outlined text-slate-500 group-hover:text-white text-lg">arrow_outward</span>
+                </div>
+            </a>
+            <a class="group relative flex flex-col gap-3 p-4 rounded-xl bg-surface-light border border-white/5 hover:border-primary hover:shadow-neon transition-all duration-300 overflow-hidden" href="/Product/Index?categoryId=@GetCategoryId("Headsets")">
+                <div class="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-primary/20 to-transparent rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-150"></div>
+                <div class="h-32 w-full bg-center bg-contain bg-no-repeat transition-transform group-hover:scale-110 duration-500" data-alt="Gaming headset with microphone" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBOy0wm-tWMoonY6p4yVzT7DtzhnnI1XuwSqKJAOlwM1JDE6qxGXkm_wIOYkN3YJ3N9dBe_3qzjJMhmXNFphxNtB8rNrdzLNn4eeUFCrjX1HTmfm9NxUsiAG0m3I7g9qLLKkoh3ej_Ah9yHkdu8aEdiA2mFWF6_I3DOqBzZ25tAGCFYLMj6db-I2DOcxY-Z1AIQJ0zWMihzxUe8FXhXYGJk4ZXPkjOajPGj8vQSiJIZ4dB2CBgZOxXImpcVCNxKZPSvCPE-E4aJlzY");'></div>
+                <div class="flex items-center justify-between mt-auto">
+                    <p class="text-white text-sm font-bold group-hover:text-primary transition-colors">Headsets</p>
+                    <span class="material-symbols-outlined text-slate-500 group-hover:text-white text-lg">arrow_outward</span>
+                </div>
+            </a>
+            <a class="group relative flex flex-col gap-3 p-4 rounded-xl bg-surface-light border border-white/5 hover:border-accent-purple hover:shadow-neon-purple transition-all duration-300 overflow-hidden" href="/Product/Index?categoryId=@GetCategoryId("Chairs")">
+                <div class="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-accent-purple/20 to-transparent rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-150"></div>
+                <div class="h-32 w-full bg-center bg-contain bg-no-repeat transition-transform group-hover:scale-110 duration-500" data-alt="Gaming chair ergonomic" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBWDMt4jA7cfi1EeHV-OIC99QOjuxtf5zNuna7udX1Fdn52kn8b3jKbpYTcxBpHwt7qrwmucONczCBNA6taudy_AhULpm08uMrQPEJ8WPgB51ogsfOAbWzhzENrT87O0laySGNQwpfcAHx9dzihKwG748xYsQcdSJspHNtOQZEpXmsiS2SNNA8zM_pOH2qJrmPlFJUvqSurpU9eMaBm77m5lcL93-nR157yE0jXaX0zb_OaqSgWLcFlNKfgNTgwGG4Hby2mLinTd38");'></div>
+                <div class="flex items-center justify-between mt-auto">
+                    <p class="text-white text-sm font-bold group-hover:text-accent-purple transition-colors">Chairs</p>
+                    <span class="material-symbols-outlined text-slate-500 group-hover:text-white text-lg">arrow_outward</span>
+                </div>
+            </a>
+            <a class="group relative flex flex-col gap-3 p-4 rounded-xl bg-surface-light border border-white/5 hover:border-accent-cyan hover:shadow-neon-cyan transition-all duration-300 overflow-hidden" href="/Product/Index?categoryId=@GetCategoryId("Parts")">
+                <div class="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-accent-cyan/20 to-transparent rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-150"></div>
+                <div class="h-32 w-full bg-center bg-contain bg-no-repeat transition-transform group-hover:scale-110 duration-500" data-alt="PC component graphics card" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDGjAPKo3PPO_1BdY7dTidgSvLeXzjaLJL-8-7LYSR4vxL6EyBR_UjUkPK4f-iVUGSulq7TXW4LiTApOjUjoYYZMWp3oIyd15pfwzir7H5I9tUY89kkVZOLZUuwGBKIpyonvFbwmnJIF7C_wjImjj1JNZDm74Z-DgFjakwPNrI1VYirniqE1gwyTE_bW-5u5TfEFac8tYaE_wJ9Ao6mfOLjvW6XeIfgGZ_wwDEkuGIi8QM0RocZ5lenVtVZTf4QAr3Lzs36Hs839NM");'></div>
+                <div class="flex items-center justify-between mt-auto">
+                    <p class="text-white text-sm font-bold group-hover:text-accent-cyan transition-colors">Parts</p>
+                    <span class="material-symbols-outlined text-slate-500 group-hover:text-white text-lg">arrow_outward</span>
+                </div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Modal -->
+<div id="categoryModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-sm opacity-0 transition-opacity duration-300">
+    <div class="bg-[#1a2027] border border-[#283039] rounded-2xl w-full max-w-4xl p-6 shadow-2xl transform scale-95 transition-transform duration-300 relative max-h-[80vh] overflow-y-auto">
+        <button onclick="closeCategoryModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+        
+        <h3 class="text-2xl font-bold text-white mb-6 font-display">All Categories</h3>
+        
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            @foreach(var cat in allCategories)
+            {
+                <a href="/Product/Index?categoryId=@cat.Id" class="flex flex-col items-center justify-center p-6 rounded-xl bg-surface-dark border border-white/5 hover:border-primary hover:shadow-neon hover:bg-surface-hover transition-all duration-300 group">
+                    <div class="w-12 h-12 mb-3 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                        <span class="material-symbols-outlined">category</span>
+                    </div>
+                    <span class="text-white font-bold text-center group-hover:text-primary transition-colors">@cat.Name</span>
+                    <span class="text-xs text-slate-500 mt-1">@if(cat.Products != null){ @cat.Products.Count } else { <text>0</text> } Products</span>
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    function openCategoryModal() {
+        const modal = document.getElementById('categoryModal');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            modal.querySelector('div').classList.remove('scale-95');
+            modal.querySelector('div').classList.add('scale-100');
+        }, 10);
     }
 
-
-        .promo-img:hover {
-            transform: scale(1.03);
+    function closeCategoryModal() {
+        const modal = document.getElementById('categoryModal');
+        modal.classList.add('opacity-0');
+        modal.querySelector('div').classList.remove('scale-100');
+        modal.querySelector('div').classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+    
+    // Close modal when clicking outside
+    document.getElementById('categoryModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeCategoryModal();
         }
-</style>
+    });
+</script>
+<section id="pro-products" class="py-16 bg-surface-dark border-y border-white/5">
+    <div class="layout-container mx-auto max-w-[1280px] px-4 md:px-6">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+            <div>
+                <h2 class="text-3xl md:text-4xl font-bold text-white tracking-tight">Pro-Level Performance</h2>
+                <p class="text-slate-400 mt-2 font-body">Selected by experts for competitive gaming.</p>
+            </div>
+            <div class="flex gap-2">
+                <button id="tab-best" class="px-4 py-2 rounded-full border border-primary bg-primary/10 text-primary text-sm font-bold hover:shadow-neon transition-shadow">Best Sellers</button>
+                <button id="tab-new" class="px-4 py-2 rounded-full border border-white/10 text-slate-400 hover:text-accent-cyan hover:border-accent-cyan/50 text-sm font-bold transition-colors">New Arrivals</button>
+                <button id="tab-sale" class="px-4 py-2 rounded-full border border-white/10 text-slate-400 hover:text-accent-red hover:border-accent-red/50 text-sm font-bold transition-colors">On Sale</button>
+            </div>
+        </div>
+        <div id="featured-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+    </div>
+</section>
+<script>
+    const tabs = {
+        best: document.getElementById('tab-best'),
+        new: document.getElementById('tab-new'),
+        sale: document.getElementById('tab-sale')
+    };
+    function setActive(mode){
+        tabs.best.classList.remove('border-primary','bg-primary/10','text-primary');
+        tabs.new.classList.remove('border-accent-cyan/50','text-accent-cyan');
+        tabs.sale.classList.remove('border-accent-red/50','text-accent-red');
+        if(mode==='best'){
+            tabs.best.classList.add('border-primary','bg-primary/10','text-primary');
+        }else if(mode==='new'){
+            tabs.new.classList.add('border-accent-cyan/50','text-accent-cyan');
+        }else{
+            tabs.sale.classList.add('border-accent-red/50','text-accent-red');
+        }
+    }
+    async function loadFeatured(mode){
+        setActive(mode);
+        const res = await fetch(`/Home/FeaturedProducts?mode=${mode}`);
+        const items = await res.json();
+        const data = items.slice(0,4);
+
+        if (mode === 'sale' && data.length === 0) {
+            document.getElementById('featured-grid').innerHTML = `
+                <div class="col-span-full flex items-center justify-center h-[360px] rounded-2xl bg-surface-dark border border-white/10">
+                    <p class="text-slate-400 text-sm font-bold">Chưa có sản phẩm nào có khuyến mãi</p>
+                </div>
+            `;
+            return;
+        }
+
+        const cards = data.map(item => {
+            const badge = mode==='best' ? {text:'BEST SELLER',cls:'from-primary to-blue-600 text-white',wrap:'bg-gradient-to-r'} :
+                           mode==='new' ? {text:'NEW ARRIVAL',cls:'from-accent-cyan to-teal-500 text-white',wrap:'bg-gradient-to-r'} :
+                           {text:`-${item.discountPercent ?? 0}% OFF`,cls:'from-accent-purple to-fuchsia-600 text-white',wrap:'bg-gradient-to-r'};
+            const formatVND = (v) => Number(v).toLocaleString('vi-VN');
+            const priceBlock = item.discountedPrice ? 
+                `<div class="flex flex-col">
+                    <span class="text-xs text-slate-500 line-through whitespace-nowrap">${formatVND(item.price)}&nbsp;₫</span>
+                    <span class="text-xl font-bold text-white whitespace-nowrap">${formatVND(item.discountedPrice)}&nbsp;₫</span>
+                 </div>` :
+                `<span class="text-xl font-bold text-white whitespace-nowrap">${formatVND(item.price)}&nbsp;₫</span>`;
+            const stockLabel = item.quantity > 0 ? 
+                `<span class="text-xs text-accent-cyan font-bold border border-accent-cyan/30 px-2 py-0.5 rounded bg-accent-cyan/10">In Stock</span>` :
+                `<span class="text-xs text-red-400 font-bold border border-red-400/30 px-2 py-0.5 rounded bg-red-900/30">Out of Stock</span>`;
+            const avg = Number(item.ratingAverage) || 0;
+            const cnt = Number(item.ratingCount) || 0;
+            const full = Math.floor(avg);
+            const half = avg - full >= 0.5;
+            const empty = 5 - full - (half ? 1 : 0);
+            let stars = '';
+            for(let i=0;i<full;i++){ stars += `<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1">star</span>`; }
+            if(half){ stars += `<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1">star_half</span>`; }
+            for(let i=0;i<empty;i++){ stars += `<span class="material-symbols-outlined text-[16px]">star</span>`; }
+            return `
+            <div class="group flex flex-col bg-surface-light rounded-2xl overflow-hidden border border-white/5 hover:border-primary/50 hover:shadow-neon transition-all duration-300">
+                <div class="relative w-full aspect-square bg-[#0f1115] p-6 flex items-center justify-center overflow-hidden">
+                    <div class="absolute top-3 left-3 ${badge.wrap} ${badge.cls} text-xs font-bold px-3 py-1 rounded shadow-neon tracking-wider z-10">${badge.text}</div>
+                    <img alt="${item.name}" class="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105 z-0" src="${item.imageUrl ?? '/images/no-image.png'}" />
+                    <a href="/Product/Display/${item.id}" class="absolute bottom-4 right-4 h-10 w-10 bg-primary rounded-full flex items-center justify-center text-white opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-neon hover:bg-white hover:text-primary">
+                        <span class="material-symbols-outlined">visibility</span>
+                    </a>
+                </div>
+                <div class="p-5 flex flex-col gap-2 flex-grow">
+                    <div class="flex items-center gap-1 text-yellow-500 text-xs">${stars}<span class="text-slate-400 ml-1">${avg.toFixed(1)} (${cnt})</span></div>
+                    <h3 class="text-white font-bold text-lg leading-tight group-hover:text-primary transition-colors">${item.name}</h3>
+                    <div class="mt-auto pt-4 flex items-center justify-between">
+                        ${priceBlock}
+                        ${stockLabel}
+                    </div>
+                </div>
+            </div>`;
+        });
+        for(let i = cards.length; i < 4; i++){
+            cards.push(`<div class="group flex flex-col rounded-2xl overflow-hidden border border-transparent opacity-0 pointer-events-none"><div class="relative w-full aspect-square"></div></div>`);
+        }
+        document.getElementById('featured-grid').innerHTML = cards.join('');
+
+        if (typeof gsap !== 'undefined') {
+            gsap.killTweensOf("#featured-grid > div");
+            gsap.set("#featured-grid > div", { opacity: 1, autoAlpha: 1, y: 0, clearProps: "all" });
+            gsap.from("#featured-grid > div", {
+                opacity: 0,
+                y: 20,
+                duration: 0.5,
+                stagger: 0.08,
+                ease: "power2.out",
+                clearProps: "all"
+            });
+        }
+    }
+    tabs.best.addEventListener('click', ()=>loadFeatured('best'));
+    tabs.new.addEventListener('click', ()=>loadFeatured('new'));
+    tabs.sale.addEventListener('click', ()=>loadFeatured('sale'));
+    loadFeatured('best');
+</script>
+<section class="py-12 relative overflow-hidden">
+    <div class="absolute inset-0 bg-cyber-gradient opacity-20 animate-pulse"></div>
+    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-30"></div>
+    <div class="layout-container mx-auto max-w-[1280px] px-4 md:px-6 relative z-10">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-8 bg-surface-light/70 backdrop-blur-md border border-white/10 p-8 md:p-12 rounded-2xl shadow-neon-purple group hover:border-accent-purple/50 transition-colors duration-500">
+            <div class="flex flex-col gap-4 text-center md:text-left max-w-xl">
+                <span class="text-accent-cyan font-bold tracking-widest uppercase text-glow-cyan">Limited Time Offer</span>
+                <h2 class="text-4xl md:text-6xl font-bold text-white leading-none text-glow-purple">GAMING SALE<br /><span class="text-3xl md:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-accent-cyan via-white to-accent-red">UP TO 40% OFF</span></h2>
+                <p class="text-slate-300 font-body">Upgrade your battlestation with premium gear at unbeatable prices. Offer ends soon.</p>
+            </div>
+            <div class="flex flex-col items-center gap-6">
+                <div class="flex gap-4">
+                    <div class="flex flex-col items-center bg-background-dark/80 p-3 rounded-lg border border-accent-cyan/30 shadow-[0_0_10px_rgba(6,182,212,0.2)] min-w-[70px]">
+                        <span id="saleDays" class="text-2xl font-bold text-accent-cyan font-mono">--</span>
+                        <span class="text-[10px] uppercase text-slate-400">Days</span>
+                    </div>
+                    <div class="text-2xl font-bold text-white self-start mt-2 animate-pulse">:</div>
+                    <div class="flex flex-col items-center bg-background-dark/80 p-3 rounded-lg border border-accent-purple/30 shadow-[0_0_10px_rgba(168,85,247,0.2)] min-w-[70px]">
+                        <span id="saleHours" class="text-2xl font-bold text-accent-purple font-mono">--</span>
+                        <span class="text-[10px] uppercase text-slate-400">Hours</span>
+                    </div>
+                    <div class="text-2xl font-bold text-white self-start mt-2 animate-pulse">:</div>
+                    <div class="flex flex-col items-center bg-background-dark/80 p-3 rounded-lg border border-accent-red/30 shadow-[0_0_10px_rgba(239,68,68,0.2)] min-w-[70px]">
+                        <span id="saleMins" class="text-2xl font-bold text-accent-red font-mono">--</span>
+                        <span class="text-[10px] uppercase text-slate-400">Mins</span>
+                    </div>
+                </div>
+                <button class="w-full bg-white text-black hover:bg-slate-200 font-bold py-3 px-8 rounded shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300 transform hover:scale-105 border-2 border-transparent hover:border-accent-purple">
+                    Shop The Sale
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+<script>
+    async function initSaleCountdown() {
+        var d = document.getElementById('saleDays');
+        var h = document.getElementById('saleHours');
+        var m = document.getElementById('saleMins');
+        try {
+            var res = await fetch('/Home/NextFortySale');
+            var info = await res.json();
+            var target = info && info.target ? new Date(info.target) : null;
+            function update() {
+                var ms = target ? (target - new Date()) : 0;
+                if (ms < 0) ms = 0;
+                var days = Math.floor(ms / 86400000);
+                var hours = Math.floor(ms / 3600000) % 24;
+                var mins = Math.floor(ms / 60000) % 60;
+                d.textContent = String(days).padStart(2, '0');
+                h.textContent = String(hours).padStart(2, '0');
+                m.textContent = String(mins).padStart(2, '0');
+            }
+            update();
+            setInterval(update, 1000);
+        } catch(e) {
+            if (d) d.textContent = '00';
+            if (h) h.textContent = '00';
+            if (m) m.textContent = '00';
+        }
+    }
+    document.addEventListener('DOMContentLoaded', initSaleCountdown);
+</script>
+<section class="py-16 bg-background-dark">
+    <div class="layout-container mx-auto max-w-[1280px] px-4 md:px-6">
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="text-2xl font-bold text-white border-b-2 border-accent-red pb-1">Trending Now</h2>
+            <div class="flex gap-2">
+                <button id="trendingPrev" class="h-10 w-10 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-accent-red hover:border-accent-red hover:shadow-neon-red transition-colors">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+                <button id="trendingNext" class="h-10 w-10 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-accent-red hover:border-accent-red hover:shadow-neon-red transition-colors">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </button>
+            </div>
+        </div>
+        <div id="trending-strip" class="flex gap-6 overflow-x-auto hide-scrollbar pb-4 snap-x"></div>
+    </div>
+</section>
+<script>
+    async function loadTrending() {
+        var strip = document.getElementById('trending-strip');
+        var prev = document.getElementById('trendingPrev');
+        var next = document.getElementById('trendingNext');
+        var res = await fetch('/Home/TrendingProducts?count=12');
+        var data = await res.json();
+        var fmt = (v) => Number(v).toLocaleString('vi-VN');
+        var html = data.map(p => `
+            <div class="min-w-[280px] md:min-w-[320px] snap-center bg-surface-light rounded-xl p-4 border border-white/5 flex gap-4 items-center group hover:bg-surface-light/80 transition-all cursor-pointer">
+                <div class="w-24 h-24 bg-[#0f1115] rounded-lg p-2 flex-shrink-0 border border-white/5 group-hover:border-accent-purple/30 transition-colors">
+                    <img alt="${p.name}" class="w-full h-full object-contain" src="${p.imageUrl ?? '/images/no-image.png'}" />
+                </div>
+                <div class="flex flex-col">
+                    <h4 class="text-white font-bold text-sm group-hover:text-accent-purple transition-colors">${p.name}</h4>
+                    <p class="text-slate-500 text-xs">Premium Gear</p>
+                    <span class="text-white font-bold mt-2 whitespace-nowrap">${fmt(p.discountedPrice ?? p.price)}&nbsp;₫</span>
+                </div>
+            </div>
+        `).join('');
+        strip.innerHTML = html;
+        var step = 640;
+        if (prev) prev.addEventListener('click', () => strip.scrollBy({ left: -step, behavior: 'smooth' }));
+        if (next) next.addEventListener('click', () => strip.scrollBy({ left: step, behavior: 'smooth' }));
+    }
+    document.addEventListener('DOMContentLoaded', loadTrending);
+</script>
